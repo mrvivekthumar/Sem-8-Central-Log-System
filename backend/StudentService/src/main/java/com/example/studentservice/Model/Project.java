@@ -1,23 +1,20 @@
-package com.example.facultyservice.Model;
+package com.example.studentservice.Model;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
-
-@Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Project {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private int p_id;
     private String title;
     private String description;
     private String status;
     private LocalDate date;
-    @ManyToOne
-    @JoinColumn(name = "facultyId")
     private Faculty faculty;
 
     public Faculty getFaculty() {
@@ -105,3 +102,4 @@ public class Project {
         this.date=LocalDate.now();
     }
 }
+

@@ -7,6 +7,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.List;
+
 @Service
 public class AuthService {
     @Autowired
@@ -16,10 +18,13 @@ public class AuthService {
     @Autowired
     private JwtService jwtService;
 
-    public String saveUser(UserCredential user){
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userCredentialDao.save(user);
-        return "User saved";
+    public String saveUser(List<UserCredential> users){
+        users.parallelStream().forEach(user -> {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        });
+
+        userCredentialDao.saveAll(users);
+        return "Users saved";
     }
     public String generateToken(String username){
         return jwtService.generateToken(username);

@@ -9,6 +9,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("auth")
 public class AuthController {
@@ -19,8 +21,8 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @PostMapping("register")
-    public String addNewUser(@RequestBody  UserCredential user){
-        return authService.saveUser(user);
+    public String addNewUser(@RequestBody List<UserCredential> users){
+        return authService.saveUser(users);
     }
     @PostMapping("token")
     public String getToken(@RequestBody AuthRequest authRequest){

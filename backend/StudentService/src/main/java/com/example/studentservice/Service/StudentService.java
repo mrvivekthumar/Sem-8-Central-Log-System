@@ -2,14 +2,17 @@ package com.example.studentservice.Service;
 
 import com.example.studentservice.Dao.StudentDao;
 import com.example.studentservice.Feign.AuthInterface;
+import com.example.studentservice.Model.Project;
 import com.example.studentservice.Model.Student;
 import com.example.studentservice.Model.UserCredential;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,45 +42,43 @@ public class StudentService {
             }
     }
 
+    @RabbitListener(queues = "${rabbitmq.queue}")
+    public void receiveProject(Project project) {
+        System.out.println("Received project from RabbitMQ: " + project);
+        // Save the project to the database or update the student UI
+    }
+
+    @Transactional
     public ResponseEntity<String> registerFile(@RequestPart("file") MultipartFile file) {
         try (InputStream inputStream = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(inputStream)) {
 
             Sheet sheet = workbook.getSheetAt(0);
             List<Student> students = new ArrayList<>();
+            List<UserCredential> users = new ArrayList<>();
 
-            // Iterate over rows, starting from the second row (i.e., i=1)
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row != null) {
                     Student student = new Student();
                     UserCredential user = new UserCredential();
 
-                    // Roll Number (Column 2)
-                    if (row.getCell(1) != null) {
-                        if (row.getCell(1).getCellType() == CellType.NUMERIC) {
-                            student.setRoll_no((int) Math.round(row.getCell(1).getNumericCellValue()));
-                        }
+                    if (row.getCell(1) != null && row.getCell(1).getCellType() == CellType.NUMERIC) {
+                        student.setRoll_no((int) Math.round(row.getCell(1).getNumericCellValue()));
                     }
 
-                    // Name (Column 3)
                     if (row.getCell(2) != null && row.getCell(2).getCellType() == CellType.STRING) {
                         student.setName(row.getCell(2).getStringCellValue());
                     }
 
-                    // Department (Column 4)
                     if (row.getCell(3) != null && row.getCell(3).getCellType() == CellType.STRING) {
                         student.setDepartment(row.getCell(3).getStringCellValue());
                     }
 
-                    // Email (Column 5)
-                    if (row.getCell(4) != null) {
-                        if (row.getCell(4).getCellType() == CellType.STRING) {
-                            user.setUsername(row.getCell(4).getStringCellValue());
-                        }
+                    if (row.getCell(4) != null && row.getCell(4).getCellType() == CellType.STRING) {
+                        user.setUsername(row.getCell(4).getStringCellValue());
                     }
 
-                    // Password (Column 6)
                     if (row.getCell(5) != null) {
                         if (row.getCell(5).getCellType() == CellType.STRING) {
                             user.setPassword(row.getCell(5).getStringCellValue());
@@ -86,18 +87,14 @@ public class StudentService {
                         }
                     }
 
-                    // Set role
                     user.setUserRole("STUDENT");
-
-                    // Debugging output (optional)
-                    System.out.println(student);
-                    System.out.println(user);
-
-                    // Save to database
-                    studentDao.save(student);
-                    authInterface.addNewUser(user);
+                    students.add(student);
+                    users.add(user);
                 }
             }
+
+            studentDao.saveAll(students); // Batch insert students
+            authInterface.addNewUser(users); // Batch insert users
 
             return new ResponseEntity<>("File uploaded successfully: " + sheet.getLastRowNum() + " records added.", HttpStatus.OK);
         } catch (Exception e) {
@@ -105,6 +102,7 @@ public class StudentService {
             return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 }

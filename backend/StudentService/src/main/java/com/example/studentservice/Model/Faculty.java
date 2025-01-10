@@ -1,4 +1,5 @@
-package com.example.facultyservice.Model;
+package com.example.studentservice.Model;
+
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,10 +7,9 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity
+
 public class Faculty {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private int f_id;
     private String f_password;
     private String name;
@@ -55,6 +55,14 @@ public class Faculty {
 
     public void setF_password(String f_password) {
         this.f_password = f_password;
+    }
+
+    public Faculty(int f_id, String f_password, String name, String email, String department) {
+        this.f_id = f_id;
+        this.f_password = f_password;
+        this.name = name;
+        this.email = email;
+        this.department = department;
     }
 
     @Override
