@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "FACULTYSERVICE")
+@FeignClient(name = "FACULTY-SERVICE")
 public interface FacultyClient {
     @PostMapping("faculty/register")
     public ResponseEntity<Faculty> registerFaculty(@RequestBody Faculty faculty);

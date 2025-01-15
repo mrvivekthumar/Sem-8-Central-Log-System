@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
-@FeignClient(name = "STUDENTSERVICE")
+@FeignClient(name = "STUDENT-SERVICE")
 public interface StudentClient {
     @PostMapping("student/register")
     public ResponseEntity<Student> registerStudent(@RequestBody Student student);

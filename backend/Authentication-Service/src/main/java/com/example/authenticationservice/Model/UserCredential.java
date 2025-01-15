@@ -1,10 +1,16 @@
 package com.example.authenticationservice.Model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class UserCredential {
     @Id
@@ -12,47 +18,8 @@ public class UserCredential {
     private int id;
     private String username;
     private String password;
-    private String userRole;
+    @Enumerated(EnumType.STRING)
+    private UserRole userRole;
 
-    public UserCredential() {
-    }
 
-    public UserCredential(int id, String username, String password, String userRole) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.userRole = userRole;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getUserRole() {
-        return userRole;
-    }
-
-    public void setUserRole(String userRole) {
-        this.userRole = userRole;
-    }
 }

@@ -36,11 +36,14 @@ public class AdminService {
 
     public ResponseEntity<String> registerFile(MultipartFile file) {
         try{
+            System.out.println("Hey Hey Service");
             studentClient.registerFile(file);
+            System.out.println("Fuck you");
             return new ResponseEntity<>("Success", HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 }
