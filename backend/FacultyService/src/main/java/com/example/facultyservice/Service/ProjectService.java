@@ -63,8 +63,8 @@ public class ProjectService {
         }
     }
 
-    public ResponseEntity<Project> getProjectById(int pId) {
-        Optional<Project> optionalProject = projectDao.findById(pId);
+    public ResponseEntity<Project> getProjectById(int projectId) {
+        Optional<Project> optionalProject = projectDao.findById(projectId);
         if (optionalProject.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -72,8 +72,8 @@ public class ProjectService {
     }
 
 
-    public ResponseEntity<Project> updateStatus(int p_id) {
-        Optional<Project> project=projectDao.findById(p_id);
+    public ResponseEntity<Project> updateStatus(int projectId) {
+        Optional<Project> project=projectDao.findById(projectId);
        Project projectupdate=project.get();
        projectupdate.setStatus(Status.APPLIED);
        projectDao.save(projectupdate);

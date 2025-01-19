@@ -17,6 +17,7 @@ public class UserCredential {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String username;
+    @Column(unique = true, nullable = false)
     private String password;
     @Enumerated(EnumType.STRING)
     private UserRole userRole;

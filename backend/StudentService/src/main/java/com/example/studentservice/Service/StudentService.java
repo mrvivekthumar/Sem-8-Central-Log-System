@@ -1,12 +1,14 @@
 package com.example.studentservice.Service;
 
 import com.example.studentservice.Dao.StudentDao;
+import com.example.studentservice.Dao.StudentProjectDao;
 import com.example.studentservice.Feign.AuthInterface;
-import com.example.studentservice.Model.Project;
+import com.example.studentservice.Model.StudentProject;
+import com.example.studentservice.Vo.Project;
 import com.example.studentservice.Model.Student;
-import com.example.studentservice.Model.UserCredential;
+import com.example.studentservice.Vo.UserCredential;
 import com.example.studentservice.Dto.NotificationRequest;
-import com.example.studentservice.Model.UserRole;
+import com.example.studentservice.Vo.UserRole;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.CellType;
@@ -25,9 +27,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -40,6 +42,9 @@ public class StudentService {
     private static final String FACULTY_SERVICE_URL = "http://localhost:8765/FACULTY-SERVICE/api/project";
     @Autowired
     private StudentDao studentDao;
+    @Autowired
+    private StudentProjectDao studentProjectDao;
+
 
     public ResponseEntity<Student> registerStudent(Student student) {
         try{
@@ -52,7 +57,7 @@ public class StudentService {
 
     @RabbitListener(queues = "${rabbitmq.queue}")
     public void receiveProject(Project project) {
-        System.out.println("Received project from RabbitMQ: " + project);
+        System.out.println("Received project from" + project + "by " +project.getFaculty());
         // Save the project to the database or update the student UI
     }
 
@@ -85,7 +90,13 @@ public class StudentService {
                     }
 
                     if (row.getCell(4) != null && row.getCell(4).getCellType() == CellType.STRING) {
-                        user.setUsername(row.getCell(4).getStringCellValue());
+                        String email=row.getCell(4).getStringCellValue();
+                        user.setUsername(email);
+                        if(studentDao.existsByEmail(email)) {
+                            return new ResponseEntity<>("Email is aleready registered", HttpStatus.CONFLICT);
+                        }
+
+                        student.setEmail(row.getCell(4).getStringCellValue());
                     }
 
                     if (row.getCell(5) != null) {
@@ -136,39 +147,39 @@ public class StudentService {
 
     }
 
-    public ResponseEntity<String> applyProject(int pId, Student student) {
+    public ResponseEntity<String> applyProject(int studentId,int projectId) {
         try {
-//            // Step 1: Fetch the project using RestTemplate from the Faculty microservice
-//            String project_url = FACULTY_SERVICE_URL + "/" + pId;
-//            ResponseEntity<Project> response = restTemplate.getForEntity(project_url, Project.class);
-//            Project project = response.getBody();
-//
-//            // Step 2: Handle case where the project was not found
-//            if (project == null) {
-//                System.out.println("Project not found for ID: " + pId);
-//                return new ResponseEntity<>("Project not found", HttpStatus.NOT_FOUND);
-//            }
-//
-//            System.out.println("Fetched Project: " + project);
-//
-//            // Step 3: Initialize the projects set if it's null
-//            if (student.getProjects() == null) {
-//                student.setProjects(new HashSet<>()); // Initialize if null
-//            }
-//
-//            // Step 4: Add the fetched project to the student's projects
-//            student.getProjects().add(project);
-//            System.out.println(student);
-//
-//            // Step 5: Save the updated student (cascading the project save if needed)
-//            studentDao.save(student);
+            Student student=studentDao.findStudentByStudentId(studentId);
+            if(studentProjectDao.existsByStudent_StudentIdAndProjectId(studentId,projectId)){
+                return new ResponseEntity<>("Student has already applied for this project",HttpStatus.CONFLICT);
+            }
+            // Step 1: Fetch the project using RestTemplate from the Faculty microservice
+            String project_url = FACULTY_SERVICE_URL + "/" + projectId;
+            ResponseEntity<Project> response = restTemplate.getForEntity(project_url, Project.class);
+            Project project = response.getBody();
 
-            // Step 6: Notify the faculty (optional step, assuming you want to send a notification)
+            // Step 2: Handle case where the project was not found
+            if (project == null) {
+                System.out.println("Project not found for ID: " + projectId);
+                return new ResponseEntity<>("Project not found", HttpStatus.NOT_FOUND);
+            }
+            StudentProject studentProject=new StudentProject();
+            studentProject.setStudent(student);
+            studentProject.setStatus("APPLIED");
+            studentProject.setProjectId(projectId);
+            studentProject.setApplicationDate(LocalDate.now());
+            studentProjectDao.save(studentProject);
+
+            System.out.println("Fetched Project: " + project);
+
+
+
+
             String url = FACULTY_SERVICE_URL + "/notify";
-            NotificationRequest notificationRequest = new NotificationRequest(pId, student);
+            NotificationRequest notificationRequest = new NotificationRequest(projectId, student);
             restTemplate.postForEntity(url, notificationRequest, String.class);
 
-            // Step 7: Return success message
+
             return new ResponseEntity<>("Project applied successfully", HttpStatus.OK);
         } catch (RestClientException e) {
             // Handle RestTemplate communication errors

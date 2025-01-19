@@ -1,4 +1,4 @@
-package com.example.studentservice.Model;
+package com.example.studentservice.Vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Project {
-    private int p_id;
+    private int projectId;
     private String title;
     private String description;
     @Enumerated(EnumType.STRING)

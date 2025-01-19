@@ -15,7 +15,7 @@ public class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int p_id;
+    private int projectId;
     private String title;
     private String description;
     @Enumerated(EnumType.STRING)

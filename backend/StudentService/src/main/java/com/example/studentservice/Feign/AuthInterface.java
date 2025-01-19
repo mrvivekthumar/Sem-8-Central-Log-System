@@ -1,9 +1,8 @@
 package com.example.studentservice.Feign;
 
-import com.example.studentservice.Model.UserCredential;
+import com.example.studentservice.Vo.UserCredential;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 

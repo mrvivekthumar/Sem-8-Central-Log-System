@@ -1,8 +1,7 @@
 package com.example.studentservice.Controller;
 
-import com.example.studentservice.Model.Project;
+import com.example.studentservice.Vo.Project;
 import com.example.studentservice.Model.Student;
-import com.example.studentservice.Model.UserCredential;
 import com.example.studentservice.Service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -27,9 +26,9 @@ public class StudentController {
     public ResponseEntity<String> registerFile(@RequestParam("file") MultipartFile file){
         return studentService.registerFile(file);
     }
-    @PostMapping("apply/{p_id}")
-    public ResponseEntity<String> applyProject(@PathVariable int p_id,@RequestBody Student student){
-        return studentService.applyProject(p_id,student);
+    @PostMapping("apply/{studentId}/project/{projectId}")
+    public ResponseEntity<String> applyProject(@PathVariable int studentId,@PathVariable int projectId){
+        return studentService.applyProject(studentId,projectId);
 
     }
     @GetMapping("projects")
@@ -39,3 +38,4 @@ public class StudentController {
 
 
 }
+    
