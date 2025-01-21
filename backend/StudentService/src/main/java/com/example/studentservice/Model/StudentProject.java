@@ -1,5 +1,6 @@
 package com.example.studentservice.Model;
 
+import com.example.studentservice.Vo.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +24,8 @@ public class StudentProject {
     private Student student;
     @Column(name = "project_id", nullable = false)
     private int projectId;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
     @Column(name="application_date")
     private LocalDate applicationDate;
 }

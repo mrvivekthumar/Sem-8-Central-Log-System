@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -24,6 +25,7 @@ public class Project {
     @ManyToOne
     @JoinColumn(name = "facultyId")
     private Faculty faculty;
+    private LocalDateTime deadline;
 
 
 }

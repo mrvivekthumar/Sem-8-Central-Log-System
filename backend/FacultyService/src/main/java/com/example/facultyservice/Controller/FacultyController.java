@@ -2,19 +2,22 @@ package com.example.facultyservice.Controller;
 
 import com.example.facultyservice.Model.Faculty;
 import com.example.facultyservice.Model.Project;
+import com.example.facultyservice.Model.Student;
 import com.example.facultyservice.Service.FacultyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
 @RestController
 @RequestMapping("api/faculty")
 public class FacultyController {
+
+
     @Autowired
     private FacultyService facultyService;
-
 
     @PostMapping("register")
     public ResponseEntity<Faculty> registerFaculty(@RequestBody Faculty faculty) {
@@ -33,5 +36,20 @@ public class FacultyController {
         return facultyService.deleteProject(p_id);
     }
 
-
+    @GetMapping("studentproject/{projectId}")
+    public ResponseEntity<List<Student>> getStudentsByProject(@PathVariable int projectId){
+        return facultyService.getStudentsByProject(projectId);
+    }
+    @GetMapping("studentproject/{projectId}/count")
+    public ResponseEntity<Integer>getStudentCountByProjectId(@PathVariable int projectId){
+        return facultyService.getStudentCountByProjectId(projectId);
+    }
+    @PostMapping("{facultyId}/studentproject/{projectId}/approved/{studentId}")
+    public ResponseEntity<String> getApprovedStudent(@PathVariable int facultyId,@PathVariable int projectId,@PathVariable int studentId){
+        return facultyService.getApprovedStudent(facultyId,projectId,studentId);
+    }
+    @PostMapping("{facultyId}/projects")
+    public ResponseEntity<List<Project>> createProjects(@RequestBody List<Project> projects,@PathVariable int facultyId){
+        return facultyService.createProjects(projects,facultyId);
+    }
 }

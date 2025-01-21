@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -19,11 +20,12 @@ public class Project {
     private String title;
     private String description;
     @Enumerated(EnumType.STRING)
-    private Status status=Status.NEW;
-    private LocalDate date=LocalDate.now();
+    private Status status=Status.OPEN_FOR_APPLICATIONS;
+    private LocalDateTime date=LocalDateTime.now();
     @ManyToOne
     @JoinColumn(name = "facultyId")
     private Faculty faculty;
+    private LocalDateTime deadline;
 
 
 

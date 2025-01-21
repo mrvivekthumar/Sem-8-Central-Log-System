@@ -3,6 +3,8 @@ package com.example.facultyservice.Controller;
 import com.example.facultyservice.Dao.ProjectDao;
 import com.example.facultyservice.Dto.NotificationRequest;
 import com.example.facultyservice.Model.Project;
+import com.example.facultyservice.Model.Student;
+import com.example.facultyservice.Service.FacultyService;
 import com.example.facultyservice.Service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,8 @@ import java.util.Optional;
 public class ProjectController {
     @Autowired
     private ProjectService projectService;
+    @Autowired
+    private FacultyService facultyService;
 
 
     @PostMapping("{facultyId}")
@@ -45,6 +49,15 @@ public class ProjectController {
 
         // Return response
         return new ResponseEntity<>("Faculty notified successfully.", HttpStatus.OK);
+    }
+    @GetMapping("{projectId}/student-count")
+    public ResponseEntity<Integer> getStudentCountByProject(@PathVariable int projectId) {
+        return facultyService.getStudentCountByProjectId(projectId);
+
+    }
+    @GetMapping("/visible")
+    public ResponseEntity<List<Project>> getVisibleProjects(){
+        return projectService.getVisibleProjects();
     }
 
 

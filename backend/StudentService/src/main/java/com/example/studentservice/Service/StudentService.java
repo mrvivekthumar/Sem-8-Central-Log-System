@@ -3,9 +3,11 @@ package com.example.studentservice.Service;
 import com.example.studentservice.Dao.StudentDao;
 import com.example.studentservice.Dao.StudentProjectDao;
 import com.example.studentservice.Feign.AuthInterface;
+import com.example.studentservice.Model.StudentAvaibility;
 import com.example.studentservice.Model.StudentProject;
 import com.example.studentservice.Vo.Project;
 import com.example.studentservice.Model.Student;
+import com.example.studentservice.Vo.Status;
 import com.example.studentservice.Vo.UserCredential;
 import com.example.studentservice.Dto.NotificationRequest;
 import com.example.studentservice.Vo.UserRole;
@@ -55,11 +57,11 @@ public class StudentService {
             }
     }
 
-    @RabbitListener(queues = "${rabbitmq.queue}")
-    public void receiveProject(Project project) {
-        System.out.println("Received project from" + project + "by " +project.getFaculty());
-        // Save the project to the database or update the student UI
-    }
+//    @RabbitListener(queues = "${rabbitmq.queue}")
+//    public void receiveProject(Project project) {
+//        System.out.println("Received project from" + project + "by " +project.getFaculty());
+//        // Save the project to the database or update the student UI
+//    }
 
 
     @Transactional
@@ -150,6 +152,9 @@ public class StudentService {
     public ResponseEntity<String> applyProject(int studentId,int projectId) {
         try {
             Student student=studentDao.findStudentByStudentId(studentId);
+            if(student==null){
+                return new ResponseEntity<>("Student is not found",HttpStatus.NOT_FOUND);
+            }
             if(studentProjectDao.existsByStudent_StudentIdAndProjectId(studentId,projectId)){
                 return new ResponseEntity<>("Student has already applied for this project",HttpStatus.CONFLICT);
             }
@@ -163,9 +168,12 @@ public class StudentService {
                 System.out.println("Project not found for ID: " + projectId);
                 return new ResponseEntity<>("Project not found", HttpStatus.NOT_FOUND);
             }
+            if(project.getStatus()==Status.APPROVED){
+                new ResponseEntity<>("Student is aleready registered",HttpStatus.CONFLICT);
+            }
             StudentProject studentProject=new StudentProject();
             studentProject.setStudent(student);
-            studentProject.setStatus("APPLIED");
+            studentProject.setStatus(Status.PENDING);
             studentProject.setProjectId(projectId);
             studentProject.setApplicationDate(LocalDate.now());
             studentProjectDao.save(studentProject);
@@ -195,4 +203,22 @@ public class StudentService {
     }
 
 
+    public ResponseEntity<Student> getStudentById(int studentId) {
+        try{
+            return new ResponseEntity<>(studentDao.findStudentByStudentId(studentId),HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<String> makeUnavailibity(Student student) {
+        try{
+            student.setStudentAvaibility(StudentAvaibility.NOT_AVAILABLE);
+            studentDao.save(student);
+            return new ResponseEntity<>("Student is Unavailable Now",HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
 }

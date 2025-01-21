@@ -1,11 +1,13 @@
 package com.example.facultyservice.Model;
 
 public enum Status {
-    NEW,
-    APPLIED,
+
+    OPEN_FOR_APPLICATIONS,
     APPROVED,
     REJECTED,
     IN_PROGRESS,
     COMPLETED,
-    CANCELLED
+    CANCELLED,
+    EXPIRED,
+    PENDING
 }
