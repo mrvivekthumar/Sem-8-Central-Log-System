@@ -26,7 +26,8 @@ public class Project {
     @JoinColumn(name = "facultyId")
     private Faculty faculty;
     private LocalDateTime deadline;
-
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
+    private Report report;
 
 
 

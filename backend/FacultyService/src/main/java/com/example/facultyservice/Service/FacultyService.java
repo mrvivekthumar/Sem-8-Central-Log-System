@@ -27,7 +27,7 @@ public class FacultyService {
     private ProjectService projectService;
 
     private final String STUDENT_SERVICE = "http://localhost:8765/STUDENT-SERVICE/api/studentProject/";
-    private final String STUDENT="http://localhost:8765/STUDENT-SERVICE/student";
+    private final String STUDENT="http://localhost:8765/STUDENT-SERVICE/students";
 
 
     public ResponseEntity<Faculty> registerFaculty(Faculty faculty) {
@@ -118,7 +118,7 @@ public class FacultyService {
 
                 return new ResponseEntity<>("Unauthorized faculty for this project", HttpStatus.UNAUTHORIZED);
             }
-            ResponseEntity<Student> responseEntityStudent=restTemplate.exchange("http://localhost:8765/STUDENT-SERVICE/student/"+studentId,
+            ResponseEntity<Student> responseEntityStudent=restTemplate.exchange("http://localhost:8765/STUDENT-SERVICE/students/"+studentId,
                     HttpMethod.GET,
                     null,
                     Student.class);

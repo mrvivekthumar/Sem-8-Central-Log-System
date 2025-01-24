@@ -9,5 +9,8 @@ public enum Status {
     COMPLETED,
     CANCELLED,
     EXPIRED,
-    PENDING
+    PENDING,
+    OPEN_FOR_REPORT_SUBMISSION,
+    CLOSED,
+    MISSED_DEADLINE
 }

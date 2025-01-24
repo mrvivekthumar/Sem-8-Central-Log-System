@@ -3,6 +3,7 @@ package com.example.studentservice.Service;
 import com.example.studentservice.Dao.StudentDao;
 import com.example.studentservice.Dao.StudentProjectDao;
 import com.example.studentservice.Feign.AuthInterface;
+import com.example.studentservice.Model.PersonalProject;
 import com.example.studentservice.Model.StudentAvaibility;
 import com.example.studentservice.Model.StudentProject;
 import com.example.studentservice.Vo.Project;
@@ -20,6 +21,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.support.PropertiesLoaderSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +49,7 @@ public class StudentService {
     private StudentDao studentDao;
     @Autowired
     private StudentProjectDao studentProjectDao;
+
 
 
     public ResponseEntity<Student> registerStudent(Student student) {
@@ -220,5 +224,63 @@ public class StudentService {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    public ResponseEntity<Student> updateGithubLink(int studentId, String githubLink) {
+        try{
+            Optional<Student> studentOptional = studentDao.findById(studentId);
+            if (studentOptional.isPresent()) {
+                Student student = studentOptional.get();
+                student.setGithubProfileLink(githubLink);
+                studentDao.save(student);
+                return new ResponseEntity<>(student,HttpStatus.OK);
+            }
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+        return null;
+    }
+
+    public ResponseEntity<PersonalProject> addProject(int studentId, PersonalProject personalProject) {
+        try{
+            Student student=studentDao.findStudentByStudentId(studentId);
+            student.getProjects().add(personalProject);
+            studentDao.save(student);
+            return new ResponseEntity<>(personalProject,HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Student> deleteProject(int studentId, int personalProjectId) {
+        try{
+            Optional<Student> studentOptional = studentDao.findById(studentId);
+            Student s=null;
+            if(studentOptional.isPresent()){
+                s=studentOptional.get();
+                s.getProjects().removeIf(p->p.getPersonalProjectId()==personalProjectId);
+                studentDao.save(s);
+                return new ResponseEntity<>(s,HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return null;
+    }
+
+    public ResponseEntity<Student> findStudentById(int studentId) {
+        try{
+            Optional<Student> optionalStudent=studentDao.findById(studentId);
+            if(optionalStudent.isPresent()){
+                return new ResponseEntity<>(optionalStudent.get(),HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return null;
     }
 }

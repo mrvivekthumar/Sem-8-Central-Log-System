@@ -59,6 +59,10 @@ public class ProjectController {
     public ResponseEntity<List<Project>> getVisibleProjects(){
         return projectService.getVisibleProjects();
     }
+    @GetMapping("/rejected")
+    public ResponseEntity<List<Project>> getRejectedProjects(){
+        return projectService.updateExpiredProjects();
+    }
 
 
 

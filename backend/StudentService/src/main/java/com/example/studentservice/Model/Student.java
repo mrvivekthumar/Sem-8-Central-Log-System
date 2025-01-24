@@ -3,6 +3,9 @@ package com.example.studentservice.Model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,9 +21,13 @@ public class Student {
     private String email;
     private int roll_no;
     private String department;
+    private String githubProfileLink;
     @Enumerated(EnumType.STRING)
     private StudentAvaibility studentAvaibility=StudentAvaibility.AVAILABLE;
     private float ratings=0;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "student_id")
+    private List<PersonalProject> projects = new ArrayList<>();
 
 
 }
