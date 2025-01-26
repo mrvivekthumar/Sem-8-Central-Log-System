@@ -19,7 +19,6 @@ public class Faculty {
     private String f_password;
     private String name;
     private String email;
-    private String department;
 
 
 }

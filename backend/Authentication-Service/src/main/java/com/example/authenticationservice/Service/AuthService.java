@@ -5,7 +5,6 @@ import com.example.authenticationservice.Model.UserCredential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
@@ -26,10 +25,17 @@ public class AuthService {
         userCredentialDao.saveAll(users);
         return "Users saved";
     }
-    public String generateToken(String username){
-        return jwtService.generateToken(username);
+    public String generateToken(String username, String userRole) {
+        UserCredential user = userCredentialDao.findByUsername(username).orElseThrow(() ->
+                new RuntimeException("User not found"));
+
+        if (!user.getUserRole().name().equalsIgnoreCase(userRole)) {
+            throw new RuntimeException("Unauthorized role");
+        }
+
+        return jwtService.generateToken(username, userRole);
     }
-    public void validateToken(String token){
-        jwtService.validateToken(token);
+    public boolean validateToken(String token, String userRole) {
+        return jwtService.validateToken(token, userRole);
     }
 }

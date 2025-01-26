@@ -28,18 +28,20 @@ public class AuthController {
     public String getToken(@RequestBody AuthRequest authRequest){
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(),authRequest.getPassword()));
         if(authentication.isAuthenticated()){
-            return authService.generateToken(authRequest.getUsername());
+            return authService.generateToken(authRequest.getUsername(),authRequest.getUserRole());
         }
         else{
             return "Invalid credentials";
         }
 
     }
-    @GetMapping("validate")
-    public String validateToken(@RequestParam String token){
-        authService.validateToken(token);
-        return "Token is validate";
-
+    @GetMapping("/validate")
+    public String validateToken(@RequestParam String token, @RequestParam String userRole) {
+        if (authService.validateToken(token, userRole)) {
+            return "Token is valid";
+        } else {
+            throw new RuntimeException("Invalid or expired token");
+        }
     }
 
 }

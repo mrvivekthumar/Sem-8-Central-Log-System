@@ -14,10 +14,7 @@ import com.example.studentservice.Dto.NotificationRequest;
 import com.example.studentservice.Vo.UserRole;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +27,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -77,57 +75,71 @@ public class StudentService {
             List<Student> students = new ArrayList<>();
             List<UserCredential> users = new ArrayList<>();
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) { // Start from row 1 to skip header
                 Row row = sheet.getRow(i);
+
                 if (row != null) {
                     Student student = new Student();
                     UserCredential user = new UserCredential();
 
-                    if (row.getCell(1) != null && row.getCell(1).getCellType() == CellType.NUMERIC) {
-                        student.setRoll_no((int) Math.round(row.getCell(1).getNumericCellValue()));
+                    // Roll Number
+                    Cell rollCell = row.getCell(0);
+                    if (rollCell != null && rollCell.getCellType() == CellType.NUMERIC) {
+                        student.setRoll_no((int) Math.round(rollCell.getNumericCellValue()));
                     }
 
-                    if (row.getCell(2) != null && row.getCell(2).getCellType() == CellType.STRING) {
-                        student.setName(row.getCell(2).getStringCellValue());
+                    // Student Name
+                    Cell nameCell = row.getCell(1);
+                    if (nameCell != null && nameCell.getCellType() == CellType.STRING) {
+                        student.setName(nameCell.getStringCellValue());
                     }
 
-                    if (row.getCell(3) != null && row.getCell(3).getCellType() == CellType.STRING) {
-                        student.setDepartment(row.getCell(3).getStringCellValue());
-                    }
-
-                    if (row.getCell(4) != null && row.getCell(4).getCellType() == CellType.STRING) {
-                        String email=row.getCell(4).getStringCellValue();
+                    // Email
+                    Cell emailCell = row.getCell(2);
+                    if (emailCell != null && emailCell.getCellType() == CellType.STRING) {
+                        String email = emailCell.getStringCellValue();
+                        System.out.println(email);
+                        if (studentDao.existsByEmail(email)) {
+                            return new ResponseEntity<>("Email " + email + " is already registered", HttpStatus.CONFLICT);
+                        }
+                        student.setEmail(email);
                         user.setUsername(email);
-                        if(studentDao.existsByEmail(email)) {
-                            return new ResponseEntity<>("Email is aleready registered", HttpStatus.CONFLICT);
-                        }
-
-                        student.setEmail(row.getCell(4).getStringCellValue());
                     }
 
-                    if (row.getCell(5) != null) {
-                        if (row.getCell(5).getCellType() == CellType.STRING) {
-                            user.setPassword(row.getCell(5).getStringCellValue());
-                        } else if (row.getCell(5).getCellType() == CellType.NUMERIC) {
-                            user.setPassword(String.valueOf((int) row.getCell(5).getNumericCellValue()));
+                    // Password
+                    Cell passwordCell = row.getCell(3);
+                    if (passwordCell != null) {
+                        if (passwordCell.getCellType() == CellType.STRING) {
+                            user.setPassword(passwordCell.getStringCellValue());
+                        } else if (passwordCell.getCellType() == CellType.NUMERIC) {
+                            user.setPassword(String.valueOf((int) passwordCell.getNumericCellValue()));
                         }
                     }
 
+                    // Assign User Role
                     user.setUserRole(UserRole.STUDENT);
+
+                    // Add to lists
                     students.add(student);
                     users.add(user);
                 }
             }
 
-            studentDao.saveAll(students); // Batch insert students
-            authInterface.addNewUser(users); // Batch insert users
+            // Save all students and users in batch
+            studentDao.saveAll(students);
+            authInterface.addNewUser(users);
 
-            return new ResponseEntity<>("File uploaded successfully: " + sheet.getLastRowNum() + " records added.", HttpStatus.OK);
+            return new ResponseEntity<>("File uploaded successfully: " + students.size() + " records added.", HttpStatus.OK);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("File processing failed due to IO error", HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 

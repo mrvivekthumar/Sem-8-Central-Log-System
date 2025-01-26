@@ -1,4 +1,4 @@
-package com.example.studentservice.Vo;
+package com.example.facultyservice.Vo;
 
 public enum UserRole {
     FACULTY,

@@ -5,8 +5,10 @@ import com.example.facultyservice.Model.Project;
 import com.example.facultyservice.Model.Student;
 import com.example.facultyservice.Service.FacultyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.List;
@@ -51,5 +53,10 @@ public class FacultyController {
     @PostMapping("{facultyId}/projects")
     public ResponseEntity<List<Project>> createProjects(@RequestBody List<Project> projects,@PathVariable int facultyId){
         return facultyService.createProjects(projects,facultyId);
+    }
+    @PostMapping(value = "registerFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> registerFile(@RequestPart("file") MultipartFile file){
+        return facultyService.registerFileForFaculty(file);
+
     }
 }

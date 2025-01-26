@@ -46,4 +46,15 @@ public class AdminService {
         }
     }
 
+    public ResponseEntity<String> registerFileForFaculty(MultipartFile file) {
+        try{
+            System.out.println("Hey Hey Faculties");
+            facultyClient.registerFile(file);
+            System.out.println("Fuck you");
+            return new ResponseEntity<>("Success", HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

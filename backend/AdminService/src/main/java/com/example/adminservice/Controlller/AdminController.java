@@ -31,5 +31,10 @@ public class AdminController {
         System.out.println("Hey Hey");
         return adminService.registerFile(file);
     }
+    @PostMapping("faculty/registerFile")
+    public ResponseEntity<String> registerFaculties(@RequestPart("file") MultipartFile file){
+        System.out.println("Hey Hey");
+        return adminService.registerFileForFaculty(file);
+    }
 
 }

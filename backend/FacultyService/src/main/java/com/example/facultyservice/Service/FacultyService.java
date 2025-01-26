@@ -2,21 +2,34 @@ package com.example.facultyservice.Service;
 
 import com.example.facultyservice.Dao.FacultyDao;
 import com.example.facultyservice.Dao.ProjectDao;
+import com.example.facultyservice.Feign.AuthInterface;
 import com.example.facultyservice.Model.*;
+import com.example.facultyservice.Vo.UserCredential;
+import com.example.facultyservice.Vo.UserRole;
+import jakarta.transaction.Transactional;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
 @Service
 public class FacultyService {
+    @Autowired
+    private AuthInterface authInterface;
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
@@ -27,7 +40,7 @@ public class FacultyService {
     private ProjectService projectService;
 
     private final String STUDENT_SERVICE = "http://localhost:8765/STUDENT-SERVICE/api/studentProject/";
-    private final String STUDENT="http://localhost:8765/STUDENT-SERVICE/students";
+    private final String STUDENT = "http://localhost:8765/STUDENT-SERVICE/students";
 
 
     public ResponseEntity<Faculty> registerFaculty(Faculty faculty) {
@@ -106,54 +119,120 @@ public class FacultyService {
         return null;
     }
 
-    public ResponseEntity<String> getApprovedStudent(int facultyId,int projectId,int studentId) {
-        try{
-            Project project=projectDao.findById(projectId).get();
-            String updateUrl=STUDENT_SERVICE+"/updateStatus/"+studentId+"/"+projectId;
-            restTemplate.put(updateUrl,null);
-            if(project==null){
-                return new ResponseEntity<>("Project Not found",HttpStatus.NOT_FOUND);
+    public ResponseEntity<String> getApprovedStudent(int facultyId, int projectId, int studentId) {
+        try {
+            Project project = projectDao.findById(projectId).get();
+            String updateUrl = STUDENT_SERVICE + "/updateStatus/" + studentId + "/" + projectId;
+            restTemplate.put(updateUrl, null);
+            if (project == null) {
+                return new ResponseEntity<>("Project Not found", HttpStatus.NOT_FOUND);
             }
-            if(project.getFaculty().getF_id()!=facultyId){
+            if (project.getFaculty().getF_id() != facultyId) {
 
                 return new ResponseEntity<>("Unauthorized faculty for this project", HttpStatus.UNAUTHORIZED);
             }
-            ResponseEntity<Student> responseEntityStudent=restTemplate.exchange("http://localhost:8765/STUDENT-SERVICE/students/"+studentId,
+            ResponseEntity<Student> responseEntityStudent = restTemplate.exchange("http://localhost:8765/STUDENT-SERVICE/students/" + studentId,
                     HttpMethod.GET,
                     null,
                     Student.class);
-            Student student=null;
-            if(responseEntityStudent.getStatusCode()==HttpStatus.OK){
-                student=responseEntityStudent.getBody();
+            Student student = null;
+            if (responseEntityStudent.getStatusCode() == HttpStatus.OK) {
+                student = responseEntityStudent.getBody();
             }
-            if(student.getStudentAvaibility()!= StudentAvaibility.AVAILABLE){
-                return new ResponseEntity<>("Student is aleready asigned ",HttpStatus.CONFLICT);
+            if (student.getStudentAvaibility() != StudentAvaibility.AVAILABLE) {
+                return new ResponseEntity<>("Student is aleready asigned ", HttpStatus.CONFLICT);
             }
             project.setStatus(Status.APPROVED);
             projectDao.save(project);
             student.setStudentAvaibility(StudentAvaibility.NOT_AVAILABLE);
-            restTemplate.put(STUDENT+"/"+studentId,student);
+            restTemplate.put(STUDENT + "/" + studentId, student);
 
 
+            return new ResponseEntity<>("Project is given to student " + student.getName() + " by " + project.getFaculty().getName(), HttpStatus.OK);
 
-            return new ResponseEntity<>("Project is given to student "+student.getName()+ " by "+project.getFaculty().getName(),HttpStatus.OK);
-
-            } catch (Exception e) {
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
-        }
-
-    public ResponseEntity<List<Project>> createProjects(List<Project> projects,int facultyId) {
-        try{
-            for(Project p:projects){
-                p.setFaculty(facultyDao.findById(facultyId).get());
-            }
-            return new ResponseEntity<>(projectDao.saveAll(projects),HttpStatus.OK);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    public ResponseEntity<List<Project>> createProjects(List<Project> projects, int facultyId) {
+        try {
+            for (Project p : projects) {
+                p.setFaculty(facultyDao.findById(facultyId).get());
+            }
+            return new ResponseEntity<>(projectDao.saveAll(projects), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    @Transactional
+    public ResponseEntity<String> registerFileForFaculty(@RequestPart("file") MultipartFile file) {
+        try (InputStream inputStream = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(inputStream)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            List<Faculty> faculties = new ArrayList<>();
+            List<UserCredential> users = new ArrayList<>();
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) { // Start from row 1 to skip header
+                Row row = sheet.getRow(i);
+
+                if (row != null) {
+                    Faculty faculty = new Faculty();
+                    UserCredential user = new UserCredential();
+
+                    // Student Name
+                    Cell nameCell = row.getCell(0);
+                    if (nameCell != null && nameCell.getCellType() == CellType.STRING) {
+                        faculty.setName(nameCell.getStringCellValue());
+                    }
+
+                    // Email
+                    Cell emailCell = row.getCell(1);
+                    if (emailCell != null && emailCell.getCellType() == CellType.STRING) {
+                        String email = emailCell.getStringCellValue();
+                        System.out.println(email);
+                        if (facultyDao.existsByEmail(email)) {
+                            return new ResponseEntity<>("Email " + email + " is already registered", HttpStatus.CONFLICT);
+                        }
+                        faculty.setEmail(email);
+                        user.setUsername(email);
+                    }
+
+                    // Password
+                    Cell passwordCell = row.getCell(2);
+                    if (passwordCell != null) {
+                        if (passwordCell.getCellType() == CellType.STRING) {
+                            user.setPassword(passwordCell.getStringCellValue());
+                        } else if (passwordCell.getCellType() == CellType.NUMERIC) {
+                            user.setPassword(String.valueOf((int) passwordCell.getNumericCellValue()));
+                        }
+                    }
+
+                    // Assign User Role
+                    user.setUserRole(UserRole.FACULTY);
+
+                    // Add to lists
+                    faculties.add(faculty);
+                    users.add(user);
+                }
+            }
+
+            // Save all students and users in batch
+            facultyDao.saveAll(faculties);
+            authInterface.addNewUser(users);
+
+            return new ResponseEntity<>("File uploaded successfully: " + faculties.size() + " records added.", HttpStatus.OK);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("File processing failed due to IO error", HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

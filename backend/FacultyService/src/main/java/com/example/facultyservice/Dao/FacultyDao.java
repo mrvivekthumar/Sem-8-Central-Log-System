@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FacultyDao extends JpaRepository<Faculty, Integer> {
 
+    boolean existsByEmail(String email);
 }

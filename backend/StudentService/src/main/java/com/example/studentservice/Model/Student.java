@@ -22,6 +22,7 @@ public class Student {
     private int roll_no;
     private String department;
     private String githubProfileLink;
+    private List<String>Skills=new ArrayList<>();
     @Enumerated(EnumType.STRING)
     private StudentAvaibility studentAvaibility=StudentAvaibility.AVAILABLE;
     private float ratings=0;
