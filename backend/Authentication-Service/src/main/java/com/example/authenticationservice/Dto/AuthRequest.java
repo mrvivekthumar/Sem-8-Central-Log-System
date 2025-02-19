@@ -4,15 +4,13 @@ package com.example.authenticationservice.Dto;
 public class AuthRequest {
     private String username;
     private String password;
-    private String userRole;
 
     public AuthRequest() {
     }
 
-    public AuthRequest(String username, String password,String userRole) {
+    public AuthRequest(String username, String password) {
         this.username = username;
         this.password = password;
-        this.userRole=userRole;
     }
 
     public String getUsername() {
@@ -31,11 +29,5 @@ public class AuthRequest {
         this.password = password;
     }
 
-    public String getUserRole() {
-        return userRole;
-    }
 
-    public void setUserRole(String userRole) {
-        this.userRole = userRole;
-    }
 }

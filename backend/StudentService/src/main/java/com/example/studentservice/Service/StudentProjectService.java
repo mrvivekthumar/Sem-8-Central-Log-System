@@ -89,16 +89,40 @@ public class StudentProjectService {
     }
     public ResponseEntity<String> updateStatus(int studentId,int projectId){
         List<StudentProject> studProj=studentProjectDao.findByProjectId(projectId);
-        for(StudentProject s:studProj){
-            if(s.getStudent().getStudentId()==studentId){
-                s.setStatus(Status.APPROVED);
-            }
-            else {
+        System.out.println(studProj);
+        for (StudentProject s : studProj) {
+            if (s.getStudent().getStudentId() == studentId) {
+                s.setStatus(Status.APPROVED); // Approve the given student
+            } else if (s.getStatus() != Status.APPROVED) {
+                // Only reject those who are not already approved
                 s.setStatus(Status.REJECTED);
             }
         }
         studentProjectDao.saveAll(studProj);
         return new ResponseEntity<>("Status Are updated",HttpStatus.OK);
+
+    }
+
+    public ResponseEntity<Boolean> checkApplicationStatus(int studentId, int projectId) {
+        try{
+            boolean hasApplied= studentProjectDao.existsByStudent_StudentIdAndProjectId(studentId,projectId);
+            return new ResponseEntity<>(hasApplied,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+    }
+
+    public ResponseEntity<List<Integer>> getAppliedProjectIds() {
+        try{
+            List<Integer>ids=studentProjectDao.findDistinctByProjectId();
+            return new ResponseEntity<>(ids,HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
 
     }
 }

@@ -20,7 +20,6 @@ public class Student {
     @Column(unique = true)
     private String email;
     private int roll_no;
-    private String department;
     private String githubProfileLink;
     private List<String>Skills=new ArrayList<>();
     @Enumerated(EnumType.STRING)

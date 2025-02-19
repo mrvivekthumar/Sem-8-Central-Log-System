@@ -19,7 +19,7 @@ public class ProjectScheduler {
     @Autowired
     private ProjectDao projectDao;
 
-    @Scheduled(cron = "0 0 * * * ?")
+    //@Scheduled(cron = "0 * * * * ?")
     public void scheduleProjectStatusUpdate(){
         ResponseEntity<List<Project>> projectsResponse=projectService.updateExpiredProjects();
         List<Project> projects=null;
@@ -28,7 +28,7 @@ public class ProjectScheduler {
         }
         for(Project p:projects){
             if(p.getStatus()== Status.OPEN_FOR_APPLICATIONS){
-                p.setStatus(Status.CANCELLED);
+                p.setStatus(Status.CANCELED);
                 System.out.println(p.getTitle()  +" is canceled" );
             }
         }

@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -22,6 +23,7 @@ public class Project {
     @Enumerated(EnumType.STRING)
     private Status status=Status.OPEN_FOR_APPLICATIONS;
     private LocalDateTime date=LocalDateTime.now();
+    private List<String> skills;
     @ManyToOne
     @JoinColumn(name = "facultyId")
     private Faculty faculty;

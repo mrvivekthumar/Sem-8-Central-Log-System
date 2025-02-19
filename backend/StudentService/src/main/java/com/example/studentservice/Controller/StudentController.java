@@ -71,6 +71,27 @@ public class StudentController {
     public ResponseEntity<Student> deleteProject(@PathVariable int studentId,@PathVariable int personalProjectId){
         return studentService.deleteProject(studentId,personalProjectId);
     }
+    @GetMapping("by-id")
+    public ResponseEntity<List<Student>> getSTudentsById(@RequestParam List<Integer> ids){
+        System.out.println("Fuck You");
+        return studentService.getAllStudentsById(ids);
+
+    }
+    @PutMapping("available/{projectId}")
+    public ResponseEntity<String> updateStudentsAvailable(@PathVariable int projectId){
+        System.out.println("Hy Path" );
+        return studentService.updateStudentsAvailable(projectId);
+
+    }
+    @GetMapping("/count")
+    public ResponseEntity<Integer> getCount(){
+        return studentService.getCount();
+
+    }
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Student> getStudentByEmail(@PathVariable String email){
+        return studentService.findByEmail(email);
+    }
 
 
 

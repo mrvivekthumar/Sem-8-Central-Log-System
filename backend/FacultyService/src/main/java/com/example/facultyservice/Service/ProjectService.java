@@ -2,9 +2,11 @@ package com.example.facultyservice.Service;
 
 import com.example.facultyservice.Dao.FacultyDao;
 import com.example.facultyservice.Dao.ProjectDao;
+import com.example.facultyservice.Feign.StudentInterface;
 import com.example.facultyservice.Model.Faculty;
 import com.example.facultyservice.Model.Project;
 import com.example.facultyservice.Model.Status;
+import com.netflix.discovery.converters.Auto;
 import feign.Param;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,8 @@ public class ProjectService {
     private RabbitTemplate rabbitTemplate;
     @Value("${rabbitmq.exchange}")
     private String exchange;
-
+    @Autowired
+    private StudentInterface studentInterface;
     @Value("${rabbitmq.routing-key}")
     private String routingKey;
     @Autowired
@@ -91,7 +94,7 @@ public class ProjectService {
         try{
             LocalDateTime currentTime=LocalDateTime.now();
             System.out.println(currentTime);
-            List<Project> visibleProjects=projectDao.findVisibleProjects(currentTime.minusHours(24),Status.OPEN_FOR_APPLICATIONS);
+            List<Project> visibleProjects=projectDao.findVisibleProjects(currentTime,Status.OPEN_FOR_APPLICATIONS);
 
             if(visibleProjects==null){
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -115,4 +118,58 @@ public class ProjectService {
     }
 
 
+    public ResponseEntity<Project> completeProject(int projectId) {
+        try{
+            System.out.println(projectId +" in faculty service");
+            Project project=projectDao.findById(projectId).get();
+            if(project==null){
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            project.setStatus(Status.COMPLETED);
+            System.out.println("Hey Before client");
+            ResponseEntity<String>st=studentInterface.updateStudentsAvailable(projectId);
+            System.out.println(st);
+            System.out.println("Hey AAfter client");
+            projectDao.save(project);
+            return new ResponseEntity<>(project,HttpStatus.OK);
+
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Project> updateProject(int projectId, Project updatedProject) {
+        try{
+            Optional<Project> p=projectDao.findById(projectId);
+            Project project=null;
+            if(p.isPresent()){
+                project=p.get();
+                project.setTitle(updatedProject.getTitle());
+                project.setDescription(updatedProject.getDescription());
+                project.setDeadline(updatedProject.getDeadline());
+                project.setApplicationDeadline(updatedProject.getApplicationDeadline());
+                project.setSkills(updatedProject.getSkills());
+                projectDao.save(project);
+
+            }
+            return new ResponseEntity<>(project,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+    }
+
+    public ResponseEntity<List<Project>> getFacultyProjects(int facultyId, List<Integer> projectIds) {
+        try{
+
+            List<Project> projects=projectDao.findByFacultyIdAndProjectIds(facultyId,projectIds);
+            return new ResponseEntity<>(projects,HttpStatus.OK);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

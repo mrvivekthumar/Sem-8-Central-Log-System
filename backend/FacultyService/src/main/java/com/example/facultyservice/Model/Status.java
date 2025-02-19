@@ -7,7 +7,7 @@ public enum Status {
     REJECTED,
     IN_PROGRESS,
     COMPLETED,
-    CANCELLED,
+    CANCELED,
     EXPIRED,
     PENDING,
     OPEN_FOR_REPORT_SUBMISSION,

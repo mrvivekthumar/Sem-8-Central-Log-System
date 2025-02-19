@@ -4,6 +4,7 @@ import com.example.adminservice.Model.Faculty;
 import com.example.adminservice.Feign.FacultyClient;
 import com.example.adminservice.Model.Student;
 import com.example.adminservice.Service.AdminService;
+import com.example.adminservice.Vo.UserCredential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,19 @@ public class AdminController {
     public ResponseEntity<String> registerFaculties(@RequestPart("file") MultipartFile file){
         System.out.println("Hey Hey");
         return adminService.registerFileForFaculty(file);
+    }
+    @GetMapping("faculty/count")
+    public ResponseEntity<Integer> getFacultyCount(){
+        return  adminService.getFacultyCount();
+    }
+    @GetMapping("student/count")
+    public ResponseEntity<Integer> getStudentCount(){
+        return  adminService.getStudentCount();
+    }
+    @PostMapping("updatePassword")
+    public ResponseEntity<String> updatePass(UserCredential user){
+        return adminService.updatePassword(user);
+
     }
 
 }

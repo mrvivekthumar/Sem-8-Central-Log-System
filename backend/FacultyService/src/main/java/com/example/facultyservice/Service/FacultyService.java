@@ -11,6 +11,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -119,11 +121,43 @@ public class FacultyService {
         return null;
     }
 
-    public ResponseEntity<String> getApprovedStudent(int facultyId, int projectId, int studentId) {
+    public ResponseEntity<String> getApprovedStudent(int facultyId, int projectId, List<Integer> studentIds) {
         try {
+
+            String ids=studentIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+            ResponseEntity<List<Student>> responseEntityStudent = restTemplate.exchange("http://localhost:8765/STUDENT-SERVICE/students/by-id?ids="+ids,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<Student>>() {});
+            List<Student>students = null;
+            if (responseEntityStudent.getStatusCode() == HttpStatus.OK) {
+                students = responseEntityStudent.getBody();
+                System.out.println(students);
+            }
+            for(Student s :students){
+//                if (s.getStudentAvaibility() != StudentAvaibility.AVAILABLE) {
+//                    return new ResponseEntity<>("Student is aleready asigned ", HttpStatus.CONFLICT);
+//                }
+                s.setStudentAvaibility(StudentAvaibility.NOT_AVAILABLE);
+                System.out.println(studentIds);
+                restTemplate.put(STUDENT + "/" + s.getStudentId(), s);
+            }
+            for (int studentId:studentIds){
+                String updateUrl = STUDENT_SERVICE + "/updateStatus/" + studentId + "/" + projectId;
+                restTemplate.put(updateUrl, null);
+
+            }
+
+//            if (student.getStudentAvaibility() != StudentAvaibility.AVAILABLE) {
+//                return new ResponseEntity<>("Student is aleready asigned ", HttpStatus.CONFLICT);
+//            }
             Project project = projectDao.findById(projectId).get();
-            String updateUrl = STUDENT_SERVICE + "/updateStatus/" + studentId + "/" + projectId;
-            restTemplate.put(updateUrl, null);
+            project.setStatus(Status.APPROVED);
+            System.out.println("Are you update bro");
+            projectDao.save(project);
+            System.out.println("Are you after update bro");
+//
+//
             if (project == null) {
                 return new ResponseEntity<>("Project Not found", HttpStatus.NOT_FOUND);
             }
@@ -131,27 +165,14 @@ public class FacultyService {
 
                 return new ResponseEntity<>("Unauthorized faculty for this project", HttpStatus.UNAUTHORIZED);
             }
-            ResponseEntity<Student> responseEntityStudent = restTemplate.exchange("http://localhost:8765/STUDENT-SERVICE/students/" + studentId,
-                    HttpMethod.GET,
-                    null,
-                    Student.class);
-            Student student = null;
-            if (responseEntityStudent.getStatusCode() == HttpStatus.OK) {
-                student = responseEntityStudent.getBody();
-            }
-            if (student.getStudentAvaibility() != StudentAvaibility.AVAILABLE) {
-                return new ResponseEntity<>("Student is aleready asigned ", HttpStatus.CONFLICT);
-            }
-            project.setStatus(Status.APPROVED);
-            projectDao.save(project);
-            student.setStudentAvaibility(StudentAvaibility.NOT_AVAILABLE);
-            restTemplate.put(STUDENT + "/" + studentId, student);
 
 
-            return new ResponseEntity<>("Project is given to student " + student.getName() + " by " + project.getFaculty().getName(), HttpStatus.OK);
 
+            return new ResponseEntity<>("Project is given to student " + " by " + project.getFaculty().getName(), HttpStatus.OK);
+//
+  //       return new ResponseEntity<>("Success",HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
@@ -233,6 +254,31 @@ public class FacultyService {
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Integer> getCount() {
+        try{
+            Integer count=facultyDao.findTotalUsers();
+            return new ResponseEntity<>(count,HttpStatus.OK);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Faculty> findByEmail(String email) {
+        try{
+            System.out.println(email);
+            Faculty f=facultyDao.findByEmail(email);
+            if(f==null){
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(f,HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

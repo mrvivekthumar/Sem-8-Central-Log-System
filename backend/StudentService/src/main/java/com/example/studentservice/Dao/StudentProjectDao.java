@@ -18,4 +18,6 @@ public interface StudentProjectDao extends JpaRepository<StudentProject,Integer>
     int countStudentsByProjectId(@Param("projectId") int projectId);
 
     List<StudentProject> findByProjectId(int projectId);
+    @Query("SELECT DISTINCT sp.projectId FROM StudentProject sp")
+    List<Integer> findDistinctByProjectId();
 }

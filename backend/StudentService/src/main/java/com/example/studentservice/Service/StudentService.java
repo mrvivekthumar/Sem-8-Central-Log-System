@@ -171,6 +171,10 @@ public class StudentService {
             if(student==null){
                 return new ResponseEntity<>("Student is not found",HttpStatus.NOT_FOUND);
             }
+            if(student.getStudentAvaibility()==StudentAvaibility.NOT_AVAILABLE){
+                return new ResponseEntity<>("You cant Apply Because You are working on project",HttpStatus.CONFLICT);
+            }
+
             if(studentProjectDao.existsByStudent_StudentIdAndProjectId(studentId,projectId)){
                 return new ResponseEntity<>("Student has already applied for this project",HttpStatus.CONFLICT);
             }
@@ -294,5 +298,84 @@ public class StudentService {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return null;
+    }
+
+    public ResponseEntity<List<Student>> getAllStudentsById(List<Integer> ids) {
+        try{
+            List<Student> students=studentDao.findAllByStudentId(ids);
+            return new ResponseEntity<>(students,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    public ResponseEntity<String> updateStudentsAvailable(int projectId) {
+        try {
+            System.out.println(projectId + " in student service");
+
+            List<Integer> studentIds = studentProjectDao.findStudent_StudentIdByProjectId(projectId);
+            System.out.println("Student IDs: " + studentIds);
+
+            List<Student> students = new ArrayList<>(); // Mutable list
+            for (int studentId : studentIds) {
+                Optional<Student> optionalStudent = studentDao.findById(studentId);
+                if (optionalStudent.isPresent()) {
+                    Student s = optionalStudent.get();
+                    System.out.println("Fetched Student: " + s.getName() + " (ID: " + s.getStudentId() + ")");
+                    students.add(s);
+                } else {
+                    System.out.println("Student with ID " + studentId + " not found.");
+                    return new ResponseEntity<>("Student with ID " + studentId + " not found.", HttpStatus.NOT_FOUND);
+                }
+            }
+
+            // Update availability
+            for (Student s : students) {
+                if (s.getStudentAvaibility() == StudentAvaibility.NOT_AVAILABLE) {
+                    s.setStudentAvaibility(StudentAvaibility.AVAILABLE);
+                }
+            }
+            List<StudentProject> studentProjects=studentProjectDao.findByProjectId(projectId);
+            for (StudentProject s:studentProjects){
+                if(s.getStatus()==Status.APPROVED){
+                    s.setStatus(Status.COMPLETED);
+                }
+            }
+            studentProjectDao.saveAll(studentProjects);
+
+
+            studentDao.saveAll(students);
+            System.out.println("Students updated successfully.");
+            return new ResponseEntity<>("Project is completed", HttpStatus.OK);
+
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the exception stack trace
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public ResponseEntity<Integer> getCount() {
+        try{
+            Integer count=studentDao.findTotalUsers();
+            return new ResponseEntity<>(count,HttpStatus.OK);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Student> findByEmail(String email) {
+        try{
+            System.out.println(email);
+           Student s=studentDao.findByEmail(email);
+           if(s==null){
+               return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+           }
+           return new ResponseEntity<>(s,HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
