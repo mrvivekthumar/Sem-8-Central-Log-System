@@ -1,0 +1,59 @@
+server:
+  port: 8765
+
+spring:
+  application:
+    name: API-GATEWAY
+
+  cloud:
+    gateway:
+#      globalcors:
+#        cors-configurations:
+#          "[/**]":
+#            allowedOrigins:
+#              - "http://localhost:5173"
+#            allowedMethods:
+#              - "GET"
+#              - "POST"
+#              - "PUT"
+#              - "DELETE"
+#              - "OPTIONS"
+#            allowedHeaders:
+#              - "*"
+#            allowCredentials: true
+#            maxAge: 3600
+#        add-to-simple-url-handler-mapping: true
+
+      # Add default filter for all routes
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+      routes:
+        - id: authentication-service
+          uri: lb://AUTHENTICATION-SERVICE
+          predicates:
+            - Path=/auth/**,/AUTHENTICATION-SERVICE/**
+
+        - id: admin-service
+          uri: lb://ADMIN-SERVICE
+          predicates:
+            - Path=/admin/**,/ADMIN-SERVICE/**
+
+        - id: faculty-service
+          uri: lb://FACULTY-SERVICE
+          predicates:
+            - Path=/faculty/**,/FACULTY-SERVICE/**
+
+        - id: student-service
+          uri: lb://STUDENT-SERVICE
+          predicates:
+            - Path=/student/**,/STUDENT-SERVICE/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: https://delightful-victory-production.up.railway.app/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
