@@ -41,7 +41,7 @@ public class AuthConfig {
                 .csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
-                .requestMatchers("/auth/register","/auth/hello", "/auth/token", "/auth/validate","/auth/user", "/auth/updatePassword").permitAll()
+                .requestMatchers("/auth/registerOne","/auth/register","/auth/hello", "/auth/token", "/auth/validate","/auth/user", "/auth/updatePassword").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -54,7 +54,7 @@ public class AuthConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Allow frontend
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type","X-Requested-With"));
         configuration.setAllowCredentials(true); // Allow cookies & credentials
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

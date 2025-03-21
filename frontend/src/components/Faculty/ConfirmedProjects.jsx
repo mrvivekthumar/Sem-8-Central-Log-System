@@ -1,17 +1,14 @@
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Users, Clock, MessageSquare } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import StudentDetail from './StudentDetail';
 
 const ConfirmedProjects = () => {
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [list,setList]=useState([]);
-  const [studentsMap, setStudentsMap] = useState({});
+  const [list, setList] = useState([]);
 
   useEffect(() => {
     const fetchAppliedProjects = async () => {
@@ -23,21 +20,16 @@ const ConfirmedProjects = () => {
         console.error("Error fetching applied projects:", error);
       }
     };
-
     fetchAppliedProjects();
   }, []);
 
-  // Second useEffect: Fetch Faculty Projects (Runs after list is populated)
   useEffect(() => {
-    if (!user?.id || list.length === 0) return; // Only run if user.id exists and list is not empty
+    if (!user?.id || list.length === 0) return;
 
     const fetchProjects = async () => {
       try {
         const response = await axios.get('http://localhost:8765/FACULTY-SERVICE/api/project/byFaculty', {
-          params: {
-            facultyId: user.id,
-            projectIds: list.join(','), // Convert array to comma-separated string
-          },
+          params: { facultyId: user.id, projectIds: list.join(',') },
         });
 
         setProjects(response.data);
@@ -49,33 +41,39 @@ const ConfirmedProjects = () => {
 
     fetchProjects();
   }, [user, list]);
-  return (
-    <div>
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8"
-      >
-        Applications
-      </motion.h1>
 
-      <div className="space-y-6">
-        {projects.map((project) => (
-          <motion.div
-            key={project.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden cursor-pointer"
-            onClick={() => navigate(`/application/project/${project.projectId}`)}
-          >
-            <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                {project.title}
-              </h3>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+      {projects.length > 0 ? (
+        projects
+          .filter((project) => project.status !== "APPROVED")
+          .map((project) => (
+            <motion.div
+              key={project.projectId}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.05, boxShadow: "0px 8px 20px rgba(0, 122, 255, 0.2)" }}
+              transition={{ duration: 0.3 }}
+              className="relative bg-white border border-gray-200 shadow-md rounded-xl 
+                      hover:shadow-lg transform transition-all cursor-pointer"
+              onClick={() => navigate(`/application/project/${project.projectId}`)}
+            >
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-blue-600">{project.title}</h3>
+                <p className="text-sm text-gray-500">Click to view details</p>
+              </div>
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-500"></div>
+            </motion.div>
+          ))
+      ) : (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          className="flex flex-col items-center justify-center p-6 bg-white border border-gray-200 rounded-lg shadow-md"
+        >
+          <p className="text-lg text-gray-500">No applications available.</p>
+        </motion.div>
+      )}
     </div>
   );
 };

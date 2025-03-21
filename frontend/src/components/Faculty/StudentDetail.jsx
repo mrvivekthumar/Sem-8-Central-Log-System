@@ -49,25 +49,25 @@ const StudentDetail = () => {
             }
           }
         );
-        console.log("Give a fuck bro",preferencesResponse.data)
+        console.log("Give a fuck bro", preferencesResponse.data)
 
         // Merge students with their preferences
         const studentsWithPreferences = studentList.map(student => {
-          const matchedPreference = preferencesResponse.data.find(p => 
-              p.student && p.student.studentId === student.studentId
+          const matchedPreference = preferencesResponse.data.find(p =>
+            p.student && p.student.studentId === student.studentId
           );
-      
+
           console.log(`Student ID: ${student.studentId}, Matched Preference:`, matchedPreference);
-      
+
           return {
-              ...student,
-              preference: matchedPreference ? matchedPreference.preference : 'N/A'
+            ...student,
+            preference: matchedPreference ? matchedPreference.preference : 'N/A'
           };
         });
-      
+
         console.log("✅ Final Merged Data:", studentsWithPreferences);
         setStudents(studentsWithPreferences);
-        
+
         // Fetch other faculty project data for each student
         await fetchOtherFacultyProjects(studentsWithPreferences);
 
@@ -85,16 +85,16 @@ const StudentDetail = () => {
 
   const fetchOtherFacultyProjects = async (studentsList) => {
     const projectsDataMap = {};
-    
+
     for (const student of studentsList) {
       try {
         // Get other project IDs for this student
         const otherProjectsResponse = await axios.get(
           `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${student.studentId}/getProjectFaculties/project/${projectId}`
         );
-        
+
         const otherProjectIds = otherProjectsResponse.data;
-        
+
         // If student has applied to other projects
         if (otherProjectIds && otherProjectIds.length > 0) {
           // Fetch details for those projects
@@ -107,8 +107,13 @@ const StudentDetail = () => {
               }
             }
           );
-          
-          projectsDataMap[student.studentId] = otherProjectsDetailsResponse.data;
+
+          // Filter out projects where the faculty ID matches the current user ID
+          const filteredProjects = otherProjectsDetailsResponse.data.filter(project =>
+            project.faculty?.f_id !== user.id
+          );
+
+          projectsDataMap[student.studentId] = filteredProjects;
         } else {
           projectsDataMap[student.studentId] = [];
         }
@@ -117,13 +122,13 @@ const StudentDetail = () => {
         projectsDataMap[student.studentId] = [];
       }
     }
-    
+
     setOtherProjectsMap(projectsDataMap);
   };
 
   const toggleSelection = (studentId, event, preference) => {
     event.stopPropagation();
-    
+
     // Check if student is already selected
     if (selectedIds.has(studentId)) {
       setSelectedIds(prevSelected => {
@@ -133,13 +138,13 @@ const StudentDetail = () => {
       });
       return;
     }
-    
+
     // Check if max students limit reached
     if (selectedIds.size >= project.maxStudents) {
       toast.error(`You can only select up to ${project.maxStudents} students.`);
       return;
     }
-    
+
     // If preference is greater than 3, show warning dialog
     if (preference > 3) {
       setPendingStudentId(studentId);
@@ -166,6 +171,7 @@ const StudentDetail = () => {
       return newSet;
     });
   };
+
 
   const confirmStudentSelection = () => {
     if (pendingStudentId) {
@@ -246,9 +252,9 @@ const StudentDetail = () => {
   );
 
   const availableStudents = students.filter((student) => student.studentAvaibility === "AVAILABLE");
-  
+
   // Find the pending student's details
-  const pendingStudent = pendingStudentId ? 
+  const pendingStudent = pendingStudentId ?
     students.find(student => student.studentId === pendingStudentId) : null;
 
   return (
@@ -309,24 +315,24 @@ const StudentDetail = () => {
                     This student has a low preference for this project.
                   </p>
                 </div>
-                <button 
+                <button
                   onClick={cancelStudentSelection}
                   className="ml-auto text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <div className="p-5">
                 <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  {pendingStudent?.name} has this project as their {getPreferenceText(pendingStudent?.preference || 0)} 
-                  (preference ranking: {pendingStudent?.preference}). 
+                  {pendingStudent?.name} has this project as their {getPreferenceText(pendingStudent?.preference || 0)}
+                  (preference ranking: {pendingStudent?.preference}).
                   Students with preferences above 3 typically show less interest in the project.
                 </p>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
                   Are you sure you want to select this student?
                 </p>
-                
+
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={cancelStudentSelection}
@@ -464,8 +470,8 @@ const StudentDetail = () => {
                               <button
                                 onClick={(e) => toggleOtherProjects(student.studentId, e)}
                                 className={`flex items-center px-3 py-1 rounded-md text-sm
-                                  ${expandedStudentIds.has(student.studentId) 
-                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' 
+                                  ${expandedStudentIds.has(student.studentId)
+                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
                                     : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                                   }`}
                               >
@@ -503,7 +509,7 @@ const StudentDetail = () => {
                             </button>
                           </div>
                         </div>
-                        
+
                         {/* Other Projects Section */}
                         <AnimatePresence>
                           {expandedStudentIds.has(student.studentId) && otherProjectsMap[student.studentId]?.length > 0 && (
@@ -520,7 +526,7 @@ const StudentDetail = () => {
                                 </h5>
                                 <div className="space-y-3">
                                   {otherProjectsMap[student.studentId].map((otherProject) => (
-                                    <div 
+                                    <div
                                       key={otherProject.projectId}
                                       className="flex items-start p-2 bg-white dark:bg-gray-800 rounded-md shadow-sm border border-gray-100 dark:border-gray-700"
                                     >
@@ -532,10 +538,10 @@ const StudentDetail = () => {
                                           <User className="w-3.5 h-3.5 mr-1" />
                                           Faculty: {otherProject.faculty?.name || 'Unknown'}
                                         </div>
-                                        
+
                                       </div>
                                       <div>
-                                        <button 
+                                        <button
                                           onClick={() => navigate(`/faculty/project/${otherProject.projectId}`)}
                                           className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         >

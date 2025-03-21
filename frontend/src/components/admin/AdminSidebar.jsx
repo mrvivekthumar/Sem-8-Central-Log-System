@@ -15,8 +15,8 @@ const sidebarItems = [
   { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/admin/students', icon: GraduationCap, label: 'Students' },
   { path: '/admin/faculty', icon: Users, label: 'Faculty' },
-  { path: '/admin/projects', icon: FileSpreadsheet, label: 'Projects' },
-  { path: '/admin/settings', icon: Settings, label: 'Settings' },
+  // { path: '/admin/projects', icon: FileSpreadsheet, label: 'Projects' },
+  // { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
 const AdminSidebar = ({ activeTab, setActiveTab }) => {

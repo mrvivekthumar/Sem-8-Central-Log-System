@@ -1,5 +1,6 @@
 package com.example.studentservice.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,8 +19,6 @@ public class PersonalProject {
     private String name;
     private String descreption;
     private String projectLink;
-    @ManyToOne
-    private Student student;
 
 
 }

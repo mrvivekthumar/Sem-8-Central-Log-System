@@ -19,6 +19,8 @@ public class Student {
     private int studentId;
     private String name;
     @Column(unique = true)
+    @Transient
+    private String password;
     private String email;
     private String githubProfileLink;
     private List<String>Skills=new ArrayList<>();
@@ -39,6 +41,7 @@ public class Student {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "student_id")
     private List<PersonalProject> projects = new ArrayList<>();
+    private String phoneNo;
 
 
 }

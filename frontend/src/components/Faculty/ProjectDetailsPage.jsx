@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Users, Clock, ArrowLeft, Edit, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import toast from 'react-hot-toast';
 import Select from "react-select";
 
 const ProjectDetailsPage = () => {
@@ -64,7 +64,7 @@ const ProjectDetailsPage = () => {
       toast.success("Project updated successfully!");
     } catch (error) {
       console.error("Error updating project:", error);
-      toast("Failed to update project.");
+      toast.error("Failed to update project.");
     }
   };
   const handleCancelProject = async () => {

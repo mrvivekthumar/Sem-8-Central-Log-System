@@ -1,10 +1,13 @@
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, CheckSquare, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, MessageSquare ,FolderKanban,CheckCircle  } from 'lucide-react';
 
 const sidebarItems = [
   { path: '/student/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-//   { path: '/confirmed-projects', icon: CheckSquare, label: 'Student Applications' },
+  { path: '/current-project', icon: FolderKanban , label: 'Current Project' },
+  { path: '/applied-projects', icon: CheckCircle  , label: 'Applied Projects' },
+  // { path: '/submit', icon: CheckCircle  , label: 'Feedback' }
+
   // { path: '/feedback', icon: MessageSquare, label: 'Feedback' },
 ];
 

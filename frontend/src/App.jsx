@@ -20,6 +20,9 @@ import CurrentProject from './components/CurrentProject';
 import StudentProfile from './components/StudentProfile';
 import StudentFacultyProfile from './components/Faculty/StudentFacultyProfile';
 import AppliedProjects from './components/Student/AppliedProjects';
+import StudentNotifications from './components/StudentNotifications';
+import AdminDashboard from './pages/AdminDashboard';
+import ProjectSubmissionManager from './components/Student/ProjectSubmissionManager';
 // Protected Route wrapper component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -46,19 +49,22 @@ function App() {
                 }
               >
                 <Route path='student/dashboard' element={<Dashboard />} />
-                <Route path="/project/:projectId" element={<ProjectDetailsPage/>}/>
-                <Route path="/application/project/:projectId" element={<StudentDetail/>}/>
-                <Route path="/studentproject/:projectId" element={<ProjectDetails/>}/>
+                <Route path="/project/:projectId" element={<ProjectDetailsPage />} />
+                <Route path="/application/project/:projectId" element={<StudentDetail />} />
+                <Route path="/studentproject/:projectId" element={<ProjectDetails />} />
                 <Route path="faculty/dashboard" element={<FacultyDashboard />} />
                 <Route path="project/:id" element={<ProjectDetails />} />
                 <Route path="confirmed-projects" element={<ConfirmedProjects />} />
                 <Route path="feedback" element={<Feedback />} />
-                <Route path="/assigned-projects" element={<AssignProjects/>}/>
-                <Route path="/current-project" element={<CurrentProject/>}/>
-                
+                <Route path="/assigned-projects" element={<AssignProjects />} />
+                <Route path="/current-project" element={<CurrentProject />} />
+
                 <Route path="/user/profile/:studentId" element={<StudentProfile />} />
-                <Route path='/student/profile/:studentId' element={<StudentFacultyProfile/>}/>
-                <Route path="/applied-projects" element={<AppliedProjects/>}/>
+                <Route path='/student/profile/:studentId' element={<StudentFacultyProfile />} />
+                <Route path="/applied-projects" element={<AppliedProjects />} />
+                <Route path='/student/notifications' element={<StudentNotifications />} />
+                <Route path='/admin/dashboard' element={<AdminDashboard />} />
+                <Route path='/projects/:projectId/report-submission' element={<ProjectSubmissionManager />} />
               </Route>
             </Routes>
           </AnimatePresence>

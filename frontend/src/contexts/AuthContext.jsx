@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
 
   const fetchUserData = async (storedToken) => {
     try {
-      const response = await axios.get(`http://localhost:8070/auth/user?token=${storedToken}`);
+      const response = await axios.get(`http://localhost:8765/auth/user?token=${storedToken}`);
       const userData = response.data;
 
       if (userData.userRole === 'STUDENT') {
@@ -48,7 +48,15 @@ export function AuthProvider({ children }) {
       }
 
       setUser(userData);
-      navigate(userData.userRole === 'STUDENT' ? '/student/dashboard' : '/faculty/dashboard', { replace: true });
+      navigate(
+        userData.userRole === 'STUDENT' 
+          ? '/student/dashboard' 
+          : userData.userRole === 'FACULTY' 
+            ? '/faculty/dashboard' 
+            : '/admin/dashboard', 
+        { replace: true }
+      );
+      
     } catch (error) {
       console.error('Failed to fetch user data:', error);
       logout();
@@ -58,7 +66,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
-      api.get(`/auth/validate?token=${storedToken}`)
+      axios.get(`http://localhost:8765/auth/validate?token=${storedToken}`)
         .then(() => {
           setToken(storedToken);
           fetchUserData(storedToken);
@@ -71,7 +79,7 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post('http://localhost:8070/auth/token', { 
+      const response = await axios.post('http://localhost:8765/auth/token', { 
         username, 
         password 
       });
