@@ -29,6 +29,7 @@ public class Student {
     @Nullable
     private String bio;
     private Float cgpa;
+    private String phoneNo;
     @Nullable
     private Integer semesterNo;
     @Nullable

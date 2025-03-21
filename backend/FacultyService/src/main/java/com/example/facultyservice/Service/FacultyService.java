@@ -298,7 +298,7 @@ public class FacultyService {
 
     public ResponseEntity<Integer> getTotalApprovedProjects() {
         try{
-            Optional<Integer> existCount=projectDao.findTotalApprovedProjects();
+            Optional<Integer> existCount=projectDao.findTotalApprovedProjects(Status.APPROVED);
             int count=0;
             if(existCount.isPresent()){
                 count=existCount.get();
