@@ -58,7 +58,7 @@ public class FacultyController {
     public ResponseEntity<List<Project>> createProjects(@RequestBody List<Project> projects,@PathVariable int facultyId){
         return facultyService.createProjects(projects,facultyId);
     }
-    @PostMapping(value = "registerFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/registerFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> registerFile(@RequestPart("file") MultipartFile file){
         return facultyService.registerFileForFaculty(file);
 

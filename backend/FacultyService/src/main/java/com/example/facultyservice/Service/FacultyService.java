@@ -1,5 +1,6 @@
 package com.example.facultyservice.Service;
 
+import com.example.facultyservice.Controller.SheetHandler;
 import com.example.facultyservice.Dao.FacultyDao;
 import com.example.facultyservice.Dao.ProjectDao;
 import com.example.facultyservice.Feign.AuthInterface;
@@ -7,7 +8,11 @@ import com.example.facultyservice.Model.*;
 import com.example.facultyservice.Vo.UserCredential;
 import com.example.facultyservice.Vo.UserRole;
 import jakarta.transaction.Transactional;
+import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.eventusermodel.XSSFReader;
+import org.apache.poi.xssf.model.SharedStrings;
+import org.apache.poi.xssf.model.SharedStringsTable;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -19,6 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -196,71 +204,66 @@ public class FacultyService {
 
     @Transactional
     public ResponseEntity<String> registerFileForFaculty(@RequestPart("file") MultipartFile file) {
-        try (InputStream inputStream = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(inputStream)) {
-
-            Sheet sheet = workbook.getSheetAt(0);
+        try {
             List<Faculty> faculties = new ArrayList<>();
             List<UserCredential> users = new ArrayList<>();
+            int recordCount = 0;
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) { // Start from row 1 to skip header
-                Row row = sheet.getRow(i);
+            // Use streaming implementation
+            try (InputStream inputStream = file.getInputStream()) {
+                // Create streaming reader
+                OPCPackage pkg = OPCPackage.open(inputStream);
+                XSSFReader reader = new XSSFReader(pkg);
+                SharedStrings sst = reader.getSharedStringsTable();
 
-                if (row != null) {
-                    Faculty faculty = new Faculty();
-                    UserCredential user = new UserCredential();
+                // Get the first sheet
+                // Note: XMLReaderFactory is deprecated in newer versions, use SAXParserFactory instead
+                XMLReader parser = XMLReaderFactory.createXMLReader();
 
-                    // Student Name
-                    Cell nameCell = row.getCell(0);
-                    if (nameCell != null && nameCell.getCellType() == CellType.STRING) {
-                        faculty.setName(nameCell.getStringCellValue());
-                    }
+                // Set up custom handler
+                SheetHandler handler = new SheetHandler(sst, faculties, users, facultyDao);
+                parser.setContentHandler(handler);
 
-                    // Email
-                    Cell emailCell = row.getCell(1);
-                    if (emailCell != null && emailCell.getCellType() == CellType.STRING) {
-                        String email = emailCell.getStringCellValue();
-                        System.out.println(email);
-                        if (facultyDao.existsByEmail(email)) {
-                            return new ResponseEntity<>("Email " + email + " is already registered", HttpStatus.CONFLICT);
-                        }
-                        faculty.setEmail(email);
-                        user.setUsername(email);
-                    }
+                // Process first sheet only
+                InputStream sheetStream = reader.getSheetsData().next();
+                InputSource sheetSource = new InputSource(sheetStream);
+                parser.parse(sheetSource);
+                sheetStream.close();
 
-                    // Password
-                    Cell passwordCell = row.getCell(2);
-                    if (passwordCell != null) {
-                        if (passwordCell.getCellType() == CellType.STRING) {
-                            user.setPassword(passwordCell.getStringCellValue());
-                        } else if (passwordCell.getCellType() == CellType.NUMERIC) {
-                            user.setPassword(String.valueOf((int) passwordCell.getNumericCellValue()));
-                        }
-                    }
+                recordCount = handler.getRowCount();
 
-                    // Assign User Role
-                    user.setUserRole(UserRole.FACULTY);
-
-                    // Add to lists
-                    faculties.add(faculty);
-                    users.add(user);
+                // Check if handler encountered any duplicate emails
+                if (handler.getDuplicateEmail() != null) {
+                    return new ResponseEntity<>("Email " + handler.getDuplicateEmail() + " is already registered",
+                            HttpStatus.CONFLICT);
                 }
             }
 
-            // Save all students and users in batch
-            facultyDao.saveAll(faculties);
-            authInterface.addNewUser(users);
+            // Batch save all records
+            if (!faculties.isEmpty()) {
+                // Process in batches of 500
+                int batchSize = 500;
+                for (int i = 0; i < faculties.size(); i += batchSize) {
+                    int endIndex = Math.min(i + batchSize, faculties.size());
+                    facultyDao.saveAll(faculties.subList(i, endIndex));
+                }
 
-            return new ResponseEntity<>("File uploaded successfully: " + faculties.size() + " records added.", HttpStatus.OK);
+                for (int i = 0; i < users.size(); i += batchSize) {
+                    int endIndex = Math.min(i + batchSize, users.size());
+                    authInterface.addNewUser(users.subList(i, endIndex));
+                }
+            }
 
+            return new ResponseEntity<>("File uploaded successfully: " + recordCount + " records added.", HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>("File processing failed due to IO error", HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("File upload failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     public ResponseEntity<Integer> getCount() {
         try{

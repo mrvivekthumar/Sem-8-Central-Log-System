@@ -41,7 +41,7 @@ public class Student {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "student_id")
     private List<PersonalProject> projects = new ArrayList<>();
-    private String phoneNo;
+
 
 
 }

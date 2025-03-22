@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface FacultyDao extends JpaRepository<Faculty, Integer> {
 
@@ -15,4 +17,7 @@ public interface FacultyDao extends JpaRepository<Faculty, Integer> {
     Integer findTotalUsers();
 
     Faculty findByEmail(String email);
+
+    @Query("SELECT f.email FROM Faculty f")
+    List<String> findAllEmails();
 }
