@@ -19,6 +19,8 @@ public class PersonalProject {
     private String name;
     private String descreption;
     private String projectLink;
+    @ManyToOne
+    private Student student;
 
 
 }
