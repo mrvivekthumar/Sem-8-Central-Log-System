@@ -12,6 +12,7 @@ import java.util.Set;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class Faculty {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

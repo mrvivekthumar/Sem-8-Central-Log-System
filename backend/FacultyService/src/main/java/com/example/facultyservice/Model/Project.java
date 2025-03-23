@@ -29,6 +29,7 @@ public class Project {
     private Faculty faculty;
     private LocalDateTime deadline;
     private LocalDateTime applicationDeadline;
+    private Integer maxStudents;
 
 
 
