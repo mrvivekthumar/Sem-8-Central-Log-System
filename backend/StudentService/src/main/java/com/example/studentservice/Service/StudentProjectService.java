@@ -92,14 +92,19 @@ public class StudentProjectService {
     public ResponseEntity<String> updateStatus(int studentId,int projectId){
         List<StudentProject> studProj=studentProjectDao.findByProjectId(projectId);
         System.out.println(studProj);
-        for (StudentProject s : studProj) {
-            if (s.getStudent().getStudentId() == studentId) {
-                s.setStatus(Status.APPROVED); // Approve the given student
-            } else if (s.getStatus() != Status.APPROVED) {
-                // Only reject those who are not already approved
-                s.setStatus(Status.REJECTED);
-            }
+
+
+    studProj.stream().forEach(s -> {
+        if (s.getStudent().getStudentId() == studentId) {
+            s.setStatus(Status.APPROVED); // Approve the given student
+        } else if (s.getStatus() != Status.APPROVED) {
+            // Only reject those who are not already approved
+            s.setStatus(Status.REJECTED);
         }
+    });
+
+
+
         studentProjectDao.saveAll(studProj);
         return new ResponseEntity<>("Status Are updated",HttpStatus.OK);
 
