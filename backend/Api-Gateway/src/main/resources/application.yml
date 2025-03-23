@@ -15,7 +15,7 @@ spring:
           uri: https://delightful-victory-production.up.railway.app
           predicates:
             - Path=/auth/**
-
+            - Path=/AUTHENTICATION-SERVICE/**
 
         - id: admin-service
           uri: lb://ADMIN-SERVICE
