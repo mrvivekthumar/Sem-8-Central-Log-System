@@ -14,22 +14,26 @@ spring:
         - id: authentication-service
           uri: https://delightful-victory-production.up.railway.app
           predicates:
-            - Path=/auth/**,/AUTHENTICATION-SERVICE/**
+            - Path=/auth/**
+            - Path=/AUTHENTICATION-SERVICE/**
 
         - id: admin-service
           uri: lb://ADMIN-SERVICE
           predicates:
-            - Path=/admin/**,/ADMIN-SERVICE/**
+            - Path=/admin/**
+            - Path=/ADMIN-SERVICE/**
 
         - id: faculty-service
           uri: https://faculty-service-production.up.railway.app
           predicates:
-            - Path=/faculty/**,/FACULTY-SERVICE/**
+            - Path=/faculty/**
+            - Path=/FACULTY-SERVICE/**
 
         - id: student-service
           uri: lb://STUDENT-SERVICE
           predicates:
-            - Path=/student/**,/STUDENT-SERVICE/**
+            - Path=/student/**
+            - Path=/STUDENT-SERVICE/**
 
 eureka:
   client:
@@ -39,4 +43,3 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-#,https://delightful-victory-production.up.railway.app/eureka/,http://localhost:8761/eureka/
