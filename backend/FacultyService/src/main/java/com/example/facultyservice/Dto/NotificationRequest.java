@@ -14,7 +14,7 @@ public class NotificationRequest {
     private int notificationId;
     @Enumerated(EnumType.STRING)
     private SenderType senderType;
-    private String senderId;
+    private String senderId ;
     @Enumerated(EnumType.STRING)
     private ReceiverType receiverType;
     private String receiverId;
