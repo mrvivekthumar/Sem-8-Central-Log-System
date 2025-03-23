@@ -1,0 +1,8 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: https://delightful-victory-production.up.railway.app/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
