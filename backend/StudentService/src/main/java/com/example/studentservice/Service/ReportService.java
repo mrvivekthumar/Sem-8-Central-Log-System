@@ -1,12 +1,10 @@
 package com.example.studentservice.Service;
 
 import com.example.studentservice.Dao.ReportDao;
+import com.example.studentservice.Dao.ReportReviewDao;
 import com.example.studentservice.Dao.StudentProjectDao;
 import com.example.studentservice.Feign.FacultyInterface;
-import com.example.studentservice.Model.Report;
-import com.example.studentservice.Model.ReportStatus;
-import com.example.studentservice.Model.Student;
-import com.example.studentservice.Model.StudentProject;
+import com.example.studentservice.Model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ReportService {
@@ -29,20 +28,60 @@ public class ReportService {
     @Autowired
     private ReportDao reportDao;
     @Autowired
-    private StudentProjectService studentProjectService;
+    private ReportReviewService reportReviewService;
+    @Autowired
+    private ReportReviewDao reportReviewDao;
     public ResponseEntity<Report> submitReport(int studentId, int projectId, MultipartFile file) {
-        try{
+        try {
+            ResponseEntity<Student> existStudent = studentService.getStudentById(studentId);
 
-            StudentProject studentProject=studentProjectDao.findByStudent_StudentIdAndProjectId(studentId,projectId);
-            String fileUrl=cloudnaryService.uploadFile(file);
-            Report report=new Report();
+            if (!existStudent.getStatusCode().is2xxSuccessful() || existStudent.getBody() == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            StudentProject studentProject = studentProjectDao.findByStudent_StudentIdAndProjectId(studentId, projectId);
+            if (studentProject == null) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // No such project-student link
+            }
+
+            String fileUrl = cloudnaryService.uploadFile(file);
+            System.out.println("File URL: " + fileUrl);
+
+            Report report = new Report();
             report.setStudentProject(studentProject);
             report.setDocumentUrl(fileUrl);
+            report.setSubmittedBy(existStudent.getBody()); // Ensure `submittedBy` exists in the entity
             report.setSubmissionDate(LocalDate.now());
             report.setStatus(ReportStatus.PENDING);
-            report.setFeedback(null);
+            ReportReview review=new ReportReview();
+            review.setReviewedBy(existStudent.getBody());
+            review.setApproved(true);
+            review.setReport(report);
+            System.out.println("Before saved");
             reportDao.save(report);
-            return new ResponseEntity<>(report,HttpStatus.OK);
+            reportReviewDao.save(review);
+
+
+            System.out.println("After saved");
+            return ResponseEntity.ok(report);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    public ResponseEntity<Report> findReportForTeamByProjectId(int projectId) {
+        try{
+            Optional<Report>report=reportDao.findReportByProjectId(projectId);
+            if(report.isPresent()){
+                Report report1=report.get();
+                return new ResponseEntity<>(report1,HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
 
 
         } catch (Exception e) {
@@ -51,13 +90,20 @@ public class ReportService {
     }
 
 
-    public ResponseEntity<List<Report>> findReportForTeamByProjectId(int projectId) {
+    public ResponseEntity<String> deleteReport(int reportId) {
         try{
-            List<Report> reports=reportDao.findReportsByProjectId(projectId);
-            return new ResponseEntity<>(reports,HttpStatus.OK);
-
+            Optional<Report>report=reportDao.findById(reportId);
+            if(report.isPresent()){
+                ResponseEntity<String> success=reportReviewService.deleteReviewsByReportId(reportId);
+                System.out.println();
+                reportDao.deleteById(reportId);
+                return new ResponseEntity<>("Report deleted successfully and "+success,HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>("Report not found",HttpStatus.NOT_FOUND);
+            }
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Internal server error",HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

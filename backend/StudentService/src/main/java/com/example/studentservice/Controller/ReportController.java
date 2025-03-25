@@ -20,9 +20,14 @@ public class ReportController {
         return reportService.submitReport(studentId,projectId,file);
     }
     @GetMapping("project/{projectId}/report")
-    public ResponseEntity<List<Report>>getTeamReport(@PathVariable int projectId){
+    public ResponseEntity<Report>getTeamReport(@PathVariable int projectId){
        return reportService.findReportForTeamByProjectId(projectId);
     }
+    @DeleteMapping("report/{reportId}")
+    public ResponseEntity<String> deleteReport(@PathVariable int reportId){
+        return reportService.deleteReport(reportId);
+    }
+
 
 
 }

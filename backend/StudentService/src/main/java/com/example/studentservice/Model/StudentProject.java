@@ -29,6 +29,6 @@ public class StudentProject {
     private LocalDate applicationDate;
     @Column(name="preference")
     private int preference;  // New field for ranking
-//    @OneToMany(mappedBy = "studentProject", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Report> reports;  // A student can have multiple reports for a projec
+    @OneToOne(mappedBy = "studentProject", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Report report;  // Each project has one report at a time
 }
