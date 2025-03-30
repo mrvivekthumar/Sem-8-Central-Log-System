@@ -4,6 +4,7 @@ import com.example.facultyservice.Controller.SheetHandler;
 import com.example.facultyservice.Dao.FacultyDao;
 import com.example.facultyservice.Dao.ProjectDao;
 import com.example.facultyservice.Feign.AuthInterface;
+import com.example.facultyservice.Feign.StudentInterface;
 import com.example.facultyservice.Model.*;
 import com.example.facultyservice.Vo.UserCredential;
 import com.example.facultyservice.Vo.UserRole;
@@ -52,6 +53,8 @@ public class FacultyService {
 
     private final String STUDENT_SERVICE = "http://localhost:8765/STUDENT-SERVICE/api/studentProject/";
     private final String STUDENT = "http://localhost:8765/STUDENT-SERVICE/students";
+    @Autowired
+    private StudentInterface studentInterface;
 
 
     public ResponseEntity<Faculty> registerFaculty(Faculty faculty) {
@@ -309,6 +312,28 @@ public class FacultyService {
             return new ResponseEntity<>(count,HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<String> updateRatings(int projectId, float ratings) {
+        try {
+            ResponseEntity<String> success=studentInterface.updateRatings(projectId,ratings);
+            return new ResponseEntity<>(success.getBody(),HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Boolean> getIsComplete(int projectId) {
+        try {
+            Optional<Project> project=projectDao.findById(projectId);
+            if(project.isPresent()){
+                return new ResponseEntity<>(project.get().getStatus()==Status.COMPLETED,HttpStatus.OK);
+            }
+            return new ResponseEntity<>(false,HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(false,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

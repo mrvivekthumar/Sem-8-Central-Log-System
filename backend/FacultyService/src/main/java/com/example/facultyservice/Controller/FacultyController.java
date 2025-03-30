@@ -16,7 +16,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("api/faculty")
+@RequestMapping("/api/faculty")
 public class FacultyController {
 
 
@@ -82,8 +82,17 @@ public class FacultyController {
     public ResponseEntity<List<Faculty>> getAllFaculties() {
         return facultyService.findAll();
     }
-    @GetMapping("approvedProject")
+    @GetMapping("/approvedProject")
     public ResponseEntity<Integer> getTotalApprovedProjects(){
         return facultyService.getTotalApprovedProjects();
+    }
+    @PutMapping("/project/{projectId}/ratings/{ratings}")
+    public ResponseEntity<String> updateRatings(@PathVariable int projectId, @PathVariable float ratings){
+        System.out.println("Hy Are you printing");
+        return facultyService.updateRatings(projectId,ratings);
+    }
+    @GetMapping("project/{projectId}/is-complete")
+    public ResponseEntity<Boolean> getIsComplete(@PathVariable int projectId){
+        return facultyService.getIsComplete(projectId);
     }
 }

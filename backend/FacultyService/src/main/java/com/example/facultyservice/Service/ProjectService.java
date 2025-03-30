@@ -61,17 +61,17 @@ public class ProjectService {
             System.out.println(project);
             ResponseEntity<Project> response = new ResponseEntity<>(projectDao.save(project), HttpStatus.OK);
 
-            NotificationRequest notification=new NotificationRequest();
-            notification.setSenderType(SenderType.FACULTY);
-            notification.setSenderId(String.valueOf(facultyId));
-            notification.setReceiverType(ReceiverType.STUDENT);
-            notification.setReceiverId("ALL"); // Notify all students
-            notification.setNotificationType(NotificationType.PROJECT_CREATION);
-            notification.setTitle("New Project Available");
-            notification.setMessage("A new project '" + project.getTitle() + "' has been posted!");
-            notification.setSeen(false);
-
-            notificationInterface.sendNotification(notification); // 🚀 Feign call to Notification Service
+//            NotificationRequest notification=new NotificationRequest();
+//            notification.setSenderType(SenderType.FACULTY);
+//            notification.setSenderId(String.valueOf(facultyId));
+//            notification.setReceiverType(ReceiverType.STUDENT);
+//            notification.setReceiverId("ALL"); // Notify all students
+//            notification.setNotificationType(NotificationType.PROJECT_CREATION);
+//            notification.setTitle("New Project Available");
+//            notification.setMessage("A new project '" + project.getTitle() + "' has been posted!");
+////            notification.setSeen(false);
+//
+//            notificationInterface.sendNotification(notification); // 🚀 Feign call to Notification Service
             return response;
         } catch (Exception e) {
             System.out.println("Error in ProjectService: " + e.getMessage());
