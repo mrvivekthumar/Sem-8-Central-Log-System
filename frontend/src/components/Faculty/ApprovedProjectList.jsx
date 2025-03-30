@@ -3,6 +3,7 @@ import FacultyProjectCard from './FacultyProjectCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState,useEffect } from 'react';
 import axios from 'axios';
+import ReviewCard from './ReviewCard';
 // import no_projects from '../../assets/no_projects.jpeg';
 
 
@@ -29,14 +30,14 @@ const ApprovedProjectList = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {projects && projects.length > 0 ? (
-        projects.filter((project)=>project.status==="APPROVED").map((project, index) => (
+        projects.filter((project)=>project.status==="APPROVED" || project.status==="COMPLETED").map((project, index) => (
           <motion.div
             key={project.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <FacultyProjectCard project={project} />
+            <ReviewCard project={project} />
           </motion.div>
         ))
       ) : (

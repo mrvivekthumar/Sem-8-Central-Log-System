@@ -23,6 +23,7 @@ import {
   SiReact, SiJavascript, SiTypescript, SiNodedotjs, SiPython, SiCplusplus,
   SiTensorflow, SiGooglecloud, SiFigma, SiAndroid, SiDevpost, SiDatabricks
 } from "react-icons/si";
+import { useParams } from 'react-router-dom';
 
 // Skill icons mapping
 const skillIcons = {
@@ -63,6 +64,7 @@ function StarRating({ rating }) {
 }
 
 function StudentProfile() {
+  const { studentId } = useParams(); // Assuming studentId is passed as a route parameter
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -90,8 +92,7 @@ function StudentProfile() {
     const fetchStudent = async () => {
       try {
         setIsLoading(true);
-        // Assuming you have the student ID
-        const studentId = 3; // Replace with actual student ID or get from auth context
+       
         const response = await axios.get(
           `http://localhost:8765/STUDENT-SERVICE/students/${studentId}`
         );

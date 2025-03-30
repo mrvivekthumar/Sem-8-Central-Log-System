@@ -116,14 +116,14 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <motion.button
+            {/* <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={toggleTheme}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-            </motion.button>
+            </motion.button> */}
 
             <div className="relative">
               <motion.button
@@ -132,7 +132,7 @@ const Navbar = () => {
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={handleNotification}
               >
-                <Bell className="h-5 w-5" />
+                {/* <Bell className="h-5 w-5" /> */}
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -140,7 +140,7 @@ const Navbar = () => {
                 )}
               </motion.button>
               
-              {/* Notification popup */}
+              {/* Notification popup
               {showNotificationPopup && latestNotification && (
                 <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-700 rounded-md shadow-lg overflow-hidden z-50 border border-gray-200 dark:border-gray-600">
                   <div className="p-3">
@@ -166,7 +166,7 @@ const Navbar = () => {
                     </motion.button>
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
 
             <div className="flex items-center space-x-3">

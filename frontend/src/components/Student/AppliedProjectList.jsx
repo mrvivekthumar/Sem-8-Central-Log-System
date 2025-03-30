@@ -141,7 +141,7 @@ const AppliedProjectList = () => {
         
         <div className="space-y-4">
           {projects.length > 0 ? (
-            projects.map((project, index) => (
+            projects.filter(project => project.status !== "COMPLETED").map((project, index) => (
               <div 
                 key={project.projectId}
                 draggable={true}

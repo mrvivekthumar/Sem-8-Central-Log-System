@@ -1,17 +1,9 @@
-import React from 'react';
-import { Download, FileText, Check, X, AlertCircle } from 'lucide-react';
+"use client"
+import { Download, FileText, Check, X, AlertCircle } from "lucide-react"
 
-export const TeamReports = ({ 
-  report, 
-  isAllApproved, 
-  loading,
-  currentUserId,
-  onApprove,
-  onReject,
-  projectId
-}) => {
+export const TeamReports = ({ report, isAllApproved, loading, currentUserId, onApprove, onReject, projectId }) => {
   // Check if current user is the report submitter
-  const isReportSubmitter = report && report.submittedBy.studentId === currentUserId;
+  const isReportSubmitter = report && report.submittedBy.studentId === currentUserId
 
   // Render loading state
   if (loading) {
@@ -19,7 +11,7 @@ export const TeamReports = ({
       <div className="flex justify-center items-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
-    );
+    )
   }
 
   // Render empty state
@@ -28,11 +20,9 @@ export const TeamReports = ({
       <div className="text-center py-12">
         <FileText className="mx-auto h-12 w-12 text-gray-400" />
         <h3 className="mt-4 text-lg font-medium text-gray-900">No reports yet</h3>
-        <p className="mt-2 text-sm text-gray-500">
-          No team reports have been uploaded for this project.
-        </p>
+        <p className="mt-2 text-sm text-gray-500">No team reports have been uploaded for this project.</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -43,22 +33,23 @@ export const TeamReports = ({
           <div>
             <h3 className="text-lg font-medium text-gray-900">Current Report</h3>
             <p className="text-sm text-gray-500">
-              Submitted by {report.submittedBy.name} on{' '}
-              {new Date(report.submissionDate).toLocaleDateString()}
+              Submitted by {report.submittedBy.name} on {new Date(report.submissionDate).toLocaleDateString()}
             </p>
           </div>
           <div className="flex items-center space-x-2">
             {/* Report Status Badge */}
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              report.status === 'APPROVED' 
-                ? 'bg-green-100 text-green-800'
-                : report.status === 'REJECTED'
-                ? 'bg-red-100 text-red-800'
-                : 'bg-yellow-100 text-yellow-800'
-            }`}>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                report.status === "APPROVED"
+                  ? "bg-green-100 text-green-800"
+                  : report.status === "REJECTED"
+                    ? "bg-red-100 text-red-800"
+                    : "bg-yellow-100 text-yellow-800"
+              }`}
+            >
               {report.status}
             </span>
-            
+
             {/* Download Button */}
             <a
               href={report.documentUrl}
@@ -86,24 +77,16 @@ export const TeamReports = ({
             <div className="bg-green-50 p-4 rounded-md flex items-center space-x-3">
               <Check size={24} className="text-green-600" />
               <div>
-                <p className="text-green-800 font-medium">
-                  All team members have approved the report
-                </p>
-                <p className="text-green-600 text-sm">
-                  You can now proceed with final submission
-                </p>
+                <p className="text-green-800 font-medium">All team members have approved the report</p>
+                <p className="text-green-600 text-sm">The report is ready for final submission</p>
               </div>
             </div>
           ) : (
             <div className="bg-yellow-50 p-4 rounded-md flex items-center space-x-3">
               <AlertCircle size={24} className="text-yellow-600" />
               <div>
-                <p className="text-yellow-800 font-medium">
-                  Report pending team approval
-                </p>
-                <p className="text-yellow-600 text-sm">
-                  Waiting for all team members to review and approve
-                </p>
+                <p className="text-yellow-800 font-medium">Report pending team approval</p>
+                <p className="text-yellow-600 text-sm">Waiting for all team members to review and approve</p>
               </div>
             </div>
           )}
@@ -130,5 +113,6 @@ export const TeamReports = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
+

@@ -21,7 +21,7 @@ export const TeamMembers = ({
         try {
             // Fetch team members
             const idsResponse = await axios.get(
-                `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${projectId}/aprovedStudents`
+                `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${projectId}/completeIds`
             );
             const studentIds = idsResponse.data;
 
