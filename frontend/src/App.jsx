@@ -22,7 +22,9 @@ import StudentFacultyProfile from './components/Faculty/StudentFacultyProfile';
 import AppliedProjects from './components/Student/AppliedProjects';
 import StudentNotifications from './components/StudentNotifications';
 import AdminDashboard from './pages/AdminDashboard';
-import ProjectSubmissionManager from './components/Student/ProjectSubmissionManager';
+import { ProjectSubmissionManager } from './components/Student/ProjectSubmissionManager';
+import { FacultyProjectReview } from './components/Faculty/FacultyProjectReview';
+import CompletedProjects from './components/Student/CompletedProjects';
 // Protected Route wrapper component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -65,6 +67,8 @@ function App() {
                 <Route path='/student/notifications' element={<StudentNotifications />} />
                 <Route path='/admin/dashboard' element={<AdminDashboard />} />
                 <Route path='/projects/:projectId/report-submission' element={<ProjectSubmissionManager />} />
+                <Route path='/project/:projectId/report' element={<FacultyProjectReview/>}/>
+                <Route path='/completed-projects' element={<CompletedProjects/>}/>
               </Route>
             </Routes>
           </AnimatePresence>
