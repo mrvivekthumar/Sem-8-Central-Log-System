@@ -1,5 +1,6 @@
 package com.example.studentservice.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,8 +16,10 @@ public class ReportReview {
     private int reviewId;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "report_id", nullable = false)
-    private Report report;  // Link to the report being reviewed
+    private Report report;
+
 
     @ManyToOne
     @JoinColumn(name = "reviewed_by", nullable = false)

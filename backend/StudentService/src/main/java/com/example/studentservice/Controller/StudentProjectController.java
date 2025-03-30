@@ -86,6 +86,10 @@ public class StudentProjectController {
     public ResponseEntity<List<Integer>> geIdsOfFacultiesByProject(@PathVariable int studentId,@PathVariable int projectId){
         return studentProjectService.getFacultiesByProject(studentId,projectId);
     }
+    @GetMapping("{projectId}/completeIds")
+    public ResponseEntity<List<Integer>> getCompletedStudentIds(@PathVariable int projectId){
+        return studentProjectService.findCompletedStudentIds(projectId);
+    }
 
 
 }

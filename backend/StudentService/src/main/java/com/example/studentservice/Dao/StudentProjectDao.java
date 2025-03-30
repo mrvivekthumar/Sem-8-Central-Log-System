@@ -44,4 +44,10 @@ public interface StudentProjectDao extends JpaRepository<StudentProject,Integer>
 
     @Query("SELECT sp.projectId FROM StudentProject sp WHERE sp.student.studentId = :studentId AND sp.status = :status")
     Optional<List<Integer>> findProjectIdByStudent_StudentIdAndStatus(int studentId, Status status);
+    @Query("SELECT  sp.student.studentId FROM StudentProject sp WHERE sp.projectId = :projectId AND sp.status = :status")
+    List<Integer> findStudentIdByProjectIdAndStatus(@Param("projectId") int projectId, @Param("status") Status status);
+    @Query("select sp.student.studentId from StudentProject sp where sp.projectId = :projectId and sp.status IN :status")
+    List<Integer> findIdsCompletedStudentsByProjectId(@Param("projectId") int projectId, @Param("status") List<Status> status);
+    @Query("SELECT sp FROM StudentProject sp WHERE sp.projectId = :projectId AND sp.status = :status")
+    List<StudentProject> findByProjectIdAndStatus(@Param("projectId") int projectId, @Param("status") Status status);
 }

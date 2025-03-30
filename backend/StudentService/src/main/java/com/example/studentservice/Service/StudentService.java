@@ -56,7 +56,8 @@ public class StudentService {
     private StudentDao studentDao;
     @Autowired
     private StudentProjectDao studentProjectDao;
-
+    @Autowired
+    private StudentProjectService studentProjectService;
 
 
     public ResponseEntity<Student> registerStudent(Student student) {
@@ -499,5 +500,48 @@ public class StudentService {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    public ResponseEntity<String> updateScoreByFaculty(int projectId, float ratings) {
+        try {
+            ResponseEntity<List<Integer>> studentIdsWithProject = studentProjectService.findStudentIdsByProjectIdAndStatus(projectId, Status.APPROVED);
+
+            if (studentIdsWithProject.getStatusCode() == HttpStatus.OK) {
+                List<Integer> studentIds = studentIdsWithProject.getBody();
+
+                for (int studentId : studentIds) {
+                    Optional<Student> studentOptional = studentDao.findById(studentId);
+
+                    if (studentOptional.isPresent()) {
+                        Student student = studentOptional.get();
+
+                        // Handle first rating case safely
+                        int totalRatings = (student.getTotalRatings() != null) ? student.getTotalRatings() : 0;
+
+                        // Corrected formula for average rating
+                        float newAverageRating = ((student.getRatings() * totalRatings) + ratings) / (totalRatings + 1);
+
+                        // Update student record
+                        student.setRatings(newAverageRating);
+                        student.setTotalRatings(totalRatings + 1);
+                        studentDao.save(student);
+                    }
+                }
+                return new ResponseEntity<>("Score updated successfully to " + ratings, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Student IDs not found", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<List<Integer>> getCompletedProjects(int studentId) {
+        try {
+            List<Integer>ids=studentProjectService.findCompletedProjects(studentId);
+            return new ResponseEntity<>(ids,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

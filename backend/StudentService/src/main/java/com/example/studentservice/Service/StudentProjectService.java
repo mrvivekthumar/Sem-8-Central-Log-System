@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -266,5 +267,54 @@ public class StudentProjectService {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return null;
+    }
+
+    public ResponseEntity<List<Student>> getTeamMates(int projectId) {
+        try{
+            List<Student> students=new ArrayList<>();
+            List<Integer> studentIds=studentProjectDao.findStudent_StudentIdByProjectId(projectId);
+            for(Integer studentId:studentIds){
+                Student student=studentDao.findStudentByStudentId(studentId);
+                students.add(student);
+            }
+            return new ResponseEntity<>(students,HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<List<Integer>> findStudentIdsByProjectIdAndStatus(int projectId, Status status) {
+        try{
+            List<Integer>ids=studentProjectDao.findStudentIdByProjectIdAndStatus(projectId,status);
+            System.out.println("Students Ids are " + ids);
+            return new ResponseEntity<>(ids,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<List<Integer>> findCompletedStudentIds(int projectId) {
+        try {
+            List<Integer>ids=studentProjectDao.findIdsCompletedStudentsByProjectId(projectId, Arrays.asList(Status.COMPLETED,Status.APPROVED));
+            return new ResponseEntity<>(ids,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public List<Integer> findCompletedProjects(int studentId) {
+        try{
+            List<StudentProject> projects=studentProjectDao.findByStudent_StudentId(studentId);
+            List<Integer> projectIds=new ArrayList<>();
+            for(StudentProject p:projects){
+                if(p.getStatus()==Status.COMPLETED){
+                    projectIds.add(p.getProjectId());
+                }
+            }
+            return projectIds;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

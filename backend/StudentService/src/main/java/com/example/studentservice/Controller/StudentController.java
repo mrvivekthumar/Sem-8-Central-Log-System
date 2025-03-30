@@ -9,6 +9,7 @@ import com.example.studentservice.Service.StudentService;
 import jakarta.ws.rs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.cloud.netflix.eureka.http.RestClientEurekaHttpClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -123,6 +124,19 @@ public class StudentController {
     public ResponseEntity<Student> uploadImage(@RequestParam("image") MultipartFile image,@PathVariable int studentId) {
         return studentService.uploadImageToCloudinary(image,studentId);
     }
+    @GetMapping("/projects/{projectId}/teammates")
+    public ResponseEntity<List<Student>> getAllTeamMates(@PathVariable int projectId){
+        return studentProjectService.getTeamMates(projectId);
+    }
+    @PutMapping("/projects/{projectId}/ratings/{ratings}")
+    public ResponseEntity<String> updateScoresByFaculty(@PathVariable int projectId, @PathVariable float ratings) {
+        return studentService.updateScoreByFaculty(projectId, ratings);
+    }
+    @GetMapping("{studentId}/completed-projects")
+    public ResponseEntity<List<Integer>> getCompletedProjects(@PathVariable int studentId){
+        return studentService.getCompletedProjects(studentId);
+    }
+
 
 
 

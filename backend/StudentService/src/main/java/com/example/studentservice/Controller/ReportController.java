@@ -27,6 +27,14 @@ public class ReportController {
     public ResponseEntity<String> deleteReport(@PathVariable int reportId){
         return reportService.deleteReport(reportId);
     }
+    @PutMapping("report/{reportId}/final-submit")
+    public ResponseEntity<String> finalSubmit(@PathVariable int reportId){
+        return reportService.finalSubmit(reportId);
+    }
+
+
+
+
 
 
 

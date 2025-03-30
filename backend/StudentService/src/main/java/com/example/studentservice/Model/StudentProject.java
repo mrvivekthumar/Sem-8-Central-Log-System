@@ -1,6 +1,7 @@
 package com.example.studentservice.Model;
 
 import com.example.studentservice.Vo.Status;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,6 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "student_project")
@@ -32,3 +32,6 @@ public class StudentProject {
     @OneToOne(mappedBy = "studentProject", cascade = CascadeType.ALL, orphanRemoval = true)
     private Report report;  // Each project has one report at a time
 }
+
+
+
