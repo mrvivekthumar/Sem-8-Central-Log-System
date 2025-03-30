@@ -12,11 +12,13 @@ import java.util.Set;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class Faculty {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int f_id;
-    private String f_password;
+    @Transient
+    private String password;
     private String name;
     private String email;
 

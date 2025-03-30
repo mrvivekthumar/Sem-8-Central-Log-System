@@ -2,6 +2,11 @@ package com.example.facultyservice.Service;
 
 import com.example.facultyservice.Dao.FacultyDao;
 import com.example.facultyservice.Dao.ProjectDao;
+import com.example.facultyservice.Dto.NotificationRequest;
+import com.example.facultyservice.Dto.NotificationType;
+import com.example.facultyservice.Dto.ReceiverType;
+import com.example.facultyservice.Dto.SenderType;
+import com.example.facultyservice.Feign.NotificationInterface;
 import com.example.facultyservice.Feign.StudentInterface;
 import com.example.facultyservice.Model.Faculty;
 import com.example.facultyservice.Model.Project;
@@ -37,6 +42,8 @@ public class ProjectService {
     private ProjectDao projectDao;
     @Autowired
     private FacultyDao facultyDao;
+    @Autowired
+    private NotificationInterface notificationInterface;
 
     public ResponseEntity<Project> createProject(Project project, int facultyId) {
         try {
@@ -54,9 +61,17 @@ public class ProjectService {
             System.out.println(project);
             ResponseEntity<Project> response = new ResponseEntity<>(projectDao.save(project), HttpStatus.OK);
 
-            System.out.println("Project sent to RabbitMQ: " + project);
-            System.out.println("Hii Bro");
-            System.out.println(project.getDescription());
+//            NotificationRequest notification=new NotificationRequest();
+//            notification.setSenderType(SenderType.FACULTY);
+//            notification.setSenderId(String.valueOf(facultyId));
+//            notification.setReceiverType(ReceiverType.STUDENT);
+//            notification.setReceiverId("ALL"); // Notify all students
+//            notification.setNotificationType(NotificationType.PROJECT_CREATION);
+//            notification.setTitle("New Project Available");
+//            notification.setMessage("A new project '" + project.getTitle() + "' has been posted!");
+////            notification.setSeen(false);
+//
+//            notificationInterface.sendNotification(notification); // 🚀 Feign call to Notification Service
             return response;
         } catch (Exception e) {
             System.out.println("Error in ProjectService: " + e.getMessage());
@@ -170,6 +185,16 @@ public class ProjectService {
             return new ResponseEntity<>(projects,HttpStatus.OK);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public ResponseEntity<List<Project>> getProjectsByIds(List<Integer> projectIds) {
+        try {
+            List<Project>projects=projectDao.findByProjectIds(projectIds);
+            return new ResponseEntity<>(projects,HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

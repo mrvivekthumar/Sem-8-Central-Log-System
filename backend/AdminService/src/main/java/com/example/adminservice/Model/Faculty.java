@@ -5,6 +5,7 @@ public class Faculty {
     private int f_id;
     private String name;
     private String email;
+    private String password;
     private String department;
 
     public int getF_id() {
@@ -39,5 +40,12 @@ public class Faculty {
         this.department = department;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
 

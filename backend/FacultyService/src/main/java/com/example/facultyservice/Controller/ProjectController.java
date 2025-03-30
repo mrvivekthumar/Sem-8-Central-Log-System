@@ -28,9 +28,9 @@ public class ProjectController {
 //        System.out.println("value is "+facultyId); // this is just for debugging
         return projectService.createProject(project, facultyId);
     }
-    @GetMapping("{p_id}")
-    public ResponseEntity<Project> getProjectById(@PathVariable int p_id){
-        return projectService.getProjectById(p_id);
+    @GetMapping("{projectId}")
+    public ResponseEntity<Project> getProjectById(@PathVariable int projectId){
+        return projectService.getProjectById(projectId);
     }
     @PutMapping("status/{p_id}")
     public ResponseEntity<Project>updateStatus(@PathVariable int p_id){
@@ -41,15 +41,7 @@ public class ProjectController {
     public ResponseEntity<List<Project>> getAllProjects(){
         return projectService.getAllProjeects();
     }
-    @PostMapping("notify")
-    public ResponseEntity<String> notifyFaculty(@RequestBody NotificationRequest notificationRequest) {
 
-        System.out.println("Notification received for project ID: " + notificationRequest.getProjectId());
-        System.out.println("Student Details: " + notificationRequest.getStudent());
-
-        // Return response
-        return new ResponseEntity<>("Faculty notified successfully.", HttpStatus.OK);
-    }
     @GetMapping("{projectId}/student-count")
     public ResponseEntity<Integer> getStudentCountByProject(@PathVariable int projectId) {
         return facultyService.getStudentCountByProjectId(projectId);

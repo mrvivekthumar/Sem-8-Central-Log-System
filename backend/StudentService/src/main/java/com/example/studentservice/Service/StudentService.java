@@ -6,6 +6,7 @@ import com.example.studentservice.Feign.AuthInterface;
 import com.example.studentservice.Model.PersonalProject;
 import com.example.studentservice.Model.StudentAvaibility;
 import com.example.studentservice.Model.StudentProject;
+import com.example.studentservice.SheetHandler;
 import com.example.studentservice.Vo.Project;
 import com.example.studentservice.Model.Student;
 import com.example.studentservice.Vo.Status;
@@ -14,7 +15,10 @@ import com.example.studentservice.Dto.NotificationRequest;
 import com.example.studentservice.Vo.UserRole;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.eventusermodel.XSSFReader;
+import org.apache.poi.xssf.model.SharedStrings;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,9 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +46,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class StudentService {
     @Autowired
+    private CloudinaryService cloudinaryService;
+    @Autowired
     private RestTemplate restTemplate;
     @Autowired
     private AuthInterface authInterface;
@@ -47,11 +56,13 @@ public class StudentService {
     private StudentDao studentDao;
     @Autowired
     private StudentProjectDao studentProjectDao;
-
+    @Autowired
+    private StudentProjectService studentProjectService;
 
 
     public ResponseEntity<Student> registerStudent(Student student) {
         try{
+
                 return new ResponseEntity<>(studentDao.save(student), HttpStatus.OK);
             }
             catch(Exception e) {
@@ -68,75 +79,63 @@ public class StudentService {
 
     @Transactional
     public ResponseEntity<String> registerFile(@RequestPart("file") MultipartFile file) {
-        try (InputStream inputStream = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(inputStream)) {
-
-            Sheet sheet = workbook.getSheetAt(0);
+        try {
             List<Student> students = new ArrayList<>();
             List<UserCredential> users = new ArrayList<>();
+            int recordCount = 0;
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) { // Start from row 1 to skip header
-                Row row = sheet.getRow(i);
+            // Use streaming implementation
+            try (InputStream inputStream = file.getInputStream()) {
+                // Create streaming reader
+                OPCPackage pkg = OPCPackage.open(inputStream);
+                XSSFReader reader = new XSSFReader(pkg);
+                SharedStrings sst = reader.getSharedStringsTable();
 
-                if (row != null) {
-                    Student student = new Student();
-                    UserCredential user = new UserCredential();
+                // Get the first sheet
+                // Note: XMLReaderFactory is deprecated in newer versions, use SAXParserFactory instead
+                XMLReader parser = XMLReaderFactory.createXMLReader();
 
-                    // Roll Number
-                    Cell rollCell = row.getCell(0);
-                    if (rollCell != null && rollCell.getCellType() == CellType.NUMERIC) {
-                        student.setRoll_no((int) Math.round(rollCell.getNumericCellValue()));
-                    }
+                // Set up custom handler
+                SheetHandler handler = new SheetHandler(sst,students, users, studentDao);
+                parser.setContentHandler(handler);
 
-                    // Student Name
-                    Cell nameCell = row.getCell(1);
-                    if (nameCell != null && nameCell.getCellType() == CellType.STRING) {
-                        student.setName(nameCell.getStringCellValue());
-                    }
+                // Process first sheet only
+                InputStream sheetStream = reader.getSheetsData().next();
+                InputSource sheetSource = new InputSource(sheetStream);
+                parser.parse(sheetSource);
+                sheetStream.close();
 
-                    // Email
-                    Cell emailCell = row.getCell(2);
-                    if (emailCell != null && emailCell.getCellType() == CellType.STRING) {
-                        String email = emailCell.getStringCellValue();
-                        System.out.println(email);
-                        if (studentDao.existsByEmail(email)) {
-                            return new ResponseEntity<>("Email " + email + " is already registered", HttpStatus.CONFLICT);
-                        }
-                        student.setEmail(email);
-                        user.setUsername(email);
-                    }
+                recordCount = handler.getRowCount();
 
-                    // Password
-                    Cell passwordCell = row.getCell(3);
-                    if (passwordCell != null) {
-                        if (passwordCell.getCellType() == CellType.STRING) {
-                            user.setPassword(passwordCell.getStringCellValue());
-                        } else if (passwordCell.getCellType() == CellType.NUMERIC) {
-                            user.setPassword(String.valueOf((int) passwordCell.getNumericCellValue()));
-                        }
-                    }
-
-                    // Assign User Role
-                    user.setUserRole(UserRole.STUDENT);
-
-                    // Add to lists
-                    students.add(student);
-                    users.add(user);
+                // Check if handler encountered any duplicate emails
+                if (handler.getDuplicateEmail() != null) {
+                    return new ResponseEntity<>("Email " + handler.getDuplicateEmail() + " is already registered",
+                            HttpStatus.CONFLICT);
                 }
             }
 
-            // Save all students and users in batch
-            studentDao.saveAll(students);
-            authInterface.addNewUser(users);
+            // Batch save all records
+            if (!students.isEmpty()) {
+                // Process in batches of 500
+                int batchSize = 500;
+                for (int i = 0; i < students.size(); i += batchSize) {
+                    int endIndex = Math.min(i + batchSize, students.size());
+                    studentDao.saveAll(students.subList(i, endIndex));
+                }
 
-            return new ResponseEntity<>("File uploaded successfully: " + students.size() + " records added.", HttpStatus.OK);
+                for (int i = 0; i < users.size(); i += batchSize) {
+                    int endIndex = Math.min(i + batchSize, users.size());
+                    authInterface.addNewUser(users.subList(i, endIndex));
+                }
+            }
 
+            return new ResponseEntity<>("File uploaded successfully: " + recordCount + " records added.", HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>("File processing failed due to IO error", HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("File upload failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -191,21 +190,18 @@ public class StudentService {
             if(project.getStatus()==Status.APPROVED){
                 new ResponseEntity<>("Student is aleready registered",HttpStatus.CONFLICT);
             }
+            //get Highest preference
+            Integer maxPreferenced=studentProjectDao.findMaxPreferenceByStudentId(studentId);
+            int newPrefernce=(maxPreferenced==null)?1:maxPreferenced+1;
             StudentProject studentProject=new StudentProject();
             studentProject.setStudent(student);
             studentProject.setStatus(Status.PENDING);
             studentProject.setProjectId(projectId);
             studentProject.setApplicationDate(LocalDate.now());
+            studentProject.setPreference(newPrefernce);
             studentProjectDao.save(studentProject);
 
             System.out.println("Fetched Project: " + project);
-
-
-
-
-            String url = FACULTY_SERVICE_URL + "/notify";
-            NotificationRequest notificationRequest = new NotificationRequest(projectId, student);
-            restTemplate.postForEntity(url, notificationRequest, String.class);
 
 
             return new ResponseEntity<>("Project applied successfully", HttpStatus.OK);
@@ -375,6 +371,176 @@ public class StudentService {
            return new ResponseEntity<>(s,HttpStatus.OK);
         }
         catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<String> withdrawProject(int studentId, int projectId) {
+        try {
+            // Step 1: Check if the student exists
+            Student student = studentDao.findStudentByStudentId(studentId);
+            if (student == null) {
+                return new ResponseEntity<>("Student not found", HttpStatus.NOT_FOUND);
+            }
+
+            // Step 2: Check if the student has applied for the project
+            StudentProject studentProject = studentProjectDao.findByStudent_StudentIdAndProjectId(studentId, projectId);
+            if (studentProject == null) {
+                return new ResponseEntity<>("You have not applied for this project", HttpStatus.CONFLICT);
+            }
+
+            // Step 3: Check if the project is already approved
+            if (studentProject.getStatus() == Status.APPROVED) {
+                return new ResponseEntity<>("You cannot withdraw from an approved project", HttpStatus.CONFLICT);
+            }
+
+            // Get the preference of the withdrawn project
+            int withdrawnPreference = studentProject.getPreference();
+
+            // Step 4: Remove the student from the project
+            studentProjectDao.delete(studentProject);
+
+            // Step 5: Update preferences for remaining projects
+            List<StudentProject> remainingProjects = studentProjectDao.findByStudent_StudentId(studentId);
+
+            for (StudentProject project : remainingProjects) {
+                if (project.getPreference() > withdrawnPreference) {
+                    project.setPreference(project.getPreference() - 1);
+                    studentProjectDao.save(project);  // Save updated preference
+                }
+            }
+
+            // Step 6: Send notification to faculty about the withdrawal
+
+
+            return new ResponseEntity<>("Project application withdrawn successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("An unexpected error occurred: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    public ResponseEntity<Student> findStudent(int studentId) {
+        try{
+            Optional<Student>student=studentDao.findById(studentId);
+            if(student.isPresent()){
+                Student s=student.get();
+                return new ResponseEntity<>(s,HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return null;
+    }
+
+    public ResponseEntity<Student> updateStudentDetails(int studentId, Student updateStudent) {
+        try{
+            Optional<Student>existStudent=studentDao.findById(studentId);
+            if(existStudent.isPresent()){
+                Student student=existStudent.get();
+                student.setGithubProfileLink(updateStudent.getGithubProfileLink());
+                student.setSkills(updateStudent.getSkills());
+                student.setSemesterNo(updateStudent.getSemesterNo());
+                student.setCgpa(updateStudent.getCgpa());
+                student.setBio(updateStudent.getBio());
+                student.setLinkedInUrl(updateStudent.getLinkedInUrl());
+                student.setPhoneNo(updateStudent.getPhoneNo());
+                studentDao.save(student);
+                return new ResponseEntity<>(student,HttpStatus.OK);
+            }
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return null;
+    }
+
+    public ResponseEntity<List<Student>> findAll() {
+        try{
+            List<Student> students=studentDao.findAll();
+            return new ResponseEntity<>(students,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Student> editAvtar(int studentId, MultipartFile avtar) {
+        try {
+            Optional<Student> existStudent = studentDao.findById(studentId);
+            if (existStudent.isPresent()) {
+                Student student = existStudent.get();
+                student.setImageUrl(cloudinaryService.uploadFile(avtar));
+
+                studentDao.save(student);
+                return new ResponseEntity<>(student, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Student> uploadImageToCloudinary(MultipartFile image,int studentId) {
+        try{
+            String fileUrl=cloudinaryService.uploadFile(image);
+            Optional<Student> existStudent=studentDao.findById(studentId);
+            Student student=null;
+            if(existStudent.isPresent()){
+                student=existStudent.get();
+                student.setImageUrl(fileUrl);
+                studentDao.save(student);
+
+            }
+            return new ResponseEntity<>(student,HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    public ResponseEntity<String> updateScoreByFaculty(int projectId, float ratings) {
+        try {
+            ResponseEntity<List<Integer>> studentIdsWithProject = studentProjectService.findStudentIdsByProjectIdAndStatus(projectId, Status.APPROVED);
+
+            if (studentIdsWithProject.getStatusCode() == HttpStatus.OK) {
+                List<Integer> studentIds = studentIdsWithProject.getBody();
+
+                for (int studentId : studentIds) {
+                    Optional<Student> studentOptional = studentDao.findById(studentId);
+
+                    if (studentOptional.isPresent()) {
+                        Student student = studentOptional.get();
+
+                        // Handle first rating case safely
+                        int totalRatings = (student.getTotalRatings() != null) ? student.getTotalRatings() : 0;
+
+                        // Corrected formula for average rating
+                        float newAverageRating = ((student.getRatings() * totalRatings) + ratings) / (totalRatings + 1);
+
+                        // Update student record
+                        student.setRatings(newAverageRating);
+                        student.setTotalRatings(totalRatings + 1);
+                        studentDao.save(student);
+                    }
+                }
+                return new ResponseEntity<>("Score updated successfully to " + ratings, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Student IDs not found", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<List<Integer>> getCompletedProjects(int studentId) {
+        try {
+            List<Integer>ids=studentProjectService.findCompletedProjects(studentId);
+            return new ResponseEntity<>(ids,HttpStatus.OK);
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

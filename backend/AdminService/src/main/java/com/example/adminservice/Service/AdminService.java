@@ -6,6 +6,7 @@ import com.example.adminservice.Feign.StudentClient;
 import com.example.adminservice.Model.Faculty;
 import com.example.adminservice.Model.Student;
 import com.example.adminservice.Vo.UserCredential;
+import com.example.adminservice.Vo.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,21 +23,48 @@ public class AdminService {
     @Autowired
     private AuthInterface authInterface;
 
-    public ResponseEntity<Faculty> registerFaculty(Faculty faculty) {
-        try{
-            return new ResponseEntity<>(facultyClient.registerFaculty(faculty), HttpStatus.OK).getBody();
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<String> registerFaculty(Faculty faculty) {
+        try {
+            UserCredential user = new UserCredential();
+            user.setUsername(faculty.getEmail());
+            user.setPassword(faculty.getPassword());
+            user.setUserRole(UserRole.FACULTY);
 
+            System.out.println("Sending this user data to Auth Service: " + user);
+
+           ResponseEntity<UserCredential>users=authInterface.addSingleOne(user);
+            System.out.println(users);
+
+//            System.out.println("Response from Auth Service: " + response);
+
+            facultyClient.registerFaculty(faculty);
+            return new ResponseEntity<>("Registration successful", HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    public ResponseEntity<Student> registerStudent(Student student) {
+
+    public ResponseEntity<String> registerStudent(Student student) {
         try{
-            return new ResponseEntity<>(studentClient.registerStudent(student), HttpStatus.OK).getBody();
+            UserCredential user=new UserCredential();
+            user.setUsername(student.getEmail());
+            user.setPassword(student.getPassword());
+            user.setUserRole(UserRole.STUDENT);
+            System.out.println("user before"+user);
+
+            ResponseEntity<UserCredential>users=authInterface.addSingleOne(user);
+            System.out.println(users);
+            System.out.println("Student id register in auth");
+            studentClient.registerStudent(student);
+            System.out.println("registerd in student db too");
+
+            return new ResponseEntity<>("Student registration is successful", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
     }
 
     public ResponseEntity<String> registerFile(MultipartFile file) {

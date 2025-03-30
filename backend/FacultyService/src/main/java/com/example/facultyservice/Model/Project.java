@@ -29,8 +29,7 @@ public class Project {
     private Faculty faculty;
     private LocalDateTime deadline;
     private LocalDateTime applicationDeadline;
-    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
-    private Report report;
+    private Integer maxStudents;
 
 
 

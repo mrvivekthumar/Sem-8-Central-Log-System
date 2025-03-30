@@ -1,11 +1,10 @@
 package com.example.adminservice.Vo;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@Data
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserCredential {

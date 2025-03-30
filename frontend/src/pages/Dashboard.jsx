@@ -35,7 +35,7 @@ const Dashboard = () => {
   const filteredProjects = projects
     ? projects.filter((project) =>
         project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.faculty.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.faculty.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.status.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];

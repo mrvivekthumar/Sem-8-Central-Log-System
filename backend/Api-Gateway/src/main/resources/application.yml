@@ -1,0 +1,88 @@
+server:
+  port: 8765
+
+spring:
+  application:
+    name: API-GATEWAY
+
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+      routes:
+        - id: authentication-service
+          uri: lb://AUTHENTICATION-SERVICE
+          predicates:
+            - Path=/auth/**,/AUTHENTICATION-SERVICE/**
+
+        - id: admin-service
+          uri: lb://ADMIN-SERVICE
+          predicates:
+            - Path=/admin/**,/ADMIN-SERVICE/**
+
+        - id: faculty-service
+          uri: lb://FACULTY-SERVICE
+          predicates:
+            - Path=/faculty/**,/FACULTY-SERVICE/**
+
+        - id: student-service
+          uri: lb://STUDENT-SERVICE
+          predicates:
+            - Path=/student/**,/STUDENT-SERVICE/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+#    register-with-eureka: true
+#    fetch-registry: true
+#  instance:
+#    prefer-ip-address: true
+#,https://delightful-victory-production.up.railway.app/eureka/,http://localhost:8761/eureka/
+#server:
+#  port: 8765
+#
+#spring:
+#  application:
+#    name: API-GATEWAY
+#
+#  cloud:
+#    gateway:
+#      default-filters:
+#        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+#
+#      routes:
+#        - id: authentication-service
+#          uri: https://delightful-victory-production.up.railway.app
+#          predicates:
+#            - Path=/auth/**
+#            - Path=/AUTHENTICATION-SERVICE/**
+#
+#        - id: admin-service
+#          uri: lb://ADMIN-SERVICE
+#          predicates:
+#            - Path=/admin/**
+#            - Path=/ADMIN-SERVICE/**
+#
+#        - id: faculty-service
+#          uri: https://faculty-service-production.up.railway.app
+#          predicates:
+#            - Path=/faculty/**
+#            - Path=/FACULTY-SERVICE/**
+#
+#        - id: student-service
+#          uri: lb://STUDENT-SERVICE
+#          predicates:
+#            - Path=/student/**
+#            - Path=/STUDENT-SERVICE/**
+#
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: https://localhost:8761/eureka
+#    register-with-eureka: true
+#    fetch-registry: true
+#  instance:
+#    prefer-ip-address: true
+##https://service-registry-production-97f5.up.railway.app/eureka

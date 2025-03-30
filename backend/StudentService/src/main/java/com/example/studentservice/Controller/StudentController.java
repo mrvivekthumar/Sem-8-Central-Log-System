@@ -9,7 +9,9 @@ import com.example.studentservice.Service.StudentService;
 import jakarta.ws.rs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.cloud.netflix.eureka.http.RestClientEurekaHttpClient;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,9 +32,10 @@ public class StudentController {
 
     @PostMapping("register")
     public ResponseEntity<Student> registerStudent(@RequestBody Student student) {
+        System.out.println("Gonna register controller");
         return studentService.registerStudent(student);
     }
-    @PostMapping("registerFile")
+    @PostMapping(value = "/registerFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> registerFile(@RequestParam("file") MultipartFile file){
         return studentService.registerFile(file);
     }
@@ -40,6 +43,10 @@ public class StudentController {
     public ResponseEntity<String> applyProject(@PathVariable int studentId,@PathVariable int projectId){
         return studentService.applyProject(studentId,projectId);
 
+    }
+    @PostMapping("withdraw/{studentId}/project/{projectId}")
+    public ResponseEntity<String> withdrawProject(@PathVariable int studentId,@PathVariable int projectId){
+        return studentService.withdrawProject(studentId,projectId);
     }
     @GetMapping("projects")
     public ResponseEntity<List<Project>> getAllProjects(){
@@ -77,6 +84,10 @@ public class StudentController {
         return studentService.getAllStudentsById(ids);
 
     }
+    @GetMapping("ids")
+    public ResponseEntity<List<Student>>getStudentsByIds(@RequestBody List<Integer>ids){
+        return studentService.getAllStudentsById(ids);
+    }
     @PutMapping("available/{projectId}")
     public ResponseEntity<String> updateStudentsAvailable(@PathVariable int projectId){
         System.out.println("Hy Path" );
@@ -92,6 +103,40 @@ public class StudentController {
     public ResponseEntity<Student> getStudentByEmail(@PathVariable String email){
         return studentService.findByEmail(email);
     }
+    @PutMapping("/student/{studentId}")
+    public ResponseEntity<Student> updateDetails(@PathVariable int studentId,@RequestBody Student student){
+
+        return studentService.updateStudentDetails(studentId,student);
+
+    }
+    @GetMapping("all")
+    public ResponseEntity<List<Student>> getAllFaculties(){
+        return studentService.findAll();
+    }
+    @PutMapping("/student/{studentId}/avtar")
+    public ResponseEntity<Student> updateDetails(
+            @PathVariable int studentId,
+            @RequestParam("image") MultipartFile avtar){
+
+        return studentService.editAvtar(studentId,avtar);
+    }
+    @PostMapping(value = "student/{studentId}/upload-image")
+    public ResponseEntity<Student> uploadImage(@RequestParam("image") MultipartFile image,@PathVariable int studentId) {
+        return studentService.uploadImageToCloudinary(image,studentId);
+    }
+    @GetMapping("/projects/{projectId}/teammates")
+    public ResponseEntity<List<Student>> getAllTeamMates(@PathVariable int projectId){
+        return studentProjectService.getTeamMates(projectId);
+    }
+    @PutMapping("/projects/{projectId}/ratings/{ratings}")
+    public ResponseEntity<String> updateScoresByFaculty(@PathVariable int projectId, @PathVariable float ratings) {
+        return studentService.updateScoreByFaculty(projectId, ratings);
+    }
+    @GetMapping("{studentId}/completed-projects")
+    public ResponseEntity<List<Integer>> getCompletedProjects(@PathVariable int studentId){
+        return studentService.getCompletedProjects(studentId);
+    }
+
 
 
 

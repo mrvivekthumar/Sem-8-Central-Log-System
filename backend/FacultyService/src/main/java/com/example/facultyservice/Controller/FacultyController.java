@@ -4,6 +4,7 @@ import com.example.facultyservice.Model.Faculty;
 import com.example.facultyservice.Model.Project;
 import com.example.facultyservice.Model.Student;
 import com.example.facultyservice.Service.FacultyService;
+import com.example.facultyservice.Service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +16,16 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("api/faculty")
+@RequestMapping("/api/faculty")
 public class FacultyController {
 
 
     @Autowired
     private FacultyService facultyService;
+    @Autowired
+    private ProjectService projectService;
 
-    @PostMapping("register")
+    @PostMapping("/register")
     public ResponseEntity<Faculty> registerFaculty(@RequestBody Faculty faculty) {
         return facultyService.registerFaculty(faculty);
     }
@@ -55,7 +58,7 @@ public class FacultyController {
     public ResponseEntity<List<Project>> createProjects(@RequestBody List<Project> projects,@PathVariable int facultyId){
         return facultyService.createProjects(projects,facultyId);
     }
-    @PostMapping(value = "registerFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/registerFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> registerFile(@RequestPart("file") MultipartFile file){
         return facultyService.registerFileForFaculty(file);
 
@@ -69,5 +72,27 @@ public class FacultyController {
     public ResponseEntity<Faculty> getFacultyByEmail(@PathVariable String email){
         return facultyService.findByEmail(email);
     }
+    @PostMapping("/projectsbyIds")
+    public ResponseEntity<List<Project>> getProjectsByIds(@RequestBody List<Integer> projectIds){
+        return projectService.getProjectsByIds(projectIds);
 
+    }
+
+    @GetMapping("all")
+    public ResponseEntity<List<Faculty>> getAllFaculties() {
+        return facultyService.findAll();
+    }
+    @GetMapping("/approvedProject")
+    public ResponseEntity<Integer> getTotalApprovedProjects(){
+        return facultyService.getTotalApprovedProjects();
+    }
+    @PutMapping("/project/{projectId}/ratings/{ratings}")
+    public ResponseEntity<String> updateRatings(@PathVariable int projectId, @PathVariable float ratings){
+        System.out.println("Hy Are you printing");
+        return facultyService.updateRatings(projectId,ratings);
+    }
+    @GetMapping("project/{projectId}/is-complete")
+    public ResponseEntity<Boolean> getIsComplete(@PathVariable int projectId){
+        return facultyService.getIsComplete(projectId);
+    }
 }

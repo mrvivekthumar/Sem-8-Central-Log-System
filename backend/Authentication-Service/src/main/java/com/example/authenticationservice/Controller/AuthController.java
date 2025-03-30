@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -29,7 +30,10 @@ public class AuthController {
     @Autowired
     //for authentication
     private AuthenticationManager authenticationManager;
-
+    @PostMapping("registerOne")
+    public ResponseEntity<UserCredential> addSingleOne(@RequestBody UserCredential user){
+        return authService.saveOneUser(user);
+    }
     @PostMapping("register")
     public String addNewUser(@RequestBody List<UserCredential> users){
         return authService.saveUser(users);

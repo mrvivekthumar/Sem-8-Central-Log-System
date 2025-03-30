@@ -11,6 +11,7 @@ import lombok.*;
 public class Student {
     private int studentId;
     private String name;
+    private String password;
     private String email;
     private int roll_no;
     private String department;

@@ -20,11 +20,13 @@ public class AdminController {
         return "hello";
     }
     @PostMapping("faculty/register")
-    public ResponseEntity<Faculty> registerFaculty(@RequestBody Faculty faculty) {
+    public ResponseEntity<String> registerFaculty(@RequestBody Faculty faculty) {
+        System.out.println("In Controller");
         return adminService.registerFaculty(faculty);
     }
     @PostMapping("student/register")
-    public ResponseEntity<Student> registerStudent(@RequestBody Student student) {
+    public ResponseEntity<String> registerStudent(@RequestBody Student student) {
+        System.out.println("Admin student controller");
         return adminService.registerStudent(student);
     }
     @PostMapping("student/registerFile")
@@ -50,5 +52,6 @@ public class AdminController {
         return adminService.updatePassword(user);
 
     }
+
 
 }

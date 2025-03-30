@@ -5,8 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ServerWebExchange;
+
+import java.util.Arrays;
 
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
@@ -22,7 +27,18 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     public AuthenticationFilter() {
         super(Config.class);
     }
-
+    private void addCorsHeaders(ServerWebExchange exchange) {
+        ServerHttpResponse response = exchange.getResponse();
+        HttpHeaders headers = response.getHeaders();
+        headers.setAccessControlAllowOrigin("http://localhost:5173");
+        headers.setAccessControlAllowMethods(Arrays.asList(
+                HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT,
+                HttpMethod.DELETE, HttpMethod.OPTIONS));
+        headers.setAccessControlAllowHeaders(Arrays.asList(
+                "Authorization", "Content-Type", "X-Requested-With"));
+        headers.setAccessControlAllowCredentials(true);
+        headers.setAccessControlMaxAge(3600);
+    }
     @Override
     public GatewayFilter apply(Config config) {
         return ((exchange, chain) -> {

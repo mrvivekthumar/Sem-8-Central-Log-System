@@ -20,4 +20,7 @@ public interface StudentDao extends JpaRepository<Student,Integer> {
     Integer findTotalUsers();
 
     Student findByEmail(String email);
+
+    @Query("SELECT s.email FROM Student s")
+    List<String> findAllEmails();
 }

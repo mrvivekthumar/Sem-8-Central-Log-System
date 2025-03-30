@@ -1,30 +1,29 @@
 package com.example.facultyservice.Dto;
 
-import com.example.facultyservice.Model.Student;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import lombok.*;
 
+@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class NotificationRequest {
-    private int projectId;
-    private Student student;
-
-    // Constructors, Getters, and Setters
-    public NotificationRequest(int projectId, Student student) {
-        this.projectId = projectId;
-        this.student = student;
-    }
-
-    public int getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(int projectId) {
-        this.projectId = projectId;
-    }
-
-    public Student getStudent() {
-        return student;
-    }
-
-    public void setStudent(Student student) {
-        this.student = student;
-    }
+    private int notificationId;
+    @Enumerated(EnumType.STRING)
+    private SenderType senderType;
+    private String senderId ;
+    @Enumerated(EnumType.STRING)
+    private ReceiverType receiverType;
+    private String receiverId;
+    @Enumerated(EnumType.STRING)
+    private NotificationType notificationType;
+    private String title;
+    private String message;
+    private boolean isSeen;
+//    @Column(name = "metadata", columnDefinition = "jsonb")
+//    @Convert(converter = JsonConverter.class)
+//    private Map<String, Object> metadata; // Dynamic metadata field
 }

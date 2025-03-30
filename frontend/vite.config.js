@@ -6,4 +6,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  define: {
+    global: 'window', // This makes the global object available in the browser
+  }
 });

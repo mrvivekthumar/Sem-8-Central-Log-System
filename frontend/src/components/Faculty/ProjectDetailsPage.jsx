@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, Clock, ArrowLeft, Edit, Save } from "lucide-react";
+import { Users, Clock, ArrowLeft, Edit, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import toast from 'react-hot-toast';
 import Select from "react-select";
 
 const ProjectDetailsPage = () => {
@@ -61,12 +61,23 @@ const ProjectDetailsPage = () => {
         project
       );
       setEditMode(false);
-      toast("Project updated successfully!");
+      toast.success("Project updated successfully!");
     } catch (error) {
       console.error("Error updating project:", error);
-      toast("Failed to update project.");
+      toast.error("Failed to update project.");
     }
   };
+  const handleCancelProject = async () => {
+    try {
+      await axios.delete(`http://localhost:8765/FACULTY-SERVICE/api/faculty/project/${project.projectId}`)
+      
+      navigate("/faculty/dashboard");
+      toast.success("Project Deleted Successfully");
+    } catch (error) {
+      console.error("Error canceling project:", error);
+      toast.error("Failed to cancel project. Please try again.");
+    }
+  }
 
   if (loading) {
     return (
@@ -144,23 +155,6 @@ const ProjectDetailsPage = () => {
             <h1 className="text-2xl">{project.description}</h1>
           )}
         </div>
-
-        {/* <div className="mb-6">
-          <label className="block text-gray-700 dark:text-gray-300 font-semibold">
-            Required Skills
-          </label>
-          {editMode ? (
-            <Select
-              isMulti
-              options={skillOptions}
-              value={skillOptions.filter((option) => project.skills?.includes(option.value))}
-              onChange={handleSkillChange}
-              className="w-full"
-            />
-          ) : (
-            <p className="text-gray-600 dark:text-gray-300">{project.skills?.join(", ")}</p>
-          )}
-        </div> */}
         <div className="mb-6">
           <label className="block text-gray-700 dark:text-gray-300 font-semibold">
             Required Skills
@@ -233,6 +227,16 @@ const ProjectDetailsPage = () => {
             className="mt-4 py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center"
           >
             <Save className="h-5 w-5 mr-2" /> Save Changes
+          </motion.button>
+        )}
+        {!editMode && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleCancelProject}
+            className="py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center"
+          >
+            <Trash2 className="h-5 w-5 mr-2" /> Cancel Project
           </motion.button>
         )}
       </div>

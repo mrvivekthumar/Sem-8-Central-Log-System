@@ -41,7 +41,7 @@ const ProjectCard = ({ project }) => {
         </div>
 
         <Link
-          to={`/project/${project.projectId}`}
+          to={`/studentProject/${project.projectId}`}
           className="mt-4 block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
         >
           View Details

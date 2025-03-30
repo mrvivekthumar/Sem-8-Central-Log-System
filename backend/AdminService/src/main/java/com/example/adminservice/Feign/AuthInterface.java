@@ -10,4 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface AuthInterface {
     @PostMapping("auth/updatePassword")
     public ResponseEntity<String> updatePassword(@RequestBody UserCredential user);
+    @PostMapping("auth/registerOne")
+    public ResponseEntity<UserCredential> addSingleOne(@RequestBody UserCredential user);
 }

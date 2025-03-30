@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @FeignClient(name = "FACULTY-SERVICE")
 public interface FacultyClient {
-    @PostMapping("faculty/register")
+    @PostMapping("api/faculty/register")
     public ResponseEntity<Faculty> registerFaculty(@RequestBody Faculty faculty);
     @PostMapping(value = "api/faculty/registerFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> registerFile(@RequestPart("file") MultipartFile file);

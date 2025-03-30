@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -55,6 +56,23 @@ public class AuthService {
         UserCredential user = jwtService.getUserByUsername(username);
         return ResponseEntity.ok(user);
 
+
+    }
+
+    public ResponseEntity<UserCredential> saveOneUser(UserCredential user) {
+        try {
+            Optional<UserCredential> existingUser = userCredentialDao.findByUsernameAndUserRole(user.getUsername(),user.getUserRole());
+            if (existingUser.isPresent()) {
+                return new ResponseEntity<>(HttpStatus.CONFLICT); // 409 Conflict
+            }
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userCredentialDao.save(user);
+            return new ResponseEntity<>(user,HttpStatus.OK);
+        } catch (Exception e) {
+             // Print real error
+            System.out.println();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
     }
 }
