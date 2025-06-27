@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Edit, Trash, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import axios from 'axios';
-
+import axiosInstance from '../../api/axiosInstance';
 const UserTable = ({ userType, searchQuery, onUpdatePassword, onDeleteUser }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,9 +17,9 @@ const UserTable = ({ userType, searchQuery, onUpdatePassword, onDeleteUser }) =>
         let response;
         
         if (userType === 'students') {
-          response = await axios.get('http://localhost:8765/STUDENT-SERVICE/students/all');
+          response = await axiosInstance.get('/STUDENT-SERVICE/students/all');
         } else {
-          response = await axios.get('http://localhost:8765/FACULTY-SERVICE/api/faculty/all');
+          response = await axiosInstance.get('/FACULTY-SERVICE/api/faculty/all');
         }
         
         setUsers(response.data);

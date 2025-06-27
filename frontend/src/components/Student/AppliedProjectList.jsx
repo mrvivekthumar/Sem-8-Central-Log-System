@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import AppliedProjectCard from './AppliedProjectCard';
-
+import axiosInstance from '../../api/axiosInstance';
 const AppliedProjectList = () => {
   const [projects, setProjects] = useState([]);
   const { user } = useAuth();
@@ -14,14 +14,14 @@ const AppliedProjectList = () => {
         setLoading(true);
         try {
             // Step 1: Get the applied project IDs
-            const responseIds = await axios.get(
-                `http://localhost:8765/STUDENT-SERVICE/api/studentProject/projectIdsByPref/${user.id}`
+            const responseIds = await axiosInstance.get(
+                `/STUDENT-SERVICE/api/studentProject/projectIdsByPref/${user.id}`
             );
             console.log("Fetched project Ids:", responseIds.data);  // Expected: [16, 42, 18]
 
             // Step 2: Get project details from faculty service
-            const response = await axios.post(
-                'http://localhost:8765/FACULTY-SERVICE/api/faculty/projectsbyIds',
+            const response = await axiosInstance.post(
+                '/FACULTY-SERVICE/api/faculty/projectsbyIds',
                 responseIds.data,
                 { headers: { 'Content-Type': 'application/json' } }
             );
@@ -78,8 +78,8 @@ const AppliedProjectList = () => {
 
     try {
       // First, update the moved project's preference
-      await axios.patch(
-        `http://localhost:8765/STUDENT-SERVICE/api/studentProject/updatePreference/${user.id}/project/${projectId}/${newPreference}`
+      await axiosInstance.patch(
+        `/STUDENT-SERVICE/api/studentProject/updatePreference/${user.id}/project/${projectId}/${newPreference}`
       );
       
       // Next, update all other affected projects' preferences
@@ -87,8 +87,8 @@ const AppliedProjectList = () => {
         .filter(p => p.projectId !== projectId) // Skip the already updated project
         .filter(p => p.preference !== projects.find(op => op.projectId === p.projectId).preference) // Only update changed preferences
         .map(p => 
-          axios.patch(
-            `http://localhost:8765/STUDENT-SERVICE/api/studentProject/updatePreference/${user.id}/project/${p.projectId}/${p.preference}`
+          axiosInstance.patch(
+            `/STUDENT-SERVICE/api/studentProject/updatePreference/${user.id}/project/${p.projectId}/${p.preference}`
           )
         );
       

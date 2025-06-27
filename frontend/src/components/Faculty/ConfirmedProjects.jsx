@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-
+import axiosInstance from '../../api/axiosInstance';
 const ConfirmedProjects = () => {
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const ConfirmedProjects = () => {
   useEffect(() => {
     const fetchAppliedProjects = async () => {
       try {
-        const response = await axios.get(`http://localhost:8765/STUDENT-SERVICE/api/studentProject/appliedProjects`);
+        const response = await axiosInstance.get(`/STUDENT-SERVICE/api/studentProject/appliedProjects`);
         setList(response.data);
         console.log("Applied Projects List:", response.data);
       } catch (error) {
@@ -28,7 +28,7 @@ const ConfirmedProjects = () => {
 
     const fetchProjects = async () => {
       try {
-        const response = await axios.get('http://localhost:8765/FACULTY-SERVICE/api/project/byFaculty', {
+        const response = await axiosInstance.get('/FACULTY-SERVICE/api/project/byFaculty', {
           params: { facultyId: user.id, projectIds: list.join(',') },
         });
 

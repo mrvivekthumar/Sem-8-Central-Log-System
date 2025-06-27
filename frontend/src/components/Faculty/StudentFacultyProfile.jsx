@@ -25,6 +25,7 @@ import {
   SiTensorflow, SiGooglecloud, SiFigma, SiAndroid, SiDevpost, SiDatabricks
 } from "react-icons/si";
 import { useParams } from 'react-router-dom';
+import axiosInstance from '../../api/axiosInstance';
 
 // Skill icons mapping
 const skillIcons = {
@@ -88,8 +89,8 @@ function StudentFacultyProfile() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8765/STUDENT-SERVICE/api/personalProject/${studentId}`
+        const response = await axiosInstance.get(
+          `/STUDENT-SERVICE/api/personalProject/${studentId}`
         );
         setStudentData(prev => ({
           ...prev,
@@ -110,8 +111,8 @@ function StudentFacultyProfile() {
       try {
         setIsLoading(true);
         // Assuming you have the student ID
-        const response = await axios.get(
-          `http://localhost:8765/STUDENT-SERVICE/students/${studentId}`
+        const response = await axiosInstance.get(
+          `/STUDENT-SERVICE/students/${studentId}`
         );
         const data = response.data;
         setStudentData(data);
@@ -143,8 +144,8 @@ function StudentFacultyProfile() {
 
     try {
       const studentId = studentData.studentId;
-      const response = await axios.post(
-        `http://localhost:8765/STUDENT-SERVICE/students/student/${studentId}/upload-image`,
+      const response = await axiosInstance.post(
+        `/STUDENT-SERVICE/students/student/${studentId}/upload-image`,
         formData,
         {
           headers: {
@@ -190,8 +191,8 @@ function StudentFacultyProfile() {
     setIsSaving(true);
     try {
       const studentId = studentData.studentId;
-      const response = await axios.put(
-        `http://localhost:8765/STUDENT-SERVICE/students/student/${studentId}`,
+      const response = await axiosInstance.put(
+        `/STUDENT-SERVICE/students/student/${studentId}`,
         {
           ...formData,
           name: studentData.name,

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./Tabs"
 import { useParams } from "react-router-dom"
 import { Toast } from "./Toast"
-
+import axiosInstance from '../../api/axiosInstance';
 import axios from "axios"
 import { useAuth } from "../../contexts/AuthContext"
 import { Award, CheckCircle, FileText, Users } from "lucide-react"
@@ -32,8 +32,8 @@ export const ProjectSubmissionManager = () => {
 
   const checkProjectCompletion = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8765/FACULTY-SERVICE/api/faculty/project/${projectId}/is-complete`,
+      const response = await axiosInstance.get(
+        `/FACULTY-SERVICE/api/faculty/project/${projectId}/is-complete`,
       )
       setIsProjectCompleted(response.data)
     } catch (error) {
@@ -45,13 +45,13 @@ export const ProjectSubmissionManager = () => {
   const fetchReport = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`http://localhost:8765/STUDENT-SERVICE/api/reports/project/${projectId}/report`)
+      const response = await axiosInstance.get(`/STUDENT-SERVICE/api/reports/project/${projectId}/report`)
 
       setReport(response.data)
 
       if (response.data?.reportId) {
-        const approvalStatus = await axios.get(
-          `http://localhost:8765/STUDENT-SERVICE/api/review/report/${response.data.reportId}/is-approved`,
+        const approvalStatus = await axiosInstance.get(
+          `/STUDENT-SERVICE/api/review/report/${response.data.reportId}/is-approved`,
         )
         setIsAllApproved(approvalStatus.data)
       }
@@ -80,8 +80,8 @@ export const ProjectSubmissionManager = () => {
     formData.append("file", file)
 
     try {
-      const response = await axios.post(
-        `http://localhost:8765/STUDENT-SERVICE/api/reports/student/${user.id}/project/${projectId}/submit`,
+      const response = await axiosInstance.post(
+        `/STUDENT-SERVICE/api/reports/student/${user.id}/project/${projectId}/submit`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } },
       )
@@ -96,8 +96,8 @@ export const ProjectSubmissionManager = () => {
   const handleApproval = async (reportId, approve) => {
     try {
       const endpoint = approve ? "approve" : "reject"
-      await axios[approve ? "post" : "put"](
-        `http://localhost:8765/STUDENT-SERVICE/api/review/${reportId}/${endpoint}/student/${user.id}`,
+      await axiosInstance[approve ? "post" : "put"](
+        `/STUDENT-SERVICE/api/review/${reportId}/${endpoint}/student/${user.id}`,
       )
       showToast(`Report ${approve ? "approved" : "rejected"} successfully!`, "success")
       fetchReport()
@@ -108,7 +108,7 @@ export const ProjectSubmissionManager = () => {
 
   const handleFinalSubmit = async () => {
     try {
-      await axios.put(`http://localhost:8765/STUDENT-SERVICE/api/reports/report/${report.reportId}/final-submit`)
+      await axiosInstance.put(`/STUDENT-SERVICE/api/reports/report/${report.reportId}/final-submit`)
 
       setModalMessage("Your report has been successfully submitted to the faculty!")
       setShowSuccessModal(true)
@@ -123,7 +123,7 @@ export const ProjectSubmissionManager = () => {
 
   const handleDeleteReport = async () => {
     try {
-      await axios.delete(`http://localhost:8765/STUDENT-SERVICE/api/reports/report/${report.reportId}`)
+      await axios.delete(`/STUDENT-SERVICE/api/reports/report/${report.reportId}`)
       showToast("Report deleted successfully", "success")
       setReport(null)
       fetchReport()

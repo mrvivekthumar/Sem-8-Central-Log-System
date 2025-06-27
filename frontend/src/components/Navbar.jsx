@@ -65,39 +65,8 @@ const Navbar = () => {
   // Setup WebSocket for real-time notifications
   useEffect(() => {
     if (!user || !user.id) return;
-
-    // Replace with your actual WebSocket implementation
-    // const socket = new WebSocket(`ws://your-server/notifications?userId=${user.id}`);
     
-    // socket.onmessage = (event) => {
-    //   const newNotification = JSON.parse(event.data);
-    //   setLatestNotification(newNotification);
-    //   setUnreadCount(prev => prev + 1);
-    //   setShowNotificationPopup(true);
-    //   
-    //   // Auto-hide popup after 5 seconds
-    //   setTimeout(() => setShowNotificationPopup(false), 5000);
-    // };
-    
-    // Simulate a notification for demonstration (remove this in production)
-    // const simulateNotification = setTimeout(() => {
-    //   const mockNotification = {
-    //     id: 'mock-id',
-    //     message: 'This is a sample notification',
-    //     timestamp: new Date().toISOString(),
-    //     read: false
-    //   };
-    //   setLatestNotification(mockNotification);
-    //   setUnreadCount(prev => prev + 1);
-    //   setShowNotificationPopup(true);
-      
-    //   setTimeout(() => setShowNotificationPopup(false), 5000);
-    // }, 3000);
 
-    // return () => {
-    //   // socket.close();
-    //   clearTimeout(simulateNotification);
-    // };
   }, [user]);
 
   return (

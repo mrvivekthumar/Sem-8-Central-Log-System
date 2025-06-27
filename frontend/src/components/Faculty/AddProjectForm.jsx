@@ -26,6 +26,7 @@ import {
   SiPostgresql
 } from 'react-icons/si';
 import { BsRobot } from 'react-icons/bs';
+import axiosInstance from '../../api/axiosInstance';
 
 // Enhanced skill options with React Icons
 const skillOptions = [
@@ -82,19 +83,12 @@ const AddProjectForm = ({ onBack }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:8765/FACULTY-SERVICE/api/project/${user.id}`, project);
+      await axiosInstance.post(`/FACULTY-SERVICE/api/project/${user.id}`, project);
       toast.success('Project created successfully!');
       setProject(initialState);
       onBack();
       
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification('New Project Added', {
-            body: `${project.title} has been created! Apply before ${project.applicationDeadline}.`,
-            icon: '/logo192.png',
-          });
-        });
-      }
+      
     } catch (error) {
       toast.error('Failed to create project');
       console.error('Error creating project:', error);

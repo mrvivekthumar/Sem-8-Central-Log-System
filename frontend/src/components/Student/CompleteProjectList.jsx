@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import CompletedProjectCard from './CompleteProjectCard';
-
+import axiosInstance from '../../api/axiosInstance';
 const CompletedProjectList = () => {
   const [projects, setProjects] = useState([]);
   const { user } = useAuth();
@@ -13,15 +13,15 @@ const CompletedProjectList = () => {
     const fetchProjects = async () => {
       try {
         // Step 1: Fetch Project IDs
-        const idsResponse = await axios.get(
-          `http://localhost:8765/STUDENT-SERVICE/students/${user.id}/completed-projects`
+        const idsResponse = await axiosInstance.get(
+          `/STUDENT-SERVICE/students/${user.id}/completed-projects`
         );
         const projectIds = idsResponse.data;
         if (!projectIds.length) return;
 
         // Step 2: Fetch Projects by IDs
-        const projectsResponse = await axios.post(
-          "http://localhost:8765/FACULTY-SERVICE/api/faculty/projectsbyIds",
+        const projectsResponse = await axiosInstance.post(
+          "/FACULTY-SERVICE/api/faculty/projectsbyIds",
           projectIds,
           { headers: { "Content-Type": "application/json" } }
         );

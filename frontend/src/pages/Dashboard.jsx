@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import ProjectCard from '../components/ProjectCard';
 import SearchBar from '../components/SearchBar';
 import StudentProjectCard from '../components/StudentProjectCard';
-
+import axiosInstance from '../api/axiosInstance';
 const Dashboard = () => {
   const [projects, setProjects] = useState(null); // Initially null
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,7 +14,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axios.get('http://localhost:8765/STUDENT-SERVICE/students/project/visible');
+        const response = await axiosInstance.get('/STUDENT-SERVICE/students/project/visible');
         
         // Check if response data is empty or null
         if (!response.data || response.data.length === 0) {

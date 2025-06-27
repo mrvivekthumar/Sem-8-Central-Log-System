@@ -5,7 +5,8 @@ import { Users, Clock, Send, ArrowLeft, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-
+  
+import axiosInstance from '../api/axiosInstance';
 const skillOptions = {
   Java: { label: 'Java', icon: '☕' },
   Python: { label: 'Python', icon: '🐍' },
@@ -33,8 +34,8 @@ const ProjectDetails = () => {
 
     const fetchStudentCount = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}/student-count`
+        const response = await axiosInstance.get(
+          `/FACULTY-SERVICE/api/project/${projectId}/student-count`
         );
         setStudentCount(response.data);
       } catch (error) {
@@ -75,8 +76,8 @@ const ProjectDetails = () => {
   useEffect(() => {
     const checkApplicationStatus = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${user.id}/project/${projectId}/status`
+        const response = await axiosInstance.get(
+          `/STUDENT-SERVICE/api/studentProject/${user.id}/project/${projectId}/status`
         );
         setHasApplied(response.data);
       } catch (error) {
@@ -92,8 +93,8 @@ const ProjectDetails = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}`
+        const response = await axiosInstance.get(
+          `/FACULTY-SERVICE/api/project/${projectId}`
         );
         setProject(response.data);
       } catch (err) {
@@ -119,8 +120,8 @@ const ProjectDetails = () => {
 
     setIsApplying(true);
     try {
-      await axios.post(
-        `http://localhost:8765/STUDENT-SERVICE/students/apply/${user.id}/project/${projectId}`
+      await axiosInstance.post(
+        `/STUDENT-SERVICE/students/apply/${user.id}/project/${projectId}`
       );
       toast.success('Application submitted successfully');
       setHasApplied(true);
@@ -134,8 +135,8 @@ const ProjectDetails = () => {
   const handleWithdraw = async () => {
     setIsWithdrawing(true);
     try {
-      await axios.post(
-        `http://localhost:8765/STUDENT-SERVICE/students/withdraw/${user.id}/project/${projectId}`
+      await axiosInstance.post(
+        `/STUDENT-SERVICE/students/withdraw/${user.id}/project/${projectId}`
       );
       toast.success('Application withdrawn successfully');
       setHasApplied(false);

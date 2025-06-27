@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import axiosInstance from '../../api/axiosInstance';
 
 const AddProjectModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({

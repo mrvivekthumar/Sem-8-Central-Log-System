@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, Clock, Github } from 'lucide-react';
 import axios from 'axios';
-
+import axiosInstance from '../../api/axiosInstance';
 export const TeamMembers = ({
     projectId,
     currentUserId,
@@ -20,14 +20,14 @@ export const TeamMembers = ({
     const fetchTeammatesAndStatuses = async () => {
         try {
             // Fetch team members
-            const idsResponse = await axios.get(
-                `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${projectId}/completeIds`
+            const idsResponse = await axiosInstance.get(
+                `/STUDENT-SERVICE/api/studentProject/${projectId}/completeIds`
             );
             const studentIds = idsResponse.data;
 
             // Fetch team member details
-            const detailsResponse = await axios.get(
-                `http://localhost:8765/STUDENT-SERVICE/students/by-id?ids=${studentIds.join(',')}`
+            const detailsResponse = await axiosInstance.get(
+                `/STUDENT-SERVICE/students/by-id?ids=${studentIds.join(',')}`
             );
             const teammates = detailsResponse.data;
 
@@ -46,8 +46,8 @@ export const TeamMembers = ({
             // Fetch approval status for each team member
             const statusPromises = teammates.map(async (teammate) => {
                 try {
-                    const statusResponse = await axios.get(
-                        `http://localhost:8765/STUDENT-SERVICE/api/review/report/${report.reportId}/student/${teammate.studentId}/is-approved`
+                    const statusResponse = await axiosInstance.get(
+                        `/STUDENT-SERVICE/api/review/report/${report.reportId}/student/${teammate.studentId}/is-approved`
                     );
                     return { 
                         studentId: teammate.studentId, 
@@ -183,23 +183,7 @@ export const TeamMembers = ({
                                 <span className="text-sm font-medium">{text}</span>
                             </div>
 
-                            {/* Show approve/reject buttons only for non-submitters
-                            {report && !isReportSubmitter && teammate.studentId === currentUserId && teammate.studentId !== report.submittedBy.studentId && (
-                                <div className="flex space-x-2 ml-4">
-                                    <button
-                                        onClick={() => handleApprove(report.reportId)}
-                                        className="p-2 rounded-full hover:bg-green-100 text-green-600"
-                                    >
-                                        <Check size={20} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleReject(report.reportId)}
-                                        className="p-2 rounded-full hover:bg-red-100 text-red-600"
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                </div>
-                            )} */}
+                           
                         </div>
                     </div>
                 );

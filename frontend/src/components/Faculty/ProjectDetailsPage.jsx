@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from 'react-hot-toast';
 import Select from "react-select";
+import axiosInstance from '../../api/axiosInstance';
 
 const ProjectDetailsPage = () => {
   const { projectId } = useParams();
@@ -26,8 +27,8 @@ const ProjectDetailsPage = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}`
+        const response = await axiosInstance.get(
+          `/FACULTY-SERVICE/api/project/${projectId}`
         );
         setProject(response.data);
       } catch (error) {
@@ -56,8 +57,8 @@ const ProjectDetailsPage = () => {
 
   const handleUpdate = async () => {
     try {
-      await axios.put(
-        `http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}`,
+      await axiosInstance.put(
+        `/FACULTY-SERVICE/api/project/${projectId}`,
         project
       );
       setEditMode(false);
@@ -69,7 +70,7 @@ const ProjectDetailsPage = () => {
   };
   const handleCancelProject = async () => {
     try {
-      await axios.delete(`http://localhost:8765/FACULTY-SERVICE/api/faculty/project/${project.projectId}`)
+      await axiosInstance.delete(`/FACULTY-SERVICE/api/faculty/project/${project.projectId}`)
       
       navigate("/faculty/dashboard");
       toast.success("Project Deleted Successfully");

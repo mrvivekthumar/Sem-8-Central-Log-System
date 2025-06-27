@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-
+import axiosInstance from '../../api/axiosInstance';
 const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,37 +24,34 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.name || formData.name.length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
     }
-    
+
     if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Invalid email address';
     }
-    
+
     if (!formData.password || formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const registerStudent = async (userData) => {
     try {
-      const response = await fetch('http://localhost:8765/ADMIN-SERVICE/api/admin/student/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-      
+      const response = await axiosInstance.post(
+        '/ADMIN-SERVICE/api/admin/student/register',
+        userData
+      );
+
       if (!response.ok) {
         throw new Error('Failed to register student');
       }
-      
+
       const data = await response.text();
       return data;
     } catch (error) {
@@ -65,18 +62,17 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
 
   const registerFaculty = async (userData) => {
     try {
-      const response = await fetch('http://localhost:8765/ADMIN-SERVICE/api/admin/faculty/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-      
+
+      const response = await axiosInstance.post(
+        '/ADMIN-SERVICE/api/admin/faculty/register',
+        userData
+      );
+
+
       if (!response.ok) {
         throw new Error('Failed to register faculty');
       }
-      
+
       const data = await response.text();
       return data;
     } catch (error) {
@@ -90,7 +86,7 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
     if (validateForm()) {
       setLoading(true);
       setMessage({ type: '', text: '' });
-      
+
       try {
         // Extract only the needed fields for the API
         const userData = {
@@ -98,7 +94,7 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
           email: formData.email,
           password: formData.password,
         };
-        
+
         let result;
         if (formData.role === 'student') {
           result = await registerStudent(userData);
@@ -107,12 +103,12 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
           result = await registerFaculty(userData);
           setMessage({ type: 'success', text: 'Faculty registered successfully!' });
         }
-        
+
         // If onSubmit prop exists, call it with the result
         if (onSubmit) {
           onSubmit(result);
         }
-        
+
         // Clear form after successful registration
         setFormData({
           role: 'student',
@@ -120,7 +116,7 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
           email: '',
           password: '',
         });
-        
+
         // Close modal after 2 seconds
         setTimeout(() => {
           onClose();
@@ -144,11 +140,11 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
         // Modal container
         <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center">
           {/* Semi-transparent backdrop */}
-          <div 
-            className="absolute inset-0 bg-black bg-opacity-50" 
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
             onClick={onClose}
           ></div>
-          
+
           {/* Modal content - stop propagation on this element */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -175,11 +171,10 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
 
               {/* Status message */}
               {message.text && (
-                <div className={`mb-4 p-3 rounded-lg ${
-                  message.type === 'success' 
-                    ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400' 
-                    : 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400'
-                }`}>
+                <div className={`mb-4 p-3 rounded-lg ${message.type === 'success'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400'
+                  : 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400'
+                  }`}>
                   {message.text}
                 </div>
               )}
@@ -295,9 +290,8 @@ const RegisterModal = ({ isOpen, onClose, onSubmit }) => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
-                      loading ? 'opacity-70 cursor-not-allowed' : ''
-                    }`}
+                    className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${loading ? 'opacity-70 cursor-not-allowed' : ''
+                      }`}
                     disabled={loading}
                   >
                     {loading ? 'Registering...' : 'Register'}

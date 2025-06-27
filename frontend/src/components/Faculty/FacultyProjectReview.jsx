@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom"
 import axios from "axios"
 import { FileText, Users, CheckCircle, AlertTriangle, Award } from "lucide-react"
 import { Toast } from "../Student/Toast"
-
+import axiosInstance from '../../api/axiosInstance';
 export const FacultyProjectReview = () => {
   const { projectId } = useParams()
   const [report, setReport] = useState(null)
@@ -27,7 +27,7 @@ export const FacultyProjectReview = () => {
       await checkProjectCompletion()
 
       const [reportRes, teamRes] = await Promise.allSettled([
-        axios.get(`http://localhost:8765/STUDENT-SERVICE/api/reports/project/${projectId}/report`),
+        axiosInstance.get(`/STUDENT-SERVICE/api/reports/project/${projectId}/report`),
         fetchTeammates(),
       ])
 
@@ -56,8 +56,8 @@ export const FacultyProjectReview = () => {
   const checkProjectCompletion = async () => {
     try {
       setIsCheckingCompletion(true)
-      const response = await axios.get(
-        `http://localhost:8765/FACULTY-SERVICE/api/faculty/project/${projectId}/is-complete`,
+      const response = await axiosInstance.get(
+        `/FACULTY-SERVICE/api/faculty/project/${projectId}/is-complete`,
       )
       setIsProjectCompleted(response.data)
     } catch (error) {
@@ -70,14 +70,14 @@ export const FacultyProjectReview = () => {
   }
 
   const fetchTeammates = async () => {
-    const idsResponse = await axios.get(
-      `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${projectId}/completeIds`,
+    const idsResponse = await axiosInstance.get(
+      `/STUDENT-SERVICE/api/studentProject/${projectId}/completeIds`,
     )
 
     const studentIds = idsResponse.data
 
-    const detailsResponse = await axios.get(
-      `http://localhost:8765/STUDENT-SERVICE/students/by-id?ids=${studentIds.join(",")}`,
+    const detailsResponse = await axiosInstance.get(
+      `/STUDENT-SERVICE/students/by-id?ids=${studentIds.join(",")}`,
     )
     setTeammates(detailsResponse.data)
     return detailsResponse.data
@@ -85,7 +85,7 @@ export const FacultyProjectReview = () => {
 
   const handleMarkComplete = async () => {
     try {
-      await axios.put(`http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}/completed`)
+      await axiosInstance.put(`/FACULTY-SERVICE/api/project/${projectId}/completed`)
       setIsProjectCompleted(true)
       showToast("Project marked as completed successfully.", "success")
     } catch (error) {

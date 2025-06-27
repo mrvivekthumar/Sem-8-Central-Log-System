@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import axiosInstance from '../api/axiosInstance'
 
 const CurrentProject = () => {
     const [project, setProject] = useState(null); // Start with `null`
@@ -14,7 +15,7 @@ const CurrentProject = () => {
 
         const fetchProject = async () => {
             try {
-                const response = await axios.get(`http://localhost:8765/STUDENT-SERVICE/api/studentProject/approvedProject/${user.id}`);
+                const response = await axiosInstance.get(`/STUDENT-SERVICE/api/studentProject/approvedProject/${user.id}`);
                 console.log("Approved Project ID:", response.data);
                 console.log(`/projects/${project?.projectId}/report-submission`);
                 if (!response.data) {
@@ -24,7 +25,7 @@ const CurrentProject = () => {
                 }
 
                 const projectId = response.data;
-                const projectData = await axios.get(`http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}`);
+                const projectData = await axiosInstance.get(`/FACULTY-SERVICE/api/project/${projectId}`);
                 setProject(projectData.data);
 
                 console.log("Project Data:", projectData.data);
