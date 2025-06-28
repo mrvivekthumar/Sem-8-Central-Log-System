@@ -24,6 +24,7 @@ import {
   SiTensorflow, SiGooglecloud, SiFigma, SiAndroid, SiDevpost, SiDatabricks
 } from "react-icons/si";
 import { useParams } from 'react-router-dom';
+import axiosInstance from '../api/axiosInstance';
 
 // Skill icons mapping
 const skillIcons = {
@@ -93,8 +94,8 @@ function StudentProfile() {
       try {
         setIsLoading(true);
        
-        const response = await axios.get(
-          `http://localhost:8765/STUDENT-SERVICE/students/${studentId}`
+        const response = await axiosInstance.get(
+          `/STUDENT-SERVICE/students/${studentId}`
         );
         const data = response.data;
         setStudentData(data);
@@ -126,8 +127,8 @@ function StudentProfile() {
 
     try {
       const studentId = studentData.studentId;
-      const response = await axios.post(
-        `http://localhost:8765/STUDENT-SERVICE/students/student/${studentId}/upload-image`,
+      const response = await axiosInstance.post(
+        `/STUDENT-SERVICE/students/student/${studentId}/upload-image`,
         formData,
         {
           headers: {
@@ -173,8 +174,8 @@ function StudentProfile() {
     setIsSaving(true);
     try {
       const studentId = studentData.studentId;
-      const response = await axios.put(
-        `http://localhost:8765/STUDENT-SERVICE/students/student/${studentId}`,
+      const response = await axiosInstance.put(
+        `/STUDENT-SERVICE/students/student/${studentId}`,
         {
           ...formData,
           name: studentData.name,
@@ -222,8 +223,8 @@ function StudentProfile() {
   const handleAddProject = async (projectData) => {
     try {
       const studentId = studentData.studentId;
-      const response = await axios.post(
-        `http://localhost:8765/STUDENT-SERVICE/api/personalProject/${studentId}`,
+      const response = await axiosInstance.post(
+        `/STUDENT-SERVICE/api/personalProject/${studentId}`,
         projectData
       );
 
@@ -242,8 +243,8 @@ function StudentProfile() {
 
   const handleUpdateProject = async (projectId, projectData) => {
     try {
-      const response = await axios.put(
-        `http://localhost:8765/STUDENT-SERVICE/api/personalProject/${projectId}`,
+      const response = await axiosInstance.put(
+        `/STUDENT-SERVICE/api/personalProject/${projectId}`,
         projectData
       );
 
@@ -264,8 +265,8 @@ function StudentProfile() {
 
   const handleDeleteProject = async (projectId) => {
     try {
-      await axios.delete(
-        `http://localhost:8765/STUDENT-SERVICE/api/personalProject/${projectId}`
+      await axiosInstance.delete(
+        `/STUDENT-SERVICE/api/personalProject/${projectId}`
       );
 
       // Remove project from local student data

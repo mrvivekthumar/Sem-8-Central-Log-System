@@ -4,6 +4,7 @@ import { X, Lock, Eye, EyeOff, Check } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import axiosInstance from '../../api/axiosInstance';
 
 const passwordSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -18,7 +19,7 @@ const UpdatePasswordModal = ({ isOpen, onClose, user, onUpdate }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  
+
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
@@ -29,19 +30,18 @@ const UpdatePasswordModal = ({ isOpen, onClose, user, onUpdate }) => {
 
   const updatePassword = async (userData) => {
     try {
-      const response = await fetch('http://localhost:8765/auth/updatePassword', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-      
+
+      const response = await axiosInstance.post(
+        '/auth/updatePassword',
+        userData
+      );
+
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || 'Failed to update password');
       }
-      
+
       const data = await response.text();
       return data;
     } catch (error) {
@@ -53,7 +53,7 @@ const UpdatePasswordModal = ({ isOpen, onClose, user, onUpdate }) => {
   const onSubmit = async (data) => {
     setLoading(true);
     setMessage({ type: '', text: '' });
-    
+
     try {
       // Prepare data for API
       const userData = {
@@ -61,20 +61,20 @@ const UpdatePasswordModal = ({ isOpen, onClose, user, onUpdate }) => {
         password: data.password,
         userRole: user.role?.toUpperCase() // Assuming user.role contains 'student' or 'faculty'
       };
-      
+
       const result = await updatePassword(userData);
-      
+
       // Display success message
       setMessage({ type: 'success', text: 'Password updated successfully!' });
-      
+
       // Clear form
       reset();
-      
+
       // If onUpdate callback exists, call it
       if (onUpdate) {
         onUpdate(user.id, data.password, result);
       }
-      
+
       // Close modal after delay
       setTimeout(() => {
         onClose();
@@ -97,11 +97,11 @@ const UpdatePasswordModal = ({ isOpen, onClose, user, onUpdate }) => {
         // Modal container - exactly matching RegisterModal structure
         <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center">
           {/* Semi-transparent backdrop */}
-          <div 
-            className="absolute inset-0 bg-black bg-opacity-50" 
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
             onClick={onClose}
           ></div>
-          
+
           {/* Modal content - stop propagation on this element */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -131,11 +131,10 @@ const UpdatePasswordModal = ({ isOpen, onClose, user, onUpdate }) => {
 
               {/* Status message */}
               {message.text && (
-                <div className={`mb-4 p-3 rounded-lg ${
-                  message.type === 'success' 
-                    ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400' 
-                    : 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400'
-                }`}>
+                <div className={`mb-4 p-3 rounded-lg ${message.type === 'success'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400'
+                  : 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400'
+                  }`}>
                   {message.text}
                 </div>
               )}
@@ -204,9 +203,8 @@ const UpdatePasswordModal = ({ isOpen, onClose, user, onUpdate }) => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
-                      loading ? 'opacity-70 cursor-not-allowed' : ''
-                    }`}
+                    className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${loading ? 'opacity-70 cursor-not-allowed' : ''
+                      }`}
                     disabled={loading}
                   >
                     <Check className="h-4 w-4 mr-2" />

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Star, User, Mail, Bookmark, Award, Clock, Check, AlertTriangle, X, Info, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
-
+import axiosInstance from '../../api/axiosInstance';
 const StudentDetail = () => {
   const { user } = useAuth();
   const { projectId } = useParams();
@@ -26,8 +26,8 @@ const StudentDetail = () => {
       setIsLoading(true);
       try {
         const [projectResponse, studentsResponse] = await Promise.all([
-          axios.get(`http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}`),
-          axios.get(`http://localhost:8765/FACULTY-SERVICE/api/faculty/studentproject/${projectId}`)
+          axiosInstance.get(`/FACULTY-SERVICE/api/project/${projectId}`),
+          axiosInstance.get(`/FACULTY-SERVICE/api/faculty/studentproject/${projectId}`)
         ]);
 
         setProject(projectResponse.data);
@@ -40,8 +40,8 @@ const StudentDetail = () => {
         console.log("Hy StudentIds", studentIds);
 
         // Fetch preferences in a single request
-        const preferencesResponse = await axios.post(
-          `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${projectId}/student`, // Ensure correct API path
+        const preferencesResponse = await axiosInstance.post(
+          `/STUDENT-SERVICE/api/studentProject/${projectId}/student`, // Ensure correct API path
           studentIds,
           {
             headers: {
@@ -89,8 +89,8 @@ const StudentDetail = () => {
     for (const student of studentsList) {
       try {
         // Get other project IDs for this student
-        const otherProjectsResponse = await axios.get(
-          `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${student.studentId}/getProjectFaculties/project/${projectId}`
+        const otherProjectsResponse = await axiosInstance.get(
+          `/STUDENT-SERVICE/api/studentProject/${student.studentId}/getProjectFaculties/project/${projectId}`
         );
 
         const otherProjectIds = otherProjectsResponse.data;
@@ -98,8 +98,8 @@ const StudentDetail = () => {
         // If student has applied to other projects
         if (otherProjectIds && otherProjectIds.length > 0) {
           // Fetch details for those projects
-          const otherProjectsDetailsResponse = await axios.post(
-            `http://localhost:8765/FACULTY-SERVICE/api/faculty/projectsbyIds`,
+          const otherProjectsDetailsResponse = await axiosInstance.post(
+            `/FACULTY-SERVICE/api/faculty/projectsbyIds`,
             otherProjectIds,
             {
               headers: {
@@ -199,8 +199,8 @@ const StudentDetail = () => {
     }
 
     try {
-      await axios.post(
-        `http://localhost:8765/FACULTY-SERVICE/api/faculty/${user.id}/studentproject/${projectId}/approved`,
+      await axiosInstance.post(
+        `/FACULTY-SERVICE/api/faculty/${user.id}/studentproject/${projectId}/approved`,
         selectedStudentIds,
         { headers: { 'Content-Type': 'application/json' } }
       );

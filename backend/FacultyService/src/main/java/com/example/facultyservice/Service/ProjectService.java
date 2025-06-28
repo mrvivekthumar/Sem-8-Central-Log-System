@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -106,18 +107,22 @@ public class ProjectService {
     }
 
     public ResponseEntity<List<Project>> getVisibleProjects() {
-        try{
-            LocalDateTime currentTime=LocalDateTime.now();
+        try {
+            LocalDateTime currentTime = LocalDateTime.now();
             System.out.println(currentTime);
-            List<Project> visibleProjects=projectDao.findVisibleProjects(currentTime,Status.OPEN_FOR_APPLICATIONS);
 
-            if(visibleProjects==null){
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            List<Project> visibleProjects = projectDao.findVisibleProjects(currentTime, Status.OPEN_FOR_APPLICATIONS);
+
+            // Return empty list instead of null or 204
+            if (visibleProjects == null || visibleProjects.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
             }
-            return new ResponseEntity<>(visibleProjects,HttpStatus.OK);
+
+            return ResponseEntity.ok(visibleProjects);
+
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            System.out.println("Exception in getVisibleProjects: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

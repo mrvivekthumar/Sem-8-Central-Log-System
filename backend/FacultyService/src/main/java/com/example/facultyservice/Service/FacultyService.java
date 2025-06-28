@@ -51,8 +51,8 @@ public class FacultyService {
     @Autowired
     private ProjectService projectService;
 
-    private final String STUDENT_SERVICE = "http://localhost:8765/STUDENT-SERVICE/api/studentProject/";
-    private final String STUDENT = "http://localhost:8765/STUDENT-SERVICE/students";
+//    private final String STUDENT_SERVICE = "http://localhost:8765/STUDENT-SERVICE/api/studentProject/";
+//    private final String STUDENT = "http://localhost:8765/STUDENT-SERVICE/students";
     @Autowired
     private StudentInterface studentInterface;
 
@@ -102,14 +102,8 @@ public class FacultyService {
 
     public ResponseEntity<List<Student>> getStudentsByProject(int projectId) {
         try {
-            ResponseEntity<List<Student>> responseEntity = restTemplate.exchange(
-                    STUDENT_SERVICE + "/" + projectId,
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<List<Student>>() {
-                    }
-            );
-            List<Student> students = responseEntity.getBody();
+            ResponseEntity<List<Student>> response = studentInterface.getStudents(projectId);
+            List<Student> students = response.getBody();
             List<Student> availableStudents = students.stream()
                     .filter(s -> s.getStudentAvaibility() == StudentAvaibility.AVAILABLE)
                     .collect(Collectors.toList());
@@ -124,8 +118,9 @@ public class FacultyService {
 
     public ResponseEntity<Integer> getStudentCountByProjectId(int projectId) {
         try {
-            ResponseEntity<Integer> responseEntity = restTemplate.exchange(STUDENT_SERVICE + "/" + projectId + "/student-count", HttpMethod.GET, null, Integer.class);
-            Integer count = responseEntity.getBody();
+            Integer count = studentInterface.getStudentCountByProject(projectId).getBody();
+//            ResponseEntity<Integer> responseEntity = restTemplate.exchange(STUDENT_SERVICE + "/" + projectId + "/student-count", HttpMethod.GET, null, Integer.class);
+//            Integer count = responseEntity.getBody();
             System.out.println(count.intValue());
             if (count != null) {
                 return new ResponseEntity<>(count.intValue(), HttpStatus.OK);
@@ -140,11 +135,8 @@ public class FacultyService {
     public ResponseEntity<String> getApprovedStudent(int facultyId, int projectId, List<Integer> studentIds) {
         try {
 
-            String ids=studentIds.stream().map(String::valueOf).collect(Collectors.joining(","));
-            ResponseEntity<List<Student>> responseEntityStudent = restTemplate.exchange("http://localhost:8765/STUDENT-SERVICE/students/by-id?ids="+ids,
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<List<Student>>() {});
+            ResponseEntity<List<Student>> responseEntityStudent = studentInterface.getStudentsById(studentIds);
+
             List<Student>students = null;
             if (responseEntityStudent.getStatusCode() == HttpStatus.OK) {
                 students = responseEntityStudent.getBody();
@@ -156,11 +148,13 @@ public class FacultyService {
 //                }
                 s.setStudentAvaibility(StudentAvaibility.NOT_AVAILABLE);
                 System.out.println(studentIds);
-                restTemplate.put(STUDENT + "/" + s.getStudentId(), s);
+                studentInterface.makeUnavailable(s.getStudentId());
+//                restTemplate.put(STUDENT + "/" + s.getStudentId(), s);
             }
             for (int studentId:studentIds){
-                String updateUrl = STUDENT_SERVICE + "/updateStatus/" + studentId + "/" + projectId;
-                restTemplate.put(updateUrl, null);
+//                String updateUrl = STUDENT_SERVICE + "/updateStatus/" + studentId + "/" + projectId;
+                studentInterface.updateStatus(studentId,projectId);
+//                restTemplate.put(updateUrl, null);
 
             }
 

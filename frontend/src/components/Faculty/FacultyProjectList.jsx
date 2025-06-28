@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useState,useEffect } from 'react';
 import axios from 'axios';
 // import no_projects from '../../assets/no_projects.jpeg';
-
+import axiosInstance from '../../api/axiosInstance';
 
 
 const FacultyProjectList = () => {
@@ -14,8 +14,8 @@ const FacultyProjectList = () => {
    
     const fetchProjects= async()=>{
         try{
-          const response=await axios.get(
-            `http://localhost:8765/FACULTY-SERVICE/api/faculty/${user.id}`
+          const response=await axiosInstance.get(
+            `/FACULTY-SERVICE/api/faculty/${user.id}`
            );
           console.log(response.data);
           setProjects(response.data); // Use fetched data
@@ -55,23 +55,4 @@ const FacultyProjectList = () => {
 };
 
 export default FacultyProjectList;
-
-
-
-// Mock data - replace with API call
-// const projects = [
-// {
-//     id: 1,
-//     title: 'AI Research Assistant',
-//     description: 'Developing an AI-powered research assistant for academic papers',
-//     enrolledStudents: [
-//       { id: 1, name: 'John Doe', email: 'john@example.com' },
-//       { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
-//     ],
-//     maxStudents: 4,
-//     status: 'active',
-//     technologies: ['Python', 'TensorFlow', 'NLP'],
-//   },
-//   // Add more mock projects
-// ];
 

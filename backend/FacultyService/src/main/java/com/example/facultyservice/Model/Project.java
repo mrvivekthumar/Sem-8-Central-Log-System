@@ -19,6 +19,7 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int projectId;
     private String title;
+    @Column(length = 1000)
     private String description;
     @Enumerated(EnumType.STRING)
     private Status status=Status.OPEN_FOR_APPLICATIONS;

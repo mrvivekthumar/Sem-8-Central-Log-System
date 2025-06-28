@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, FileText, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 export const ReportUpload = ({ 
   onUpload, 
@@ -43,8 +44,8 @@ export const ReportUpload = ({
       setIsSubmitting(true);
       setError('');
       
-      const response = await axios.put(
-        `http://localhost:8765/STUDENT-SERVICE/api/reports/report/${report.reportId}/final-submit`
+      const response = await axiosInstance.put(
+        `/STUDENT-SERVICE/api/reports/report/${report.reportId}/final-submit`
       );
       
       if (response.data) {
@@ -70,8 +71,8 @@ export const ReportUpload = ({
       setIsDeleting(true);
       setError('');
       
-      const response = await axios.delete(
-        `http://localhost:8765/STUDENT-SERVICE/api/reports/report/${report.reportId}`
+      const response = await axiosInstance.delete(
+        `/STUDENT-SERVICE/api/reports/report/${report.reportId}`
       );
       
       if (response.status >= 200 && response.status < 300) {

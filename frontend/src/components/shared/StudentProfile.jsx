@@ -1,5 +1,5 @@
 import { User, Mail, Github } from 'lucide-react';
-
+import axiosInstance from '../../api/axiosInstance';
 const StudentProfile = ({ student }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">

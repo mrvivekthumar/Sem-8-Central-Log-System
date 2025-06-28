@@ -18,6 +18,7 @@ import RegisterModal from '../components/admin/RegisterModal';
 import UploadExcelModal from '../components/admin/UploadExcelModal';
 import UpdatePasswordModal from '../components/admin/UpdatePasswordModal';
 import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 
 const mockStats = {
   totalStudents: 1250,
@@ -41,9 +42,9 @@ const AdminDashboard = () => {
     const fetchCounts = async () => {
       try {
         const [responseStudent, responseFaculty,responseProject] = await Promise.all([
-          axios.get("http://localhost:8765/STUDENT-SERVICE/students/count"),
-          axios.get("http://localhost:8765/FACULTY-SERVICE/api/faculty/count"),
-          axios.get("http://localhost:8765/FACULTY-SERVICE/api/faculty/approvedProject")
+          axiosInstance.get("/STUDENT-SERVICE/students/count"),
+          axiosInstance.get("/FACULTY-SERVICE/api/faculty/count"),
+          axiosInstance.get("/FACULTY-SERVICE/api/faculty/approvedProject")
         ]);
 
         setStudentCount(responseStudent.data);

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, FileSpreadsheet, Check, AlertCircle, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 const UploadExcelModal = ({ isOpen, onClose, onUpload }) => {
   const [file, setFile] = useState(null);
@@ -67,11 +68,11 @@ const UploadExcelModal = ({ isOpen, onClose, onUpload }) => {
 
       // Select the appropriate API URL based on role
       const apiUrl = role === 'faculty' 
-        ? 'http://localhost:8765/ADMIN-SERVICE/api/admin/faculty/registerFile'
-        : 'http://localhost:8765/ADMIN-SERVICE/api/admin/student/registerFile';
+        ? '/ADMIN-SERVICE/api/admin/faculty/registerFile'
+        : '/ADMIN-SERVICE/api/admin/student/registerFile';
 
       // Make API call
-      const response = await axios.post(apiUrl, formData, {
+      const response = await axiosInstance.post(apiUrl, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

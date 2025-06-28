@@ -6,7 +6,7 @@ import axios from 'axios';
 import ReviewCard from './ReviewCard';
 // import no_projects from '../../assets/no_projects.jpeg';
 
-
+import axiosInstance from '../../api/axiosInstance';
 
 const ApprovedProjectList = () => {
   const [projects,setProjects]=useState([]);
@@ -15,8 +15,8 @@ const ApprovedProjectList = () => {
    
     const fetchProjects= async()=>{
         try{
-          const response=await axios.get(
-            `http://localhost:8765/FACULTY-SERVICE/api/faculty/${user.id}`
+          const response=await axiosInstance.get(
+            `/FACULTY-SERVICE/api/faculty/${user.id}`
            );
           console.log(response.data);
           setProjects(response.data); // Use fetched data

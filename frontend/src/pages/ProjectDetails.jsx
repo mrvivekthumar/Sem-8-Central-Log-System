@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Users, Clock, Send, ArrowLeft, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-
+  
+import axiosInstance from '../api/axiosInstance';
 const skillOptions = {
   Java: { label: 'Java', icon: '☕' },
   Python: { label: 'Python', icon: '🐍' },
@@ -27,14 +28,15 @@ const ProjectDetails = () => {
   const [timeRemaining, setTimeRemaining] = useState('');
   const [studentCount, setStudentCount] = useState(0);
   const { user } = useAuth();
+  const timerRef = useRef(null);
 
   useEffect(() => {
     if (!project) return;
 
     const fetchStudentCount = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}/student-count`
+        const response = await axiosInstance.get(
+          `/FACULTY-SERVICE/api/project/${projectId}/student-count`
         );
         setStudentCount(response.data);
       } catch (error) {
@@ -45,17 +47,18 @@ const ProjectDetails = () => {
     fetchStudentCount();
   }, [project]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!project || !project.applicationDeadline) return;
 
     const appDeadline = new Date(project.applicationDeadline).getTime();
+
     const updateTimer = () => {
       const now = new Date().getTime();
       const timeDiff = appDeadline - now;
 
       if (timeDiff <= 0) {
         setTimeRemaining('Application deadline has passed');
-        clearInterval(timerInterval);
+        clearInterval(timerRef.current);
         return;
       }
 
@@ -67,16 +70,17 @@ const ProjectDetails = () => {
     };
 
     updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
+    timerRef.current = setInterval(updateTimer, 1000);
 
-    return () => clearInterval(timerInterval);
+    return () => clearInterval(timerRef.current);
   }, [project]);
+
 
   useEffect(() => {
     const checkApplicationStatus = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8765/STUDENT-SERVICE/api/studentProject/${user.id}/project/${projectId}/status`
+        const response = await axiosInstance.get(
+          `/STUDENT-SERVICE/api/studentProject/${user.id}/project/${projectId}/status`
         );
         setHasApplied(response.data);
       } catch (error) {
@@ -92,8 +96,8 @@ const ProjectDetails = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8765/FACULTY-SERVICE/api/project/${projectId}`
+        const response = await axiosInstance.get(
+          `/FACULTY-SERVICE/api/project/${projectId}`
         );
         setProject(response.data);
       } catch (err) {
@@ -119,8 +123,8 @@ const ProjectDetails = () => {
 
     setIsApplying(true);
     try {
-      await axios.post(
-        `http://localhost:8765/STUDENT-SERVICE/students/apply/${user.id}/project/${projectId}`
+      await axiosInstance.post(
+        `/STUDENT-SERVICE/students/apply/${user.id}/project/${projectId}`
       );
       toast.success('Application submitted successfully');
       setHasApplied(true);
@@ -134,8 +138,8 @@ const ProjectDetails = () => {
   const handleWithdraw = async () => {
     setIsWithdrawing(true);
     try {
-      await axios.post(
-        `http://localhost:8765/STUDENT-SERVICE/students/withdraw/${user.id}/project/${projectId}`
+      await axiosInstance.post(
+        `/STUDENT-SERVICE/students/withdraw/${user.id}/project/${projectId}`
       );
       toast.success('Application withdrawn successfully');
       setHasApplied(false);
