@@ -22,7 +22,6 @@ public class ProjectController {
     @Autowired
     private FacultyService facultyService;
 
-
     @PostMapping("{facultyId}")
     public ResponseEntity<Project> createProject(@PathVariable int facultyId, @RequestBody Project project) {
 //        System.out.println("value is "+facultyId); // this is just for debugging

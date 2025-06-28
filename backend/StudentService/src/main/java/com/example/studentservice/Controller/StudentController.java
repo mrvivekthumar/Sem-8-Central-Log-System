@@ -53,8 +53,8 @@ public class StudentController {
         return studentService.getAllProjets();
     }
     @PutMapping("{studentId}")
-    public ResponseEntity<String> makeUnavailable(@RequestBody Student student){
-        return studentService.makeUnavailibity(student);
+    public ResponseEntity<String> makeUnavailable(@PathVariable int studentId){
+        return studentService.makeUnavailibity(studentId);
     }
     @GetMapping("project/visible")
     public ResponseEntity<List<Project>> getVisibleProjects(){
@@ -79,7 +79,7 @@ public class StudentController {
         return studentService.deleteProject(studentId,personalProjectId);
     }
     @GetMapping("by-id")
-    public ResponseEntity<List<Student>> getSTudentsById(@RequestParam List<Integer> ids){
+    public ResponseEntity<List<Student>> getStudentsById(@RequestParam List<Integer> ids){
         System.out.println("Fuck You");
         return studentService.getAllStudentsById(ids);
 

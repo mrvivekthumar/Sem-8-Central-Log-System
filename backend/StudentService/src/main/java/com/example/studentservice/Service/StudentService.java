@@ -3,6 +3,7 @@ package com.example.studentservice.Service;
 import com.example.studentservice.Dao.StudentDao;
 import com.example.studentservice.Dao.StudentProjectDao;
 import com.example.studentservice.Feign.AuthInterface;
+import com.example.studentservice.Feign.FacultyInterface;
 import com.example.studentservice.Model.PersonalProject;
 import com.example.studentservice.Model.StudentAvaibility;
 import com.example.studentservice.Model.StudentProject;
@@ -51,13 +52,15 @@ public class StudentService {
     private RestTemplate restTemplate;
     @Autowired
     private AuthInterface authInterface;
-    private static final String FACULTY_SERVICE_URL = "http://localhost:8765/FACULTY-SERVICE/api/project";
+    //private static final String FACULTY_SERVICE_URL = "http://localhost:8765/FACULTY-SERVICE/api/project";
     @Autowired
     private StudentDao studentDao;
     @Autowired
     private StudentProjectDao studentProjectDao;
     @Autowired
     private StudentProjectService studentProjectService;
+    @Autowired
+    private FacultyInterface facultyInterface;
 
 
     public ResponseEntity<Student> registerStudent(Student student) {
@@ -145,10 +148,11 @@ public class StudentService {
 
     public ResponseEntity<List<Project>> getAllProjets() {
         try{
-            ResponseEntity<Project[]> response = restTemplate.getForEntity(FACULTY_SERVICE_URL+"/projects", Project[].class);
+            ResponseEntity<List<Project>> response=facultyInterface.getAllProjects();
+            //ResponseEntity<Project[]> response = restTemplate.getForEntity(FACULTY_SERVICE_URL+"/projects", Project[].class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                List<Project> projects = Arrays.asList(response.getBody());
+                List<Project> projects = response.getBody();
                 return new ResponseEntity<>(projects, HttpStatus.OK);
             } else {
                 // Handle empty or unexpected response
@@ -178,8 +182,8 @@ public class StudentService {
                 return new ResponseEntity<>("Student has already applied for this project",HttpStatus.CONFLICT);
             }
             // Step 1: Fetch the project using RestTemplate from the Faculty microservice
-            String project_url = FACULTY_SERVICE_URL + "/" + projectId;
-            ResponseEntity<Project> response = restTemplate.getForEntity(project_url, Project.class);
+//            String project_url = FACULTY_SERVICE_URL + "/" + projectId;
+            ResponseEntity<Project> response = facultyInterface.getProjectById(projectId);
             Project project = response.getBody();
 
             // Step 2: Handle case where the project was not found
@@ -227,8 +231,9 @@ public class StudentService {
         }
     }
 
-    public ResponseEntity<String> makeUnavailibity(Student student) {
+    public ResponseEntity<String> makeUnavailibity(int studentId) {
         try{
+            Student student=studentDao.findStudentByStudentId(studentId);
             student.setStudentAvaibility(StudentAvaibility.NOT_AVAILABLE);
             studentDao.save(student);
             return new ResponseEntity<>("Student is Unavailable Now",HttpStatus.OK);

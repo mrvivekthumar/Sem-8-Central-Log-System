@@ -2,6 +2,7 @@ package com.example.studentservice.Service;
 
 import com.example.studentservice.Dao.StudentDao;
 import com.example.studentservice.Dao.StudentProjectDao;
+import com.example.studentservice.Feign.FacultyInterface;
 import com.example.studentservice.Model.Student;
 import com.example.studentservice.Model.StudentProject;
 import com.example.studentservice.Vo.Project;
@@ -33,6 +34,8 @@ public class StudentProjectService {
     private final String FACULTY_SERVICE="http://localhost:8765/FACULTY-SERVICE/api/project";
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private FacultyInterface facultyInterface;
 
     public ResponseEntity<List<Student>> getStudentIds(int projectId) {
         try{
@@ -62,12 +65,13 @@ public class StudentProjectService {
 
     public ResponseEntity<List<Project>> getVisibleProjects() {
         try{
-            ResponseEntity<List<Project>> responseEntity=restTemplate.exchange(FACULTY_SERVICE+"/"+"visible",
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<List<Project>>() {
-                    }
-            );
+            ResponseEntity<List<Project>> responseEntity = facultyInterface.getVisibleProjects();
+//            ResponseEntity<List<Project>> responseEntity=restTemplate.exchange(FACULTY_SERVICE+"/"+"visible",
+//                    HttpMethod.GET,
+//                    null,
+//                    new ParameterizedTypeReference<List<Project>>() {
+//                    }
+//            );
             List<Project>projects=null;
             if(responseEntity.getStatusCode()==HttpStatus.OK){
                 projects=responseEntity.getBody();
