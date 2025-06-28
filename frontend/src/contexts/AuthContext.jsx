@@ -23,9 +23,9 @@ export function AuthProvider({ children }) {
   // Set token in axios headers whenever it changes
   useEffect(() => {
     if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
-      delete api.defaults.headers.common['Authorization'];
+      delete axiosInstance.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
@@ -35,13 +35,13 @@ export function AuthProvider({ children }) {
       const userData = response.data;
 
       if (userData.userRole === 'STUDENT') {
-        const studentResponse = await api.get(
+        const studentResponse = await axiosInstance.get(
           `/STUDENT-SERVICE/students/email/${userData.username}`
         );
         Object.assign(userData, studentResponse.data);
         userData.id = userData.studentId;
       } else if (userData.userRole === 'FACULTY') {
-        const facultyResponse = await api.get(
+        const facultyResponse = await axiosInstance.get(
           `/FACULTY-SERVICE/api/faculty/email/${userData.username}`
         );
         Object.assign(userData, facultyResponse.data);
