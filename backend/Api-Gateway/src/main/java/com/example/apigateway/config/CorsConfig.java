@@ -13,12 +13,11 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // Remove trailing slash from the origin URL
-        corsConfig.addAllowedOrigin("https://colab-bridge.vercel.app");
+
+
 
         // Add your other frontend URLs if needed
         corsConfig.addAllowedOrigin("https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app");
-        corsConfig.addAllowedOrigin("http://localhost:3000"); // for local development
 
         corsConfig.addAllowedMethod("*");
         corsConfig.addAllowedHeader("*");
