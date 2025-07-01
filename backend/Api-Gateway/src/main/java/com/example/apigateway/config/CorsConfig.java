@@ -18,6 +18,7 @@ public class CorsConfig {
 
         // Add your other frontend URLs if needed
         corsConfig.addAllowedOrigin("https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app");
+        corsConfig.setAllowCredentials(true);
 
         corsConfig.addAllowedMethod("*");
         corsConfig.addAllowedHeader("*");
