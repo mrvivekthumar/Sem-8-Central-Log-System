@@ -15,7 +15,6 @@ spring:
           uri: https://authentication-service-vfxn.onrender.com
           predicates:
             - Path=/auth/**
-            - Path=/AUTHENTICATION-SERVICE/**
 
         - id: admin-service
           uri: https://admin-service-2nj1.onrender.com
