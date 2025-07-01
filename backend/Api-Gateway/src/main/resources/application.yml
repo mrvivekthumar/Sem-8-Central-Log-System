@@ -4,11 +4,17 @@ server:
 spring:
   application:
     name: API-GATEWAY
-
   cloud:
     gateway:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - AddRequestHeader=X-Forwarded-Proto, https
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
       routes:
         - id: authentication-service
           uri: https://authentication-service-vfxn.onrender.com
@@ -24,6 +30,8 @@ spring:
           uri: https://faculty-service.onrender.com
           predicates:
             - Path=/FACULTY-SERVICE/**
+          filters:
+            - StripPrefix=1  # This removes /FACULTY-SERVICE from the path
 
         - id: student-service
           uri: https://student-service-fowj.onrender.com
@@ -34,6 +42,38 @@ eureka:
   client:
     register-with-eureka: false
     fetch-registry: false
+
+# Add health check and timeout configurations
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,gateway
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #    register-with-eureka: true
 #    fetch-registry: true
