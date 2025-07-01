@@ -20,38 +20,40 @@ spring:
           uri: https://authentication-service-vfxn.onrender.com
           predicates:
             - Path=/auth/**
+          # No StripPrefix needed here as /auth/** is likely the actual path
 
         - id: admin-service
           uri: https://admin-service-2nj1.onrender.com
           predicates:
             - Path=/ADMIN-SERVICE/**
+          filters:
+            - StripPrefix=1  # Removes /ADMIN-SERVICE from the path
 
         - id: faculty-service
           uri: https://faculty-service.onrender.com
           predicates:
             - Path=/FACULTY-SERVICE/**
           filters:
-            - StripPrefix=1  # This removes /FACULTY-SERVICE from the path
+            - StripPrefix=1  # Removes /FACULTY-SERVICE from the path
 
         - id: student-service
           uri: https://student-service-fowj.onrender.com
           predicates:
             - Path=/STUDENT-SERVICE/**
+          filters:
+            - StripPrefix=1  # Removes /STUDENT-SERVICE from the path
 
 eureka:
   client:
     register-with-eureka: false
     fetch-registry: false
 
-# Add health check and timeout configurations
+# Health check and timeout configurations
 management:
   endpoints:
     web:
       exposure:
         include: health,gateway
-
-
-
 
 
 
