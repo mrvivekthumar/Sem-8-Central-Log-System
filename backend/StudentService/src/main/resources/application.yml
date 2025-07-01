@@ -1,9 +1,41 @@
+server:
+  port: 8765
+
+spring:
+  application:
+    name: API-GATEWAY
+
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - AuthenticationFilter
+      routes:
+        - id: authentication-service
+          uri: https://authentication-service-vfxn.onrender.com
+          predicates:
+            - Path=/auth/**
+
+        - id: admin-service
+          uri: https://admin-service-2nj1.onrender.com
+          predicates:
+            - Path=/admin/**
+
+        - id: faculty-service
+          uri: https://faculty-service.onrender.com
+          predicates:
+            - Path=/faculty/**
+
+        - id: student-service
+          uri: https://student-service-fowj.onrender.com
+          predicates:
+            - Path=/student/**
+
 eureka:
   client:
-    service-url:
-      defaultZone: https://service-registry-leeg.onrender.com/eureka
-    register-with-eureka: true
-    fetch-registry: true
+    register-with-eureka: false
+    fetch-registry: false
+
 
 #  instance:
 #    prefer-ip-address: true
