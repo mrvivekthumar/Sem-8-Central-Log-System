@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8765', // API Gateway base
+  baseURL: 'https://api-gateway-1w0w.onrender.com', // API Gateway base
 });
 
 // Add request interceptor to attach token from localStorage
