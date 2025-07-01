@@ -12,7 +12,7 @@ public class CorsConfig {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.addAllowedOrigin("https://colab-bridge.vercel.app/");
+        corsConfig.addAllowedOrigin("https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app/");
         corsConfig.addAllowedMethod("*");
         corsConfig.addAllowedHeader("*");
         corsConfig.setAllowCredentials(true);
