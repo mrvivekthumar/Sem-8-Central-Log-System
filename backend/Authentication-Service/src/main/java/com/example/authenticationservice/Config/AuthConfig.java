@@ -52,7 +52,7 @@ public class AuthConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Allow frontend
+        configuration.setAllowedOrigins(List.of("https://api-gateway-1w0w.onrender.com")); // Allow frontend
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type","X-Requested-With"));
         configuration.setAllowCredentials(true); // Allow cookies & credentials
