@@ -12,33 +12,29 @@ spring:
         - AuthenticationFilter
       routes:
         - id: authentication-service
-          uri: lb://AUTHENTICATION-SERVICE
+          uri: https://authentication-service-vfxn.onrender.com
           predicates:
-            - Path=/auth/**,/AUTHENTICATION-SERVICE/**
+            - Path=/auth/**
 
         - id: admin-service
-          uri: lb://ADMIN-SERVICE
+          uri: https://admin-service-2nj1.onrender.com
           predicates:
-            - Path=/admin/**,/ADMIN-SERVICE/**
+            - Path=/admin/**
 
         - id: faculty-service
-          uri: lb://FACULTY-SERVICE
+          uri: https://faculty-service.onrender.com
           predicates:
-            - Path=/faculty/**,/FACULTY-SERVICE/**
+            - Path=/faculty/**
 
         - id: student-service
-          uri: lb://STUDENT-SERVICE
+          uri: https://student-service-fowj.onrender.com
           predicates:
-            - Path=/student/**,/STUDENT-SERVICE/**
+            - Path=/student/**
 
 eureka:
   client:
-    service-url:
-      defaultZone: https://service-registry-leeg.onrender.com/eureka
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
+    register-with-eureka: false
+    fetch-registry: false
 
 #    register-with-eureka: true
 #    fetch-registry: true
