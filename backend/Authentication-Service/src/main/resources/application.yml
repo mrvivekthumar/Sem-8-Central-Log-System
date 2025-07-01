@@ -4,3 +4,10 @@ eureka:
       defaultZone: https://service-registry-leeg.onrender.com/eureka
     register-with-eureka: true
     fetch-registry: true
+
+spring:
+  datasource:
+    hikari:
+      max-lifetime: 30000       # 30 seconds
+      connection-timeout: 20000 # 20 seconds
+      idle-timeout: 10000       # 10 seconds
