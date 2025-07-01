@@ -14,22 +14,22 @@ spring:
         - id: authentication-service
           uri: https://authentication-service-vfxn.onrender.com
           predicates:
-            - Path=/auth/**
+            - Path=/AUTHENTICATION-SERVICE/**
 
         - id: admin-service
           uri: https://admin-service-2nj1.onrender.com
           predicates:
-            - Path=/admin/**
+            - Path=/ADMIN-SERVICE/**
 
         - id: faculty-service
           uri: https://faculty-service.onrender.com
           predicates:
-            - Path=/faculty/**
+            - Path=/FACULTY-SERVICE/**
 
         - id: student-service
           uri: https://student-service-fowj.onrender.com
           predicates:
-            - Path=/student/**
+            - Path=/STUDENT-SERVICE/**
 
 eureka:
   client:
