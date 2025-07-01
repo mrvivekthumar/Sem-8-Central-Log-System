@@ -9,7 +9,6 @@ spring:
     gateway:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-        - AuthenticationFilter
       routes:
         - id: authentication-service
           uri: https://authentication-service-vfxn.onrender.com
