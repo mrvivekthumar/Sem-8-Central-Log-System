@@ -5,13 +5,13 @@ import axios from 'axios';
 import axiosInstance from '../api/axiosInstance'
 
 // Create axios instance with default config
-const api = axios.create({
-  baseURL: 'http://localhost:8765',
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
+// const api = axios.create({
+//   baseURL: 'http://localhost:8765',
+//   withCredentials: true,
+//   headers: {
+//     'Content-Type': 'application/json',
+//   }
+// });
 
 const AuthContext = createContext(undefined);
 
@@ -102,7 +102,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('token');
     setUser(null);
     setToken(null);
-    delete api.defaults.headers.common['Authorization'];
+    delete axiosInstance.defaults.headers.common['Authorization'];
     navigate('/login');
     toast.success('Logged out successfully');
   };
