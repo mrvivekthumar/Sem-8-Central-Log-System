@@ -1,17 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 import axiosInstance from '../api/axiosInstance'
 
-// Create axios instance with default config
-// const api = axios.create({
-//   baseURL: 'http://localhost:8765',
-//   withCredentials: true,
-//   headers: {
-//     'Content-Type': 'application/json',
-//   }
-// });
+
 
 const AuthContext = createContext(undefined);
 
