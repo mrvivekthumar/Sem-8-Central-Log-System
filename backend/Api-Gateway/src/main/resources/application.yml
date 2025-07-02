@@ -9,6 +9,9 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
+            allowedOriginPatterns:
+              - "https://*.vercel.app"
+              - "http://localhost:*"
             allowedOrigins:
               - "https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app"
               - "https://colab-bridge-hcz38o2w5-hetbhagatji09-gmailcoms-projects.vercel.app"
@@ -25,6 +28,11 @@ spring:
             allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
+            exposedHeaders:
+              - "Authorization"
+              - "Content-Type"
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       routes:
         - id: authentication-service
           uri: https://authentication-service-vfxn.onrender.com
@@ -60,12 +68,6 @@ eureka:
     register-with-eureka: false
     fetch-registry: false
 
-# Health check and timeout configurations
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,gateway
 
 
 
