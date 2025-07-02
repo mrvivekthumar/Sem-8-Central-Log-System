@@ -30,7 +30,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     private void addCorsHeaders(ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         HttpHeaders headers = response.getHeaders();
-        headers.setAccessControlAllowOrigin("http://localhost:5173");
+        headers.setAccessControlAllowOrigin("https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app");
         headers.setAccessControlAllowMethods(Arrays.asList(
                 HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT,
                 HttpMethod.DELETE, HttpMethod.OPTIONS));
