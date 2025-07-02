@@ -7,15 +7,7 @@ spring:
   cloud:
     gateway:
       default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-        - AddRequestHeader=X-Forwarded-Proto, https
         - AuthenticationFilter
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
       routes:
         - id: authentication-service
           uri: https://authentication-service-vfxn.onrender.com
