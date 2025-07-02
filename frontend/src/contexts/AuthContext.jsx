@@ -43,14 +43,14 @@ export function AuthProvider({ children }) {
 
       setUser(userData);
       navigate(
-        userData.userRole === 'STUDENT' 
-          ? '/student/dashboard' 
-          : userData.userRole === 'FACULTY' 
-            ? '/faculty/dashboard' 
-            : '/admin/dashboard', 
+        userData.userRole === 'STUDENT'
+          ? '/student/dashboard'
+          : userData.userRole === 'FACULTY'
+            ? '/faculty/dashboard'
+            : '/admin/dashboard',
         { replace: true }
       );
-      
+
     } catch (error) {
       console.error('Failed to fetch user data:', error);
       logout();
@@ -73,11 +73,17 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post('https://api-gateway-1w0w.onrender.com/auth/token', { 
-        username, 
-        password 
-      });
-      
+      const response = await axios.post(
+        'https://api-gateway-1w0w.onrender.com/auth/token',
+        { username, password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true
+        }
+      );
+
       const newToken = response.data.token;
       localStorage.setItem('token', newToken);
       setToken(newToken);
@@ -86,7 +92,13 @@ export function AuthProvider({ children }) {
       toast.success('Login successful!');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login failed. Please check your credentials.');
+      if (error.response?.status === 403) {
+        toast.error('Access forbidden. Please check your credentials.');
+      } else if (error.response?.status === 401) {
+        toast.error('Invalid credentials. Please try again.');
+      } else {
+        toast.error('Login failed. Please try again later.');
+      }
       throw error;
     }
   };
@@ -101,12 +113,12 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      token, 
-      isAuthenticated: !!token, 
-      login, 
-      logout 
+    <AuthContext.Provider value={{
+      user,
+      token,
+      isAuthenticated: !!token,
+      login,
+      logout
     }}>
       {children}
     </AuthContext.Provider>
