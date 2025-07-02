@@ -42,6 +42,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     @Override
     public GatewayFilter apply(Config config) {
         return ((exchange, chain) -> {
+            addCorsHeaders(exchange);
             if (exchange.getRequest().getMethod() == HttpMethod.OPTIONS) {
                 return chain.filter(exchange);
             }
