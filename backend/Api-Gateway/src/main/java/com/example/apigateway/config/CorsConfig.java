@@ -17,9 +17,6 @@ public class CorsConfig {
         corsConfig.addAllowedOrigin("https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app");
         corsConfig.addAllowedOrigin("http://colab-bridge-hcz38o2w5-hetbhagatji09-gmailcoms-projects.vercel.app");
 
-        // Add localhost for development (if needed)
-        corsConfig.addAllowedOrigin("http://localhost:3000");
-        corsConfig.addAllowedOrigin("http://localhost:5173");
 
         // Specify allowed methods explicitly
         corsConfig.addAllowedMethod("GET");

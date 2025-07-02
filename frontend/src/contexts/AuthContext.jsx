@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 import axiosInstance from '../api/axiosInstance'
 
 
@@ -72,7 +73,7 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      const response = await axiosInstance.post('/auth/token', { 
+      const response = await axios.post('https://api-gateway-1w0w.onrender.com/auth/token', { 
         username, 
         password 
       });
