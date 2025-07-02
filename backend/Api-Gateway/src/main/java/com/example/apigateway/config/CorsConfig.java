@@ -16,21 +16,19 @@ public class CorsConfig {
         // Add your frontend URLs
         corsConfig.addAllowedOrigin("https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app");
         corsConfig.addAllowedOrigin("http://colab-bridge-hcz38o2w5-hetbhagatji09-gmailcoms-projects.vercel.app");
+        corsConfig.addAllowedOrigin("https://colab-bridge-hcz38o2w5-hetbhagatji09-gmailcoms-projects.vercel.app");
 
+        // Add localhost for development
+        corsConfig.addAllowedOrigin("http://localhost:3000");
+        corsConfig.addAllowedOrigin("http://localhost:5173");
 
-        // Specify allowed methods explicitly
-        corsConfig.addAllowedMethod("GET");
-        corsConfig.addAllowedMethod("POST");
-        corsConfig.addAllowedMethod("PUT");
-        corsConfig.addAllowedMethod("DELETE");
-        corsConfig.addAllowedMethod("OPTIONS");
-        corsConfig.addAllowedMethod("HEAD");
-        corsConfig.addAllowedMethod("PATCH");
+        // Allow all methods
+        corsConfig.addAllowedMethod("*");
 
         // Allow all headers
         corsConfig.addAllowedHeader("*");
 
-        // Set credentials - ONLY ONCE
+        // Set credentials
         corsConfig.setAllowCredentials(true);
 
         // Expose headers that frontend might need

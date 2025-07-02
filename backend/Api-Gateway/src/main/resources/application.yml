@@ -6,35 +6,54 @@ spring:
     name: API-GATEWAY
   cloud:
     gateway:
-      default-filters:
-        - AuthenticationFilter
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app"
+              - "https://colab-bridge-hcz38o2w5-hetbhagatji09-gmailcoms-projects.vercel.app"
+              - "http://localhost:3000"
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - HEAD
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
       routes:
         - id: authentication-service
           uri: https://authentication-service-vfxn.onrender.com
           predicates:
             - Path=/auth/**
-          # No StripPrefix needed here as /auth/** is likely the actual path
 
         - id: admin-service
           uri: https://admin-service-2nj1.onrender.com
           predicates:
             - Path=/ADMIN-SERVICE/**
           filters:
-            - StripPrefix=1  # Removes /ADMIN-SERVICE from the path
+            - StripPrefix=1
+            - AuthenticationFilter
 
         - id: faculty-service
           uri: https://faculty-service.onrender.com
           predicates:
             - Path=/FACULTY-SERVICE/**
           filters:
-            - StripPrefix=1  # Removes /FACULTY-SERVICE from the path
+            - StripPrefix=1
+            - AuthenticationFilter
 
         - id: student-service
           uri: https://student-service-fowj.onrender.com
           predicates:
             - Path=/STUDENT-SERVICE/**
           filters:
-            - StripPrefix=1  # Removes /STUDENT-SERVICE from the path
+            - StripPrefix=1
+            - AuthenticationFilter
 
 eureka:
   client:
