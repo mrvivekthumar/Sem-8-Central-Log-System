@@ -55,6 +55,10 @@ CollabBridge is built with a **microservices architecture**, where each service 
 - **TailwindCSS / Bootstrap**
 
 ---
+## 📎 Deployed Link
+
+You can access the live project here:  
+👉 [**CollabBridge Live**](https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app/)
 
 
 
