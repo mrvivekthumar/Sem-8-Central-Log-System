@@ -4,8 +4,6 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import axiosInstance from '../api/axiosInstance'
 
-
-
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
@@ -73,14 +71,12 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post(
-        'https://api-gateway-1w0w.onrender.com/auth/token',
+      const response = await axiosInstance.post('/auth/token',
         { username, password },
         {
           headers: {
             'Content-Type': 'application/json',
-          },
-          withCredentials: true
+          }
         }
       );
 

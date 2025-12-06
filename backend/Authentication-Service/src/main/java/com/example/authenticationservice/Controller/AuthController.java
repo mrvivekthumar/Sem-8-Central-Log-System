@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 @RestController
 @RequestMapping("auth")
 public class AuthController {
@@ -28,39 +27,43 @@ public class AuthController {
     @Autowired
     private AuthService authService;
     @Autowired
-    //for authentication
+    // for authentication
     private AuthenticationManager authenticationManager;
+
     @PostMapping("registerOne")
-    public ResponseEntity<UserCredential> addSingleOne(@RequestBody UserCredential user){
+    public ResponseEntity<UserCredential> addSingleOne(@RequestBody UserCredential user) {
         return authService.saveOneUser(user);
     }
+
     @PostMapping("register")
-    public String addNewUser(@RequestBody List<UserCredential> users){
+    public String addNewUser(@RequestBody List<UserCredential> users) {
         return authService.saveUser(users);
     }
+
     @PostMapping("updatePassword")
-    public ResponseEntity<String> updatePassword(@RequestBody UserCredential user){
+    public ResponseEntity<String> updatePassword(@RequestBody UserCredential user) {
         return authService.updatePassword(user);
 
     }
+
     @PostConstruct
     public void init() {
         logger.info("AuthController Initialized!");
     }
+
     @PostMapping("token")
     public ResponseEntity<Map<String, String>> getToken(@RequestBody AuthRequest authRequest) {
-        System.out.println("hello");
+        logger.info("Attempting login for user: {}", authRequest.getUsername());
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
 
         if (authentication.isAuthenticated()) {
             String token = authService.generateToken(authRequest.getUsername());
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
-            return ResponseEntity.ok(response); // Return token in a JSON response
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "Invalid credentials"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
         }
     }
 
@@ -72,14 +75,16 @@ public class AuthController {
             throw new RuntimeException("Invalid or expired token");
         }
     }
+
     @GetMapping("/user")
     public ResponseEntity<UserCredential> getUserDetails(@RequestParam("token") String token) {
 
-        System.out.println("Hello");
+        logger.debug("Fetching user details for token validation.");
         return authService.getUserdetails(token);
     }
+
     @GetMapping("hello")
-    public String hello(){
+    public String hello() {
         return "hello world";
     }
 

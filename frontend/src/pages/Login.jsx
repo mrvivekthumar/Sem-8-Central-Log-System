@@ -1,21 +1,30 @@
-import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
+import { ArrowLeft, BookOpen, Lock, Mail, Star } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { BookOpen, ArrowLeft, Mail, Lock, Star } from 'lucide-react';
+import * as z from 'zod';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
+
+  const onSubmit = async (data) => {
     setLoading(true);
     try {
-      await login(email, password);
+      await login(data.email, data.password);
     } catch (error) {
       // Error is handled in AuthContext
     } finally {
@@ -26,17 +35,17 @@ const Login = () => {
   return (
     <div className="min-h-screen flex relative">
       {loading && (
-        <motion.div 
+        <motion.div
           initial={{ width: 0 }}
           animate={{ width: '100%' }}
           transition={{ duration: 1.5, ease: 'easeInOut' }}
           className="absolute top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"
         />
       )}
-      
+
       {/* Left Section - Hero/Welcome */}
       <div className="hidden lg:flex lg:w-1/2 relative">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: 'url("https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80")',
@@ -49,7 +58,7 @@ const Login = () => {
             <ArrowLeft className="h-5 w-5" />
             Back to Home
           </Link>
-          
+
           <div className="space-y-6">
             <div className="flex items-center">
               <BookOpen className="h-12 w-12 text-blue-400 mr-3" />
@@ -85,7 +94,7 @@ const Login = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Email Address
@@ -93,14 +102,14 @@ const Login = () => {
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    {...register('email')}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter your email"
                     required
                   />
                 </div>
+                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
               </div>
 
               <div>
@@ -111,13 +120,13 @@ const Login = () => {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    {...register('password')}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter your password"
                     required
                   />
                 </div>
+                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
               </div>
 
               <motion.button
@@ -132,8 +141,8 @@ const Login = () => {
             </form>
           </div>
         </motion.div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
