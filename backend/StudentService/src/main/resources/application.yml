@@ -3,9 +3,15 @@ spring:
     name: student-service
   
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/studentdb}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${STUDENT_DB_URL:jdbc:postgresql://${STUDENT_DB_HOST:localhost}:${STUDENT_DB_PORT:5434}/${STUDENT_DB_NAME:studentdb}}
+    username: ${STUDENT_DB_USERNAME:postgres}
+    password: ${STUDENT_DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   
   jpa:
     hibernate:
@@ -15,21 +21,12 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-        jdbc:
-          batch_size: 50
-        order_inserts: true
-        order_updates: true
   
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
-  
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
   
   cloud:
     kubernetes:
@@ -40,17 +37,20 @@ spring:
         enabled: true
 
 server:
-  port: 8084
+  port: ${STUDENT_SERVICE_PORT:8083}
 
-rabbitmq:
-  exchange: project-exchange
-  queue: student-project-queue
-  routing-key: project.created
+jwt:
+  secret: ${JWT_SECRET:default-secret-key-change-in-production}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
+
+rabbitmq:
+  exchange: ${RABBITMQ_EXCHANGE:project-exchange}
+  queue: ${RABBITMQ_QUEUE:student-project-queue}
+  routing-key: ${RABBITMQ_ROUTING_KEY:project.created}
 
 management:
   endpoints:
@@ -64,5 +64,4 @@ management:
 logging:
   level:
     com.example.studentservice: INFO
-    org.springframework.web: INFO
-    feign: INFO
+    org.springframework.web: DEBUG

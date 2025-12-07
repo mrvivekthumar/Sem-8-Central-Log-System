@@ -15,6 +15,7 @@ import { ProjectSubmissionManager } from './components/Student/ProjectSubmission
 import StudentNotifications from './components/StudentNotifications';
 import StudentProfile from './components/StudentProfile';
 import { useAuth } from './contexts/AuthContext';
+import About from './pages/About';
 import AdminDashboard from './pages/AdminDashboard';
 import Dashboard from './pages/Dashboard';
 import Feedback from './pages/Feedback';
@@ -33,6 +34,7 @@ function App() {
     <AnimatePresence mode="wait">
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
 
         {/* Protected Routes */}

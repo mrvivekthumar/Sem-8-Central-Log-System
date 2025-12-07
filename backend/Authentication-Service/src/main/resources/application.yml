@@ -3,9 +3,9 @@ spring:
     name: auth-service
   
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/authdb}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${AUTH_DB_URL:jdbc:postgresql://${AUTH_DB_HOST:localhost}:${AUTH_DB_PORT:5432}/${AUTH_DB_NAME:authdb}}
+    username: ${AUTH_DB_USERNAME:postgres}
+    password: ${AUTH_DB_PASSWORD:postgres}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -33,7 +33,7 @@ spring:
         strategy: refresh
 
 server:
-  port: 8070
+  port: ${AUTH_SERVICE_PORT:8081}
 
 jwt:
   secret: ${JWT_SECRET:default-secret-key-change-in-production}
@@ -52,3 +52,4 @@ logging:
   level:
     com.example.authenticationservice: INFO
     org.springframework.security: WARN
+    org.springframework.web: DEBUG

@@ -1,96 +1,206 @@
+version: "3.8"
+
 services:
-  # Databases
+  # PostgreSQL Databases
   auth-db:
     image: postgres:15-alpine
+    container_name: auth-db
     environment:
       POSTGRES_DB: authdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
     ports:
       - "5432:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d authdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   faculty-db:
     image: postgres:15-alpine
+    container_name: faculty-db
     environment:
       POSTGRES_DB: facultydb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: faculty_user
+      POSTGRES_PASSWORD: faculty_password
     ports:
       - "5433:5432"
+    volumes:
+      - faculty-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U faculty_user -d facultydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   student-db:
     image: postgres:15-alpine
+    container_name: student-db
     environment:
       POSTGRES_DB: studentdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: student_user
+      POSTGRES_PASSWORD: student_password
     ports:
       - "5434:5432"
+    volumes:
+      - student-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U student_user -d studentdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # RabbitMQ
   rabbitmq:
-    image: rabbitmq:3.12-management-alpine
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Microservices
+  # Auth Service
   auth-service:
-    build: ./Authentication-Service
+    build:
+      context: ./Authentication-Service
+      dockerfile: Dockerfile
+    container_name: auth-service
     environment:
-      DATABASE_URL: jdbc:postgresql://auth-db:5432/authdb
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: postgres
+      SPRING_PROFILES_ACTIVE: docker
+      AUTH_DB_HOST: auth-db
+      AUTH_DB_PORT: 5432
+      AUTH_DB_NAME: authdb
+      AUTH_DB_USERNAME: auth_user
+      AUTH_DB_PASSWORD: auth_password
       JWT_SECRET: ${JWT_SECRET}
+      AUTH_SERVICE_PORT: 8081
     ports:
-      - "8070:8070"
+      - "8081:8081"
     depends_on:
-      - auth-db
+      auth-db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
 
+  # Faculty Service
   faculty-service:
-    build: ./FacultyService
+    build:
+      context: ./FacultyService
+      dockerfile: Dockerfile
+    container_name: faculty-service
     environment:
-      DATABASE_URL: jdbc:postgresql://faculty-db:5432/facultydb
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: postgres
+      SPRING_PROFILES_ACTIVE: docker
+      FACULTY_DB_HOST: faculty-db
+      FACULTY_DB_PORT: 5432
+      FACULTY_DB_NAME: facultydb
+      FACULTY_DB_USERNAME: faculty_user
+      FACULTY_DB_PASSWORD: faculty_password
+      JWT_SECRET: ${JWT_SECRET}
       RABBITMQ_HOST: rabbitmq
-      AUTH_SERVICE_URL: http://auth-service:8070
-      STUDENT_SERVICE_URL: http://student-service:8084
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE}
+      RABBITMQ_ROUTING_KEY: ${RABBITMQ_ROUTING_KEY}
+      FACULTY_SERVICE_PORT: 8082
     ports:
-      - "8080:8080"
+      - "8082:8082"
     depends_on:
-      - faculty-db
-      - rabbitmq
+      faculty-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
 
+  # Student Service
   student-service:
-    build: ./StudentService
+    build:
+      context: ./StudentService
+      dockerfile: Dockerfile
+    container_name: student-service
     environment:
-      DATABASE_URL: jdbc:postgresql://student-db:5432/studentdb
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: postgres
-      RABBITMQ_HOST: rabbitmq
+      SPRING_PROFILES_ACTIVE: docker
+      STUDENT_DB_HOST: student-db
+      STUDENT_DB_PORT: 5432
+      STUDENT_DB_NAME: studentdb
+      STUDENT_DB_USERNAME: student_user
+      STUDENT_DB_PASSWORD: student_password
+      JWT_SECRET: ${JWT_SECRET}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
-      AUTH_SERVICE_URL: http://auth-service:8070
-      FACULTY_SERVICE_URL: http://faculty-service:8080
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE}
+      RABBITMQ_ROUTING_KEY: ${RABBITMQ_ROUTING_KEY}
+      STUDENT_SERVICE_PORT: 8083
     ports:
-      - "8084:8084"
+      - "8083:8083"
     depends_on:
-      - student-db
-      - rabbitmq
+      student-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
 
+  # API Gateway
   api-gateway:
-    build: ./Api-Gateway
+    build:
+      context: ./Api-Gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
     environment:
-      AUTH_SERVICE_URL: http://auth-service:8070
-      FACULTY_SERVICE_URL: http://faculty-service:8080
-      STUDENT_SERVICE_URL: http://student-service:8084
+      SPRING_PROFILES_ACTIVE: docker
+      AUTH_SERVICE_URL: http://auth-service:8081
+      FACULTY_SERVICE_URL: http://faculty-service:8082
+      STUDENT_SERVICE_URL: http://student-service:8083
+      SERVER_PORT: 8080
+      JWT_SECRET: ${JWT_SECRET}
     ports:
-      - "8765:8765"
+      - "8080:8080"
     depends_on:
       - auth-service
       - faculty-service
       - student-service
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  auth-db-data:
+  faculty-db-data:
+  student-db-data:
+  rabbitmq-data:

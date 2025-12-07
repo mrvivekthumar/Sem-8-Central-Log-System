@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Users
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const About = () => {
   const features = [
@@ -188,13 +189,15 @@ const About = () => {
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
               Join our community of innovative students and faculty members today.
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition-colors shadow-xl"
-            >
-              Join CollabBridge
-            </motion.button>
+            <Link to="/">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition-colors shadow-xl"
+              >
+                Join CollabBridge
+              </motion.button>
+            </Link>
           </div>
         </motion.div>
       </div>

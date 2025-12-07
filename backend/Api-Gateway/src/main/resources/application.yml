@@ -10,6 +10,8 @@ spring:
             allowedOriginPatterns:
               - "https://*.vercel.app"
               - "http://localhost:*"
+              - "http://localhost:5173"
+              - "http://localhost:3000"
             allowedMethods:
               - GET
               - POST
@@ -26,30 +28,53 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       
       routes:
-        # Auth Service Routes
-        - id: auth-service
-          uri: http://auth-service:8070
+        # Auth Service Routes - Public endpoints
+        - id: auth-login
+          uri: ${AUTH_SERVICE_URL:http://localhost:8070}
           predicates:
-            - Path=/auth/**
+            - Path=/api/auth/login
           filters:
-            - RewritePath=/auth/(?<segment>.*), /${segment}
+            - RewritePath=/api/auth/(?<segment>.*), /${segment}
         
-        # Faculty Service Routes
-        - id: faculty-service
-          uri: http://faculty-service:8080
+        - id: auth-register
+          uri: ${AUTH_SERVICE_URL:http://localhost:8070}
           predicates:
-            - Path=/FACULTY-SERVICE/**
+            - Path=/api/auth/register
           filters:
-            - StripPrefix=1
+            - RewritePath=/api/auth/(?<segment>.*), /${segment}
+        
+        - id: auth-token
+          uri: ${AUTH_SERVICE_URL:http://localhost:8070}
+          predicates:
+            - Path=/api/auth/token
+          filters:
+            - RewritePath=/api/auth/(?<segment>.*), /${segment}
+        
+        # Auth Service - Other routes (protected)
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8070}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - RewritePath=/api/auth/(?<segment>.*), /${segment}
             - AuthenticationFilter
         
-        # Student Service Routes
-        - id: student-service
-          uri: http://student-service:8084
+        # Faculty Service Routes (protected)
+        - id: faculty-service
+          uri: ${FACULTY_SERVICE_URL:http://localhost:8080}
           predicates:
-            - Path=/STUDENT-SERVICE/**
+            - Path=/api/faculty/**
           filters:
-            - StripPrefix=1
+            - RewritePath=/api/faculty/(?<segment>.*), /${segment}
+            - AuthenticationFilter
+        
+        # Student Service Routes (protected)
+        - id: student-service
+          uri: ${STUDENT_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/student/**
+          filters:
+            - RewritePath=/api/student/(?<segment>.*), /${segment}
             - AuthenticationFilter
     
     kubernetes:
@@ -60,18 +85,22 @@ spring:
         enabled: true
 
 server:
-  port: 8765
+  port: ${SERVER_PORT:8080}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,gateway
   endpoint:
     health:
       show-details: always
+    gateway:
+      enabled: true
 
 logging:
   level:
-    org.springframework.cloud.gateway: INFO
-    com.example.apigateway: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
+    reactor.netty: DEBUG
+    com.example.apigateway: DEBUG
