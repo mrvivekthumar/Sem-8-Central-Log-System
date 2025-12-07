@@ -1,26 +1,18 @@
 package com.example.facultyservice.Model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.util.HashSet;
-import java.util.Set;
+import lombok.Data;
 
 @Entity
-@Setter
-@Getter
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
-
+@Data
 public class Faculty {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int f_id;
-    @Transient
-    private String password;
+    private int fId;
+    
     private String name;
     private String email;
-
-
+    private String password;
+    private String department;
 }

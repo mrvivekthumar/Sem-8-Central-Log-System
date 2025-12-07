@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: faculty-db-pvc
+  namespace: microservices
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: faculty-db
+  namespace: microservices
+spec:
+  serviceName: faculty-db-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: faculty-db
+  template:
+    metadata:
+      labels:
+        app: faculty-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: facultydb
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: FACULTY_DB_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: FACULTY_DB_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: faculty-db-storage
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - $(POSTGRES_USER)
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - $(POSTGRES_USER)
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: faculty-db-storage
+          persistentVolumeClaim:
+            claimName: faculty-db-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: faculty-db-service
+  namespace: microservices
+spec:
+  clusterIP: None
+  selector:
+    app: faculty-db
+  ports:
+    - port: 5432
+      targetPort: 5432

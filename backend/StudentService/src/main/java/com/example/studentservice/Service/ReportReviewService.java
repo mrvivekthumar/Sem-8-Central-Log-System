@@ -1,17 +1,18 @@
 package com.example.studentservice.Service;
 
-import com.example.studentservice.Dao.ReportDao;
-import com.example.studentservice.Dao.ReportReviewDao;
-import com.example.studentservice.Model.Report;
-import com.example.studentservice.Model.ReportReview;
-import com.example.studentservice.Model.Student;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.studentservice.Dao.ReportDao;
+import com.example.studentservice.Dao.ReportReviewDao;
+import com.example.studentservice.Model.Report;
+import com.example.studentservice.Model.ReportReview;
+import com.example.studentservice.Model.Student;
 
 @Service
 public class ReportReviewService {
@@ -25,9 +26,11 @@ public class ReportReviewService {
     public ResponseEntity<String> approveReport(int studentId, int reportId) {
         return updateReview(studentId, reportId, true);
     }
+
     public ResponseEntity<String> rejectReport(int studentId, int reportId) {
         return updateReview(studentId, reportId, false);
     }
+
     private ResponseEntity<String> updateReview(int studentId, int reportId, boolean isApproved) {
         try {
             // Fetch report details
@@ -50,7 +53,8 @@ public class ReportReviewService {
             }
 
             // Check if this student has already reviewed the report
-            Optional<ReportReview> existingReview = reportReviewDao.findByReport_ReportIdAndReviewedBy_StudentId(reportId, studentId);
+            Optional<ReportReview> existingReview = reportReviewDao
+                    .findByReport_ReportIdAndReviewedBy_StudentId(reportId, studentId);
 
             ReportReview review;
             if (existingReview.isPresent()) {
@@ -68,13 +72,15 @@ public class ReportReviewService {
             // Check if all students have approved
             reportDao.save(report);
 
-            return ResponseEntity.ok(isApproved ? "Your approval has been recorded" : "Your rejection has been recorded");
+            return ResponseEntity
+                    .ok(isApproved ? "Your approval has been recorded" : "Your rejection has been recorded");
 
         } catch (Exception e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    public ResponseEntity<Boolean>isFullyApproved(int reportId) {
+
+    public ResponseEntity<Boolean> isFullyApproved(int reportId) {
         try {
             Optional<Report> optionalReport = reportDao.findById(reportId);
             if (optionalReport.isEmpty()) {
@@ -87,7 +93,8 @@ public class ReportReviewService {
                 long totalReviewers = reviewList.size();
                 long approvedCount = reviewList.stream().filter(ReportReview::isApproved).count();
                 return new ResponseEntity<>(totalReviewers > 0 && totalReviewers == approvedCount, HttpStatus.OK);
-            } else return new ResponseEntity<>(false, HttpStatus.NOT_FOUND);
+            } else
+                return new ResponseEntity<>(false, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -95,7 +102,8 @@ public class ReportReviewService {
 
     public ResponseEntity<Boolean> isStudentApproved(int reportId, int studentId) {
         try {
-            Optional<ReportReview> review = reportReviewDao.findByReport_ReportIdAndReviewedBy_StudentId(reportId, studentId);
+            Optional<ReportReview> review = reportReviewDao.findByReport_ReportIdAndReviewedBy_StudentId(reportId,
+                    studentId);
             if (review.isPresent()) {
                 return ResponseEntity.ok(review.get().isApproved());
             } else {
@@ -113,7 +121,7 @@ public class ReportReviewService {
             if (reviews.isPresent()) {
                 reportReviewDao.deleteAll(reviews.get());
             }
-            return new ResponseEntity<>(reviewsCount+" Reviews deleted successfully", HttpStatus.OK);
+            return new ResponseEntity<>(reviewsCount + " Reviews deleted successfully", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }

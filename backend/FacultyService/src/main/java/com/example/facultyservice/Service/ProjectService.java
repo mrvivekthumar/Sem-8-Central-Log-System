@@ -2,16 +2,35 @@ package com.example.facultyservice.Service;
 
 import com.example.facultyservice.Dao.FacultyDao;
 import com.example.facultyservice.Dao.ProjectDao;
-import com.example.facultyservice.Dto.NotificationRequest;
-import com.example.facultyservice.Dto.NotificationType;
-import com.example.facultyservice.Dto.ReceiverType;
-import com.example.facultyservice.Dto.SenderType;
+import com.example.facultyservice.notification.model.NotificationRequest;
+import com.example.facultyservice.notification.model.NotificationType;
+import com.example.facultyservice.notification.model.ReceiverType;
+import com.example.facultyservice.notification.model.SenderType;
 import com.example.facultyservice.Feign.NotificationInterface;
 import com.example.facultyservice.Feign.StudentInterface;
 import com.example.facultyservice.Model.Faculty;
 import com.example.facultyservice.Model.Project;
 import com.example.facultyservice.Model.Status;
-import com.netflix.discovery.converters.Auto;
+import feign.Param;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import com.example.facultyservice.Dao.FacultyDao;
+import com.example.facultyservice.Dao.ProjectDao;
+import com.example.facultyservice.Feign.NotificationInterface;
+import com.example.facultyservice.Feign.StudentInterface;
+import com.example.facultyservice.Model.Faculty;
+import com.example.facultyservice.Model.Project;
+import com.example.facultyservice.Model.Status;
 import feign.Param;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -203,3 +222,4 @@ public class ProjectService {
         }
     }
 }
+

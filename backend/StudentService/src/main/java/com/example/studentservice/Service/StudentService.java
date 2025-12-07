@@ -1,30 +1,18 @@
 package com.example.studentservice.Service;
 
-import com.example.studentservice.Dao.StudentDao;
-import com.example.studentservice.Dao.StudentProjectDao;
-import com.example.studentservice.Feign.AuthInterface;
-import com.example.studentservice.Feign.FacultyInterface;
-import com.example.studentservice.Model.PersonalProject;
-import com.example.studentservice.Model.StudentAvaibility;
-import com.example.studentservice.Model.StudentProject;
-import com.example.studentservice.SheetHandler;
-import com.example.studentservice.Vo.Project;
-import com.example.studentservice.Model.Student;
-import com.example.studentservice.Vo.Status;
-import com.example.studentservice.Vo.UserCredential;
-import com.example.studentservice.Dto.NotificationRequest;
-import com.example.studentservice.Vo.UserRole;
-import org.slf4j.Logger;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStrings;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.checkerframework.checker.units.qual.g;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.support.PropertiesLoaderSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -36,13 +24,22 @@ import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import com.example.studentservice.SheetHandler;
+import com.example.studentservice.Dao.StudentDao;
+import com.example.studentservice.Dao.StudentProjectDao;
+import com.example.studentservice.Feign.AuthInterface;
+import com.example.studentservice.Feign.FacultyInterface;
+import com.example.studentservice.Model.PersonalProject;
+import com.example.studentservice.Model.Student;
+import com.example.studentservice.Model.StudentAvaibility;
+import com.example.studentservice.Model.StudentProject;
+import com.example.studentservice.Vo.Project;
+import com.example.studentservice.Vo.Status;
+import com.example.studentservice.Vo.UserCredential;
+import com.example.studentservice.Vo.UserRole;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -53,10 +50,6 @@ public class StudentService {
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
-    private AuthInterface authInterface;
-    // private static final String FACULTY_SERVICE_URL =
-    // "http://localhost:8765/FACULTY-SERVICE/api/project";
-    @Autowired
     private StudentDao studentDao;
     @Autowired
     private StudentProjectDao studentProjectDao;
@@ -64,6 +57,9 @@ public class StudentService {
     private StudentProjectService studentProjectService;
     @Autowired
     private FacultyInterface facultyInterface;
+
+    @Autowired
+    private AuthInterface authInterface;
 
     public ResponseEntity<Student> registerStudent(Student student) {
         try {
@@ -143,6 +139,31 @@ public class StudentService {
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>("File upload failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<String> registerStudentWithAuth(Student student) {
+        try {
+            // Step 1: Create user credentials
+            UserCredential user = new UserCredential();
+
+            user.setUsername(student.getEmail());
+            user.setPassword(student.getPassword());
+            user.setUserRole(UserRole.STUDENT);
+
+            ResponseEntity<UserCredential> authResponse = authInterface.addSingleOne(user);
+
+            if (authResponse.getStatusCode() != HttpStatus.OK) {
+                return new ResponseEntity<>("Auth registration failed", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            // Step 2: Create student profile
+            student.setPassword(null); // Don't store password
+            studentDao.save(student);
+
+            return new ResponseEntity<>("Student registration successful", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

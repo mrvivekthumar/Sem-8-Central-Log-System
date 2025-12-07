@@ -1,21 +1,27 @@
 package com.example.studentservice.Service;
 
-import com.example.studentservice.Dao.ReportDao;
-import com.example.studentservice.Dao.ReportReviewDao;
-import com.example.studentservice.Dao.StudentProjectDao;
-import com.example.studentservice.Feign.FacultyInterface;
-import com.example.studentservice.Model.*;
-import com.example.studentservice.Vo.Status;
-import jakarta.transaction.Transactional;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import com.example.studentservice.Dao.ReportDao;
+import com.example.studentservice.Dao.ReportReviewDao;
+import com.example.studentservice.Dao.StudentProjectDao;
+import com.example.studentservice.Feign.FacultyInterface;
+import com.example.studentservice.Model.Report;
+import com.example.studentservice.Model.ReportReview;
+import com.example.studentservice.Model.ReportStatus;
+import com.example.studentservice.Model.Student;
+import com.example.studentservice.Model.StudentProject;
+import com.example.studentservice.Vo.Status;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ReportService {

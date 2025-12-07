@@ -1,9 +1,7 @@
-server:
-  port: 8765
-
 spring:
   application:
-    name: API-GATEWAY
+    name: api-gateway
+  
   cloud:
     gateway:
       globalcors:
@@ -12,11 +10,6 @@ spring:
             allowedOriginPatterns:
               - "https://*.vercel.app"
               - "http://localhost:*"
-            allowedOrigins:
-              - "https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app"
-              - "https://colab-bridge-hcz38o2w5-hetbhagatji09-gmailcoms-projects.vercel.app"
-              - "http://localhost:3000"
-              - "http://localhost:5173"
             allowedMethods:
               - GET
               - POST
@@ -28,101 +21,57 @@ spring:
             allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
-            exposedHeaders:
-              - "Authorization"
-              - "Content-Type"
+      
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+      
       routes:
-        - id: authentication-service
-          uri: https://authentication-service-vfxn.onrender.com
+        # Auth Service Routes
+        - id: auth-service
+          uri: http://auth-service:8070
           predicates:
             - Path=/auth/**
-
-        - id: admin-service
-          uri: https://admin-service-2nj1.onrender.com
-          predicates:
-            - Path=/ADMIN-SERVICE/**
           filters:
-            - StripPrefix=1
-            - AuthenticationFilter
-
+            - RewritePath=/auth/(?<segment>.*), /${segment}
+        
+        # Faculty Service Routes
         - id: faculty-service
-          uri: https://faculty-service.onrender.com
+          uri: http://faculty-service:8080
           predicates:
             - Path=/FACULTY-SERVICE/**
           filters:
             - StripPrefix=1
             - AuthenticationFilter
-
+        
+        # Student Service Routes
         - id: student-service
-          uri: https://student-service-fowj.onrender.com
+          uri: http://student-service:8084
           predicates:
             - Path=/STUDENT-SERVICE/**
           filters:
             - StripPrefix=1
             - AuthenticationFilter
+    
+    kubernetes:
+      discovery:
+        enabled: true
+        all-namespaces: false
+      reload:
+        enabled: true
 
-eureka:
-  client:
-    register-with-eureka: false
-    fetch-registry: false
+server:
+  port: 8765
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
-
-
-
-
-
-
-#    register-with-eureka: true
-#    fetch-registry: true
-#  instance:
-#    prefer-ip-address: true
-#,https://delightful-victory-production.up.railway.app/eureka/,http://localhost:8761/eureka/
-#server:
-#  port: 8765
-#
-#spring:
-#  application:
-#    name: API-GATEWAY
-#
-#  cloud:
-#    gateway:
-#      default-filters:
-#        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-#
-#      routes:
-#        - id: authentication-service
-#          uri: https://delightful-victory-production.up.railway.app
-#          predicates:
-#            - Path=/auth/**
-#            - Path=/AUTHENTICATION-SERVICE/**
-#
-#        - id: admin-service
-#          uri: lb://ADMIN-SERVICE
-#          predicates:
-#            - Path=/admin/**
-#            - Path=/ADMIN-SERVICE/**
-#
-#        - id: faculty-service
-#          uri: https://faculty-service-production.up.railway.app
-#          predicates:
-#            - Path=/faculty/**
-#            - Path=/FACULTY-SERVICE/**
-#
-#        - id: student-service
-#          uri: lb://STUDENT-SERVICE
-#          predicates:
-#            - Path=/student/**
-#            - Path=/STUDENT-SERVICE/**
-#
-#eureka:
-#  client:
-#    service-url:
-#      defaultZone: https://localhost:8761/eureka
-#    register-with-eureka: true
-#    fetch-registry: true
-#  instance:
-#    prefer-ip-address: true
-##https://service-registry-production-97f5.up.railway.app/eureka
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.example.apigateway: INFO

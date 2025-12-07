@@ -1,22 +1,22 @@
 package com.example.facultyservice.Model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
+@Entity
+@Data
 public class Student {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int studentId;
+    
     private String name;
-    private String password;
     private String email;
-    private int roll_no;
-    private String department;
+    private String enrollmentNumber;
+    private String branch;
+    private Integer semester;
+    
     @Enumerated(EnumType.STRING)
-    private StudentAvaibility studentAvaibility=StudentAvaibility.AVAILABLE;
-    private float ratings=0;
-
+    private StudentAvaibility studentAvaibility;
 }

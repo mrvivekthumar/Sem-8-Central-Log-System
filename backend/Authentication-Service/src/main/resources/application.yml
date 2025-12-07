@@ -1,13 +1,54 @@
-eureka:
-  client:
-    service-url:
-      defaultZone: https://service-registry-leeg.onrender.com/eureka
-    register-with-eureka: true
-    fetch-registry: true
-
 spring:
+  application:
+    name: auth-service
+  
   datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/authdb}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     hikari:
-      max-lifetime: 30000       # 30 seconds
-      connection-timeout: 20000 # 20 seconds
-      idle-timeout: 10000       # 10 seconds
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+        all-namespaces: false
+      reload:
+        enabled: true
+        mode: event
+        strategy: refresh
+
+server:
+  port: 8070
+
+jwt:
+  secret: ${JWT_SECRET:default-secret-key-change-in-production}
+  expiration: 1800000 # 30 minutes
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.example.authenticationservice: INFO
+    org.springframework.security: WARN

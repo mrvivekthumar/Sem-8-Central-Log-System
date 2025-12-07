@@ -1,6 +1,7 @@
 package com.example.authenticationservice.Controller;
 
 import com.example.authenticationservice.Dto.AuthRequest;
+import com.example.authenticationservice.Dto.SignupRequest;
 import com.example.authenticationservice.Model.UserCredential;
 import com.example.authenticationservice.Service.AuthService;
 import jakarta.annotation.PostConstruct;
@@ -12,8 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,16 +23,20 @@ import java.util.Map;
 @RestController
 @RequestMapping("auth")
 public class AuthController {
+
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private AuthService authService;
+
     @Autowired
-    // for authentication
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     @PostMapping("registerOne")
-    public ResponseEntity<UserCredential> addSingleOne(@RequestBody UserCredential user) {
+    public ResponseEntity addSingleOne(@RequestBody UserCredential user) {
         return authService.saveOneUser(user);
     }
 
@@ -41,9 +46,8 @@ public class AuthController {
     }
 
     @PostMapping("updatePassword")
-    public ResponseEntity<String> updatePassword(@RequestBody UserCredential user) {
+    public ResponseEntity updatePassword(@RequestBody UserCredential user) {
         return authService.updatePassword(user);
-
     }
 
     @PostConstruct
@@ -54,6 +58,7 @@ public class AuthController {
     @PostMapping("token")
     public ResponseEntity<Map<String, String>> getToken(@RequestBody AuthRequest authRequest) {
         logger.info("Attempting login for user: {}", authRequest.getUsername());
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
 
@@ -63,7 +68,8 @@ public class AuthController {
             response.put("token", token);
             return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid credentials"));
         }
     }
 
@@ -77,8 +83,7 @@ public class AuthController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<UserCredential> getUserDetails(@RequestParam("token") String token) {
-
+    public ResponseEntity getUserDetails(@RequestParam("token") String token) {
         logger.debug("Fetching user details for token validation.");
         return authService.getUserdetails(token);
     }
@@ -87,5 +92,4 @@ public class AuthController {
     public String hello() {
         return "hello world";
     }
-
 }

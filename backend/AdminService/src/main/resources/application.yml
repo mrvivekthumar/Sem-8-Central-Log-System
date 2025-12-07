@@ -1,6 +1,0 @@
-eureka:
-  client:
-    service-url:
-      defaultZone: https://service-registry-leeg.onrender.com/eureka
-    register-with-eureka: true
-    fetch-registry: true

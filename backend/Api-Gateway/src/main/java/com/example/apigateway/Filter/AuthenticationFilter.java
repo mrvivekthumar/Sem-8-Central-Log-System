@@ -52,7 +52,6 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             // Check if the route needs authentication
             if (validator.isSecured.test(exchange.getRequest())) {
                 // Check for authorization header
-                ServerHttpResponse response = exchange.getResponse();
                 if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                     response.setStatusCode(HttpStatus.UNAUTHORIZED);
                     return response.setComplete();

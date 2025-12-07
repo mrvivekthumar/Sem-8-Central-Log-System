@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: microservices
+data:
+  application.yaml: |
+    spring:
+      application:
+        name: api-gateway
+      cloud:
+        gateway:
+          globalcors:
+            corsConfigurations:
+              '[/**]':
+                allowedOriginPatterns:
+                  - "https://*.vercel.app"
+                  - "http://localhost:*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders: "*"
+                allowCredentials: true
+          routes:
+            - id: auth-service
+              uri: http://auth-service:8070
+              predicates:
+                - Path=/auth/**
+            - id: faculty-service
+              uri: http://faculty-service:8080
+              predicates:
+                - Path=/FACULTY-SERVICE/**
+              filters:
+                - StripPrefix=1
+                - AuthenticationFilter
+            - id: student-service
+              uri: http://student-service:8084
+              predicates:
+                - Path=/STUDENT-SERVICE/**
+              filters:
+                - StripPrefix=1
+                - AuthenticationFilter
+        kubernetes:
+          discovery:
+            enabled: true
+    server:
+      port: 8765

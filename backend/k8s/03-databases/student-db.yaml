@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: student-db-pvc
+  namespace: microservices
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: student-db
+  namespace: microservices
+spec:
+  serviceName: student-db-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: student-db
+  template:
+    metadata:
+      labels:
+        app: student-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: studentdb
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: STUDENT_DB_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: STUDENT_DB_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: student-db-storage
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - $(POSTGRES_USER)
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - $(POSTGRES_USER)
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: student-db-storage
+          persistentVolumeClaim:
+            claimName: student-db-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: student-db-service
+  namespace: microservices
+spec:
+  clusterIP: None
+  selector:
+    app: student-db
+  ports:
+    - port: 5432
+      targetPort: 5432

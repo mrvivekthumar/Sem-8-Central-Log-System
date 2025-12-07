@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faculty-service
+  namespace: microservices
+  labels:
+    app: faculty-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: faculty-service
+  template:
+    metadata:
+      labels:
+        app: faculty-service
+    spec:
+      serviceAccountName: microservices-sa
+      containers:
+        - name: faculty-service
+          image: your-registry/faculty-service:latest # ← CHANGE THIS
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: DB_URL
+              value: "jdbc:postgresql://faculty-db-service:5432/facultydb"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: FACULTY_DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: FACULTY_DB_PASSWORD
+            - name: RABBITMQ_HOST
+              value: "rabbitmq-service"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: RABBITMQ_PASSWORD
+          resources:
+            requests:
+              memory: "768Mi"
+              cpu: "500m"
+            limits:
+              memory: "1.5Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: faculty-service-config
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: faculty-service
+  namespace: microservices
+  labels:
+    app: faculty-service
+spec:
+  type: ClusterIP
+  selector:
+    app: faculty-service
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP

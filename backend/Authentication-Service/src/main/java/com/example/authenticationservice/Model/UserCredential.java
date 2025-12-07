@@ -1,27 +1,28 @@
 package com.example.authenticationservice.Model;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
 
-@Getter
-@Setter
+@Entity
+@Table(name = "user_credentials")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class UserCredential {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    @Column(nullable = false,unique = true)
-    private String username;
+    private Long id;
+
     @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
     private String password;
+
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private UserRole userRole;
-
-
 }
