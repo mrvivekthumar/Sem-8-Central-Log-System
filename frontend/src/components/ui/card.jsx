@@ -1,52 +1,69 @@
-import * as React from "react"
-import { cn } from "tailwind-variants"
+import { motion } from 'framer-motion';
 
-// import { cn } from "@/lib/utils"
+const Card = ({
+  children,
+  className = '',
+  hover = true,
+  gradient = false,
+  onClick,
+  ...props
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={hover ? { y: -4, scale: 1.02 } : {}}
+      onClick={onClick}
+      className={`
+        bg-white dark:bg-gray-800 
+        rounded-2xl 
+        border border-gray-200 dark:border-gray-700 
+        ${hover ? 'hover:shadow-2xl cursor-pointer' : 'shadow-lg'} 
+        transition-all 
+        ${gradient ? 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900' : ''}
+        ${className}
+      `}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
+const CardHeader = ({ children, className = '' }) => (
+  <div className={`p-6 border-b border-gray-200 dark:border-gray-700 ${className}`}>
+    {children}
+  </div>
+);
 
-const Card = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("rounded-xl border bg-card text-card-foreground shadow", className)}
-    {...props} />
-))
-Card.displayName = "Card"
+const CardBody = ({ children, className = '' }) => (
+  <div className={`p-6 ${className}`}>
+    {children}
+  </div>
+);
 
-const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
-    {...props} />
-))
-CardHeader.displayName = "CardHeader"
+const CardFooter = ({ children, className = '' }) => (
+  <div className={`p-6 border-t border-gray-200 dark:border-gray-700 ${className}`}>
+    {children}
+  </div>
+);
 
-const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
-    {...props} />
-))
-CardTitle.displayName = "CardTitle"
+const CardTitle = ({ children, className = '' }) => (
+  <h3 className={`text-xl font-bold text-gray-900 dark:text-white ${className}`}>
+    {children}
+  </h3>
+);
 
-const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props} />
-))
-CardDescription.displayName = "CardDescription"
+const CardDescription = ({ children, className = '' }) => (
+  <p className={`text-sm text-gray-600 dark:text-gray-400 ${className}`}>
+    {children}
+  </p>
+);
 
-const CardContent = React.forwardRef(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-))
-CardContent.displayName = "CardContent"
+Card.Header = CardHeader;
+Card.Body = CardBody;
+Card.Footer = CardFooter;
+Card.Title = CardTitle;
+Card.Description = CardDescription;
 
-const CardFooter = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
-    {...props} />
-))
-CardFooter.displayName = "CardFooter"
-
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+export default Card;

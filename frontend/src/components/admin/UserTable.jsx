@@ -1,263 +1,176 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Edit, Trash, ChevronDown, ChevronUp, Star } from 'lucide-react';
-import axios from 'axios';
-import axiosInstance from '../../api/axiosInstance';
-const UserTable = ({ userType, searchQuery, onUpdatePassword, onDeleteUser }) => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
+import {
+  CheckCircle,
+  Edit,
+  Eye, Mail,
+  MoreVertical,
+  Search,
+  Trash2,
+  XCircle
+} from 'lucide-react';
+import { useState } from 'react';
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        let response;
-        
-        if (userType === 'students') {
-          response = await axiosInstance.get('/STUDENT-SERVICE/students/all');
-        } else {
-          response = await axiosInstance.get('/FACULTY-SERVICE/api/faculty/all');
-        }
-        
-        setUsers(response.data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to fetch user data. Please try again later.');
-        console.error('Error fetching users:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+const UserTable = ({ users, onEdit, onDelete, onView, type = 'students' }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [showMenu, setShowMenu] = useState(null);
 
-    fetchUsers();
-  }, [userType]);
-
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const getSortIcon = (field) => {
-    if (sortField !== field) return <ChevronDown className="h-4 w-4 text-gray-400" />;
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="h-4 w-4 text-blue-500" /> : 
-      <ChevronDown className="h-4 w-4 text-blue-500" />;
-  };
-  
-  // Filter users based on search query
-  const filteredUsers = users.filter(user => 
-    (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
-    (user.email?.toLowerCase().includes(searchQuery.toLowerCase()) || false)
+  const filteredUsers = users.filter(user =>
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Sort users
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    const valA = a[sortField] || '';
-    const valB = b[sortField] || '';
-    
-    if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-    if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  // Map skills array to string for display
-  const formatSkills = (skills) => {
-    if (!skills || skills.length === 0) return 'No skills listed';
-    return skills.join(', ');
-  };
-
-  // Render star rating component
-  const StarRating = ({ rating }) => {
-    if (!rating) return <span>Not rated</span>;
-    
-    const ratingValue = parseFloat(rating);
-    const fullStars = Math.floor(ratingValue);
-    const hasHalfStar = ratingValue - fullStars >= 0.5;
-    const maxStars = 5;
-    
-    return (
-      <div className="flex items-center">
-        {[...Array(maxStars)].map((_, index) => {
-          // Render filled star
-          if (index < fullStars) {
-            return <Star key={index} className="h-4 w-4 fill-yellow-400 text-yellow-400" />;
-          } 
-          // Render half star (we'll use a filled star with reduced opacity for simplicity)
-          else if (index === fullStars && hasHalfStar) {
-            return <Star key={index} className="h-4 w-4 fill-yellow-400 text-yellow-400 opacity-50" />;
-          }
-          // Render empty star
-          return <Star key={index} className="h-4 w-4 text-gray-300 dark:text-gray-600" />;
-        })}
-        <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-          {ratingValue.toFixed(1)}
-        </span>
-      </div>
-    );
-  };
-
-  if (loading) {
-    return <div className="text-center py-8">Loading {userType}...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center py-8 text-red-500">{error}</div>;
-  }
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th 
-                scope="col" 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
-                onClick={() => handleSort('name')}
-              >
-                <div className="flex items-center space-x-1">
-                  <span>Name</span>
-                  {getSortIcon('name')}
-                </div>
-              </th>
-              <th 
-                scope="col" 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
-                onClick={() => handleSort('email')}
-              >
-                <div className="flex items-center space-x-1">
-                  <span>Email</span>
-                  {getSortIcon('email')}
-                </div>
-              </th>
-              {userType === 'students' && (
-                <>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('githubProfileLink')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>GitHub Profile</span>
-                      {getSortIcon('githubProfileLink')}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('ratings')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Ratings</span>
-                      {getSortIcon('ratings')}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('studentAvaibility')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Availability</span>
-                      {getSortIcon('studentAvaibility')}
-                    </div>
-                  </th>
-                </>
-              )}
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {sortedUsers.map((user, index) => (
-              <motion.tr 
-                key={index}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.02)' }}
-                className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user.name || 'No name provided'}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500 dark:text-gray-300">
-                    {user.email || 'No email provided'}
-                  </div>
-                </td>
-                {userType === 'students' && (
-                  <>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500 dark:text-gray-300">
-                        {user.githubProfileLink ? (
-                          <a 
-                            href={user.githubProfileLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-500 hover:underline"
-                          >
-                            GitHub Profile
-                          </a>
-                        ) : 'No GitHub profile'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">
-                        <StarRating rating={user.ratings} />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.studentAvaibility === 'AVAILABLE' 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                      }`}>
-                        {user.studentAvaibility || 'Unknown'}
-                      </span>
-                    </td>
-                  </>
-                )}
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-3">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => onUpdatePassword(user)}
-                      className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => onDeleteUser(index)}
-                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </motion.button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {sortedUsers.length === 0 && (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          No {userType} found matching your search criteria.
+    <div className="space-y-4">
+      {/* Search and Filter */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by name or email..."
+            className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+          />
         </div>
-      )}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+        >
+          <option value="name">Sort by Name</option>
+          <option value="email">Sort by Email</option>
+          <option value="date">Sort by Date</option>
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  Email
+                </th>
+                {type === 'students' && (
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    Semester
+                  </th>
+                )}
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredUsers.map((user, index) => (
+                <motion.tr
+                  key={user.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                        {user.name?.charAt(0) || 'U'}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-white">
+                          {user.name}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          ID: {user.id}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 text-gray-900 dark:text-white">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      {user.email}
+                    </div>
+                  </td>
+                  {type === 'students' && (
+                    <td className="px-6 py-4 text-gray-900 dark:text-white">
+                      Semester {user.semesterNo || 'N/A'}
+                    </td>
+                  )}
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${user.isActive
+                      ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                      : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                      }`}>
+                      {user.isActive ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="relative inline-block">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setShowMenu(showMenu === user.id ? null : user.id)}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                      >
+                        <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                      </motion.button>
+
+                      {showMenu === user.id && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-10"
+                        >
+                          <button
+                            onClick={() => {
+                              onView?.(user);
+                              setShowMenu(null);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Details
+                          </button>
+                          <button
+                            onClick={() => {
+                              onEdit?.(user);
+                              setShowMenu(null);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <Edit className="w-4 h-4" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              onDelete?.(user);
+                              setShowMenu(null);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        </motion.div>
+                      )}
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,858 +1,534 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { motion } from 'framer-motion';
 import {
-  User,
-  Mail,
-  Star,
-  GraduationCap,
-  Book,
-  FileText,
+  Award,
+  Briefcase,
+  Camera,
+  Code,
+  Edit,
+  ExternalLink,
   Github,
+  Globe,
   Linkedin,
-  Target,
-  Link as LinkIcon,
-  Upload,
-  CircleDot,
-  Pencil,
-  X,
+  Mail,
+  MapPin,
   Phone,
+  Plus,
   Save,
-  Loader2,
+  Star,
+  TrendingUp,
+  X,
+  Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import {
-  SiReact, SiJavascript, SiTypescript, SiNodedotjs, SiPython, SiCplusplus,
-  SiTensorflow, SiGooglecloud, SiFigma, SiAndroid, SiDevpost, SiDatabricks
-} from "react-icons/si";
-import { useParams } from 'react-router-dom';
+  SiAndroid,
+  SiCplusplus,
+  SiDocker,
+  SiFigma,
+  SiGooglecloud,
+  SiJavascript,
+  SiMongodb,
+  SiNodedotjs, SiPython,
+  SiReact,
+  SiTensorflow,
+  SiTypescript
+} from 'react-icons/si';
 import axiosInstance from '../api/axiosInstance';
+import { useAuth } from '../contexts/AuthContext';
 
-// Skill icons mapping
-const skillIcons = {
-  "React": <SiReact className="w-5 h-5 text-blue-500" />,
-  "JavaScript": <SiJavascript className="w-5 h-5 text-yellow-500" />,
-  "TypeScript": <SiTypescript className="w-5 h-5 text-blue-600" />,
-  "Node.js": <SiNodedotjs className="w-5 h-5 text-green-500" />,
-  "Python": <SiPython className="w-5 h-5 text-blue-400" />,
-  "C++": <SiCplusplus className="w-5 h-5 text-blue-700" />,
-  "Machine Learning": <SiTensorflow className="w-5 h-5 text-orange-500" />,
-  "Cloud Computing": <SiGooglecloud className="w-5 h-5 text-blue-400" />,
-  "DevOps": <SiDevpost className="w-5 h-5 text-purple-500" />,
-  "Data Science": <SiDatabricks className="w-5 h-5 text-red-600" />,
-  "UI/UX Design": <SiFigma className="w-5 h-5 text-pink-500" />,
-  "Mobile Development": <SiAndroid className="w-5 h-5 text-green-600" />,
-};
-
-// Available skills for selection
-const availableSkills = Object.keys(skillIcons).map(name => ({
-  name,
-  icon: skillIcons[name]
-}));
-
-function StarRating({ rating }) {
-  return (
-    <div className="flex items-center">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`w-4 h-4 ${star <= rating
-            ? "fill-yellow-400 text-yellow-400"
-            : "text-gray-300"
-            }`}
-        />
-      ))}
-    </div>
-  );
-}
-
-function StudentProfile() {
-  const { studentId } = useParams(); // Assuming studentId is passed as a route parameter
-  const [isDarkMode, setIsDarkMode] = useState(false);
+const StudentProfile = () => {
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [studentData, setStudentData] = useState(null);
-  const [formData, setFormData] = useState({
-    githubProfileLink: "",
-    bio: "",
+  const [loading, setLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState('overview');
+  const [studentData, setStudentData] = useState({
+    name: '',
+    email: '',
+    bio: '',
     skills: [],
-    linkedInUrl: "",
-    cgpa: "",
-    semesterNo: "",
-    phoneNo: "",
-  });
-  const [isAddingProject, setIsAddingProject] = useState(false);
-  const [editingProjectId, setEditingProjectId] = useState(null);
-  const [projectFormData, setProjectFormData] = useState({
-    name: "",
-    descreption: "", // Note: This matches your API field name with the typo
-    projectLink: ""
+    githubProfileLink: '',
+    linkedInProfileLink: '',
+    portfolioLink: '',
+    phone: '',
+    location: '',
+    ratings: 0,
+    projectsCompleted: 0,
+    currentProjects: 0
   });
 
-  // Fetch student data
+  const [editForm, setEditForm] = useState({});
+  const [newSkill, setNewSkill] = useState('');
+
+  const skillIcons = {
+    'React': SiReact,
+    'JavaScript': SiJavascript,
+    'TypeScript': SiTypescript,
+    'Node.js': SiNodedotjs,
+    'Python': SiPython,
+    'C++': SiCplusplus,
+    'TensorFlow': SiTensorflow,
+    'Google Cloud': SiGooglecloud,
+    'Figma': SiFigma,
+    'Android': SiAndroid,
+    'Docker': SiDocker,
+    'MongoDB': SiMongodb
+  };
+
   useEffect(() => {
-    const fetchStudent = async () => {
-      try {
-        setIsLoading(true);
-       
-        const response = await axiosInstance.get(
-          `/STUDENT-SERVICE/students/${studentId}`
-        );
-        const data = response.data;
-        setStudentData(data);
-        setFormData({
-          githubProfileLink: data.githubProfileLink || "",
-          bio: data.bio || "",
-          skills: data.skills || [],
-          linkedInUrl: data.linkedInUrl || "",
-          cgpa: data.cgpa || "",
-          semesterNo: data.semesterNo || "",
-          phoneNo: data.phoneNo || "",
-        });
-      } catch (error) {
-        console.error("Error fetching student data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    fetchStudentProfile();
+  }, [user]);
 
-    fetchStudent();
-  }, []);
-
-  const handleAvatarUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
+  const fetchStudentProfile = async () => {
     try {
-      const studentId = studentData.studentId;
-      const response = await axiosInstance.post(
-        `/STUDENT-SERVICE/students/student/${studentId}/upload-image`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      setStudentData(prev => ({
-        ...prev,
-        imageUrl: response.data.imageUrl
-      }));
+      setLoading(true);
+      const response = await axiosInstance.get(`/STUDENT-SERVICE/students/email/${user.username}`);
+      setStudentData(response.data);
+      setEditForm(response.data);
     } catch (error) {
-      console.error('Error uploading avatar:', error);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSkillChange = (skill) => {
-    setFormData(prev => {
-      if (prev.skills.includes(skill)) {
-        return {
-          ...prev,
-          skills: prev.skills.filter(s => s !== skill)
-        };
-      } else {
-        return {
-          ...prev,
-          skills: [...prev.skills, skill]
-        };
-      }
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSaving(true);
-    try {
-      const studentId = studentData.studentId;
-      const response = await axiosInstance.put(
-        `/STUDENT-SERVICE/students/student/${studentId}`,
-        {
-          ...formData,
-          name: studentData.name,
-          email: studentData.email,
-        }
-      );
-
-      setStudentData(prev => ({
-        ...prev,
-        ...response.data
-      }));
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error('Error fetching profile:', error);
+      toast.error('Failed to load profile');
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setFormData({
-      githubProfileLink: studentData.githubProfileLink || "",
-      bio: studentData.bio || "",
-      skills: studentData.skills || [],
-      linkedInUrl: studentData.linkedInUrl || "",
-      cgpa: studentData.cgpa || "",
-      semesterNo: studentData.semesterNo || "",
-      phoneNo: studentData.phoneNo || "",
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await axiosInstance.put(`/STUDENT-SERVICE/students/${user.id}`, editForm);
+      setStudentData(editForm);
+      setIsEditing(false);
+      toast.success('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddSkill = () => {
+    if (newSkill && !editForm.skills?.includes(newSkill)) {
+      setEditForm({
+        ...editForm,
+        skills: [...(editForm.skills || []), newSkill]
+      });
+      setNewSkill('');
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove) => {
+    setEditForm({
+      ...editForm,
+      skills: editForm.skills.filter(skill => skill !== skillToRemove)
     });
   };
 
-  if (isLoading || !studentData) {
+  const statsCards = [
+    {
+      label: 'Rating',
+      value: studentData.ratings?.toFixed(1) || '0.0',
+      icon: Star,
+      color: 'yellow',
+      suffix: '/ 5.0'
+    },
+    {
+      label: 'Completed',
+      value: studentData.projectsCompleted || 0,
+      icon: Briefcase,
+      color: 'green',
+      suffix: 'projects'
+    },
+    {
+      label: 'Active',
+      value: studentData.currentProjects || 0,
+      icon: Zap,
+      color: 'blue',
+      suffix: 'ongoing'
+    },
+    {
+      label: 'Skills',
+      value: studentData.skills?.length || 0,
+      icon: Code,
+      color: 'purple',
+      suffix: 'mastered'
+    }
+  ];
+
+  if (loading && !studentData.name) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-          <p className="text-xl font-medium text-gray-700 dark:text-gray-300">Loading profile...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
+        />
       </div>
     );
   }
-  // Add this after other API functions like handleSubmit, handleCancel, etc.
-
-  const handleAddProject = async (projectData) => {
-    try {
-      const studentId = studentData.studentId;
-      const response = await axiosInstance.post(
-        `/STUDENT-SERVICE/api/personalProject/${studentId}`,
-        projectData
-      );
-
-      // Update local student data with the new project
-      setStudentData(prev => ({
-        ...prev,
-        projects: [...(prev.projects || []), response.data]
-      }));
-
-      return response.data;
-    } catch (error) {
-      console.error("Error adding project:", error);
-      throw error;
-    }
-  };
-
-  const handleUpdateProject = async (projectId, projectData) => {
-    try {
-      const response = await axiosInstance.put(
-        `/STUDENT-SERVICE/api/personalProject/${projectId}`,
-        projectData
-      );
-
-      // Update local student data with the updated project
-      setStudentData(prev => ({
-        ...prev,
-        projects: prev.projects.map(p =>
-          p.personalProjectId === projectId ? response.data : p
-        )
-      }));
-
-      return response.data;
-    } catch (error) {
-      console.error("Error updating project:", error);
-      throw error;
-    }
-  };
-
-  const handleDeleteProject = async (projectId) => {
-    try {
-      await axiosInstance.delete(
-        `/STUDENT-SERVICE/api/personalProject/${projectId}`
-      );
-
-      // Remove project from local student data
-      setStudentData(prev => ({
-        ...prev,
-        projects: prev.projects.filter(p => p.personalProjectId !== projectId)
-      }));
-
-      return true;
-    } catch (error) {
-      console.error("Error deleting project:", error);
-      throw error;
-    }
-  };
-  const handleProjectInputChange = (e) => {
-    const { name, value } = e.target;
-    setProjectFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleProjectFormSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      if (editingProjectId) {
-        await handleUpdateProject(editingProjectId, projectFormData);
-      } else {
-        await handleAddProject(projectFormData);
-      }
-
-      // Reset form and state
-      setProjectFormData({ name: "", descreption: "", projectLink: "" });
-      setIsAddingProject(false);
-      setEditingProjectId(null);
-    } catch (error) {
-      console.error("Failed to save project:", error);
-    }
-  };
-
-  const startEditingProject = (project) => {
-    setProjectFormData({
-      name: project.name || "",
-      descreption: project.descreption || "",
-      projectLink: project.projectLink || ""
-    });
-    setEditingProjectId(project.personalProjectId);
-    setIsAddingProject(true);
-  };
-
-  const cancelProjectForm = () => {
-    setProjectFormData({ name: "", descreption: "", projectLink: "" });
-    setIsAddingProject(false);
-    setEditingProjectId(null);
-  };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-      <div className="container mx-auto px-4 py-8">
-        <div className={`max-w-4xl mx-auto rounded-xl shadow-lg overflow-hidden ${isDarkMode ? 'bg-gray-800' : 'bg-white'
-          }`}>
-          {/* Header Section */}
-          <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
-            {/* <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="absolute top-4 right-4 px-4 py-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition"
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header with Cover */}
+      <div className="relative h-64 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }} />
+        </div>
+
+        {/* Edit Button */}
+        <div className="absolute top-6 right-6 z-10">
+          {!isEditing ? (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
             >
-              {isDarkMode ? '☀️ Light' : '🌙 Dark'}
-            </button> */}
-            {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="absolute top-4 right-24 px-4 py-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition flex items-center gap-2"
-              >
-                <Pencil className="w-4 h-4" />
-                <span>Edit</span>
-              </button>
-            )}
-          </div>
-
-          {/* Avatar Section */}
-          <div className="relative -mt-16 px-6">
-            <div className="relative w-32 h-32 mx-auto">
-              {studentData.imageUrl ? (
-                <img
-                  src={studentData.imageUrl}
-                  alt={studentData.name}
-                  className="rounded-full border-4 border-white shadow-lg object-cover w-full h-full"
-                />
-              ) : (
-                <div className="rounded-full border-4 border-white shadow-lg w-full h-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-2xl font-bold">
-                  {studentData.name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2)}
-                </div>
-              )}
-              <label className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full cursor-pointer hover:bg-blue-600 transition">
-                <Upload className="w-4 h-4 text-white" />
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                />
-              </label>
-            </div>
-          </div>
-
-          {/* Content Section */}
-          {isEditing ? (
-            // Edit Mode
-            <div className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Personal Details */}
-                <div className="text-center mb-6">
-                  <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
-                    <User className="w-5 h-5" />
-                    {studentData.name}
-                  </h1>
-                  <div className="flex items-center justify-center gap-2 mt-2">
-                    <Mail className="w-4 h-4" />
-                    <span>{studentData.email}</span>
-                  </div>
-                </div>
-
-                {/* Editable Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      GitHub Profile URL
-                    </label>
-                    <div className="relative">
-                      <input
-                        name="githubProfileLink"
-                        value={formData.githubProfileLink}
-                        onChange={handleInputChange}
-                        placeholder="https://github.com/yourusername"
-                        className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode
-                          ? 'bg-gray-700 border-gray-600 text-white'
-                          : 'bg-white border-gray-200 text-gray-900'
-                          }`}
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Github className="h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
-                  </div>
-
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      LinkedIn URL
-                    </label>
-                    <div className="relative">
-                      <input
-                        name="linkedInUrl"
-                        value={formData.linkedInUrl}
-                        onChange={handleInputChange}
-                        placeholder="https://linkedin.com/in/yourusername"
-                        className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode
-                          ? 'bg-gray-700 border-gray-600 text-white'
-                          : 'bg-white border-gray-200 text-gray-900'
-                          }`}
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Linkedin className="h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      CGPA
-                    </label>
-                    <input
-                      name="cgpa"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="10.0"
-                      value={formData.cgpa}
-                      onChange={handleInputChange}
-                      placeholder="Enter your CGPA"
-                      className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode
-                        ? 'bg-gray-700 border-gray-600 text-white'
-                        : 'bg-white border-gray-200 text-gray-900'
-                        }`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Semester Number
-                    </label>
-                    <input
-                      name="semesterNo"
-                      type="number"
-                      min="1"
-                      max="12"
-                      value={formData.semesterNo}
-                      onChange={handleInputChange}
-                      placeholder="Current semester"
-                      className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode
-                        ? 'bg-gray-700 border-gray-600 text-white'
-                        : 'bg-white border-gray-200 text-gray-900'
-                        }`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      name="phoneNo"
-                      type="tel"
-                      pattern="[0-9]{10}"
-                      value={formData.phoneNo}
-                      onChange={handleInputChange}
-                      placeholder="Enter your phone number"
-                      className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode
-                        ? 'bg-gray-700 border-gray-600 text-white'
-                        : 'bg-white border-gray-200 text-gray-900'
-                        }`}
-                    />
-                  </div>
-
-
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium mb-2">
-                      Bio
-                    </label>
-                    <textarea
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleInputChange}
-                      rows={4}
-                      placeholder="Tell us about yourself, your interests, and your career goals..."
-                      className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none resize-none ${isDarkMode
-                        ? 'bg-gray-700 border-gray-600 text-white'
-                        : 'bg-white border-gray-200 text-gray-900'
-                        }`}
-                    />
-                  </div>
-                </div>
-
-                {/* Skills */}
-                <div>
-                  <label className="block text-sm font-medium mb-4">
-                    Skills & Expertise
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {availableSkills.map(({ name, icon }) => (
-                      <label
-                        key={name}
-                        className={`flex items-center space-x-3 p-3 rounded-lg border transition-all cursor-pointer ${formData.skills.includes(name)
-                          ? isDarkMode
-                            ? "border-blue-700 bg-blue-900/30"
-                            : "border-blue-300 bg-blue-50"
-                          : isDarkMode
-                            ? "border-gray-700 hover:border-gray-600"
-                            : "border-gray-200 hover:border-gray-300"
-                          }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.skills.includes(name)}
-                          onChange={() => handleSkillChange(name)}
-                          className="sr-only"
-                        />
-                        <div className="flex items-center space-x-3">
-                          <div className={`${formData.skills.includes(name) ? "text-blue-500" : "text-gray-400"}`}>
-                            {icon}
-                          </div>
-                          <span className={`text-sm ${formData.skills.includes(name)
-                            ? isDarkMode ? "text-blue-300" : "text-blue-700"
-                            : isDarkMode ? "text-gray-300" : "text-gray-700"
-                            }`}>{name}</span>
-                        </div>
-                        <div className={`ml-auto ${formData.skills.includes(name) ? "opacity-100" : "opacity-0"}`}>
-                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M1 4L3 6L7 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className={`px-6 py-3 rounded-lg transition-colors flex items-center space-x-2 ${isDarkMode
-                      ? "text-gray-300 hover:bg-gray-800"
-                      : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                  >
-                    <X className="w-4 h-4" />
-                    <span>Cancel</span>
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                  >
-
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Saving...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        <span>Save Changes</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <Edit className="w-4 h-4" />
+              Edit Profile
+            </motion.button>
           ) : (
-            // View Mode
-            <div className="p-6">
-              {/* Personal Details */}
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
-                  <User className="w-5 h-5" />
-                  {studentData.name}
-                </h1>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <Mail className="w-4 h-4" />
-                  <span>{studentData.email}</span>
-                </div>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <Phone className="w-4 h-4" />
-                  <span>{studentData.phoneNo}</span>
-                </div>
-
-
-                <div className="mt-2 flex items-center justify-center gap-4">
-
-                  {studentData.ratings > 0 && (
-                    <div className="flex items-center gap-1">
-                      <StarRating rating={studentData.ratings} />
-                      <span className="text-sm">({studentData.ratings})</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Academic Info */}
-              <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg mb-6 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
-                }`}>
-                {studentData.cgpa && (
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-blue-500" />
-                    <span>CGPA: {studentData.cgpa}</span>
-                  </div>
-                )}
-                {studentData.semesterNo && (
-                  <div className="flex items-center gap-2">
-                    <Book className="w-5 h-5 text-blue-500" />
-                    <span>Semester {studentData.semesterNo}</span>
-                  </div>
-                )}
-              </div>
-
-
-
-              {/* Bio */}
-              {studentData.bio && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText className="w-5 h-5 text-blue-500" />
-                    <h2 className="text-xl font-semibold">Bio</h2>
-                  </div>
-                  <p className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                    {studentData.bio}
-                  </p>
-                </div>
-              )}
-
-              {/* Social Links */}
-              <div className="flex gap-4 mb-6">
-                {studentData.githubProfileLink && (
-                  <a
-                    href={studentData.githubProfileLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition"
-                  >
-                    <Github className="w-5 h-5" />
-                    GitHub
-                  </a>
-                )}
-                {studentData.linkedInUrl && (
-                  <a
-                    href={studentData.linkedInUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
-                  >
-                    <Linkedin className="w-5 h-5" />
-                    LinkedIn
-                  </a>
-                )}
-              </div>
-
-              {/* Skills */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Target className="w-5 h-5 text-blue-500" />
-                  <h2 className="text-xl font-semibold">Skills</h2>
-                </div>
-                {studentData.skills && studentData.skills.length > 0 ? (
-                  <div className="flex flex-wrap gap-3">
-                    {studentData.skills.map((skill) => (
-                      <div
-                        key={skill}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDarkMode
-                          ? 'bg-gray-700 text-white'
-                          : 'bg-blue-100 text-blue-800'
-                          }`}
-                      >
-                        {skillIcons[skill] || null}
-                        <span>{skill}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className={`p-4 text-center rounded-lg border border-dashed ${isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-500'
-                    }`}>
-                    No skills added yet.
-                  </div>
-                )}
-              </div>
-
-
-              {/* Projects */}
-              {/* Projects Section */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <LinkIcon className="w-5 h-5 text-blue-500" />
-                    <h2 className="text-xl font-semibold">Projects</h2>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setIsAddingProject(true);
-                      setEditingProjectId(null);
-                      setProjectFormData({ name: "", descreption: "", projectLink: "" });
-                    }}
-                    className="flex items-center gap-1 text-sm px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                  >
-                    <CircleDot className="w-4 h-4" />
-                    Add Project
-                  </button>
-                </div>
-
-                {isAddingProject ? (
-                  <div className={`p-5 rounded-lg mb-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                    <form onSubmit={handleProjectFormSubmit} className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Project Name</label>
-                        <input
-                          name="name"
-                          value={projectFormData.name}
-                          onChange={handleProjectInputChange}
-                          placeholder="Project Name"
-                          required
-                          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'
-                            }`}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Description</label>
-                        <textarea
-                          name="descreption"
-                          value={projectFormData.descreption}
-                          onChange={handleProjectInputChange}
-                          placeholder="Project Description"
-                          required
-                          rows={3}
-                          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none resize-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'
-                            }`}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Project Link</label>
-                        <input
-                          name="projectLink"
-                          value={projectFormData.projectLink}
-                          onChange={handleProjectInputChange}
-                          placeholder="https://github.com/yourusername/project"
-                          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'
-                            }`}
-                        />
-                      </div>
-
-                      <div className="flex gap-3 pt-2">
-                        <button
-                          type="button"
-                          onClick={cancelProjectForm}
-                          className={`px-4 py-2 rounded-lg transition ${isDarkMode ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                            }`}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                        >
-                          {editingProjectId ? 'Update Project' : 'Add Project'}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                ) : null}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {studentData.projects && studentData.projects.length > 0 ? (
-                    studentData.projects.map((project) => (
-                      <div
-                        key={project.personalProjectId}
-                        className={`p-5 rounded-lg border transition-all relative group ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200 hover:shadow-md'
-                          }`}
-                      >
-                        <h3 className="font-semibold text-lg mb-2">{project.name}</h3>
-                        <p className={`text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                          {project.descreption}
-                        </p>
-
-                        {project.projectLink && (
-
-                          <a href={project.projectLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-600 inline-flex items-center gap-1 text-sm"
-                          >
-                            <Github className="w-4 h-4" />
-                            View Project
-                          </a>
-                        )}
-
-                        {/* Actions */}
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => startEditingProject(project)}
-                            className="p-1.5 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
-                            title="Edit Project"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProject(project.personalProjectId)}
-                            className="p-1.5 rounded-full bg-red-100 text-red-700 hover:bg-red-200 transition"
-                            title="Delete Project"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className={`col-span-full p-8 text-center rounded-lg border border-dashed ${isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-500'
-                      }`}>
-                      <LinkIcon className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                      <p>No projects added yet.</p>
-                      <p className="text-sm mt-1">Showcase your work by adding projects to your profile.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
+            <div className="flex gap-2">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSave}
+                disabled={loading}
+                className="px-4 py-2 bg-green-600 text-white rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                Save
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditForm(studentData);
+                }}
+                className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </motion.button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Profile Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32 pb-12">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left Column - Profile Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="lg:col-span-1"
+          >
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              {/* Avatar Section */}
+              <div className="p-8 text-center">
+                <div className="relative inline-block mb-4">
+                  <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+                    {studentData.name?.charAt(0) || 'U'}
+                  </div>
+                  {isEditing && (
+                    <button className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+                      <Camera className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editForm.name || ''}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full text-2xl font-bold text-center text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 rounded-lg px-4 py-2 mb-2 border-2 border-blue-500 focus:outline-none"
+                  />
+                ) : (
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {studentData.name}
+                  </h2>
+                )}
+
+                <p className="text-gray-600 dark:text-gray-400 mb-4 flex items-center justify-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  {studentData.email}
+                </p>
+
+                {isEditing ? (
+                  <textarea
+                    value={editForm.bio || ''}
+                    onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                    placeholder="Write a short bio about yourself..."
+                    className="w-full text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg px-4 py-3 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
+                    rows={4}
+                  />
+                ) : (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                    {studentData.bio || 'No bio added yet'}
+                  </p>
+                )}
+              </div>
+
+              {/* Contact Info */}
+              <div className="border-t border-gray-200 dark:border-gray-700 p-6 space-y-4">
+                {/* Phone */}
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={editForm.phone || ''}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      placeholder="Phone number"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                    />
+                  ) : (
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {studentData.phone || 'Not provided'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Location */}
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-5 h-5 text-gray-400" />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editForm.location || ''}
+                      onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                      placeholder="Your location"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                    />
+                  ) : (
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {studentData.location || 'Not provided'}
+                    </span>
+                  )}
+                </div>
+
+                {/* GitHub */}
+                <div className="flex items-center gap-3">
+                  <Github className="w-5 h-5 text-gray-400" />
+                  {isEditing ? (
+                    <input
+                      type="url"
+                      value={editForm.githubProfileLink || ''}
+                      onChange={(e) => setEditForm({ ...editForm, githubProfileLink: e.target.value })}
+                      placeholder="GitHub profile URL"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                    />
+                  ) : studentData.githubProfileLink ? (
+                    <a
+                      href={studentData.githubProfileLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                    >
+                      View GitHub
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Not provided</span>
+                  )}
+                </div>
+
+                {/* LinkedIn */}
+                <div className="flex items-center gap-3">
+                  <Linkedin className="w-5 h-5 text-gray-400" />
+                  {isEditing ? (
+                    <input
+                      type="url"
+                      value={editForm.linkedInProfileLink || ''}
+                      onChange={(e) => setEditForm({ ...editForm, linkedInProfileLink: e.target.value })}
+                      placeholder="LinkedIn profile URL"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                    />
+                  ) : studentData.linkedInProfileLink ? (
+                    <a
+                      href={studentData.linkedInProfileLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                    >
+                      View LinkedIn
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Not provided</span>
+                  )}
+                </div>
+
+                {/* Portfolio */}
+                <div className="flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-gray-400" />
+                  {isEditing ? (
+                    <input
+                      type="url"
+                      value={editForm.portfolioLink || ''}
+                      onChange={(e) => setEditForm({ ...editForm, portfolioLink: e.target.value })}
+                      placeholder="Portfolio website URL"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                    />
+                  ) : studentData.portfolioLink ? (
+                    <a
+                      href={studentData.portfolioLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                    >
+                      View Portfolio
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Not provided</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right Column - Stats & Skills */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Stats Grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {statsCards.map((stat, index) => {
+                  const Icon = stat.icon;
+                  return (
+                    <motion.div
+                      key={stat.label}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 + index * 0.1 }}
+                      whileHover={{ y: -4 }}
+                      className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all"
+                    >
+                      <div className={`w-12 h-12 rounded-xl bg-${stat.color}-100 dark:bg-${stat.color}-900/20 flex items-center justify-center mb-3`}>
+                        <Icon className={`w-6 h-6 text-${stat.color}-600 dark:text-${stat.color}-400`} />
+                      </div>
+                      <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                        {stat.value}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        {stat.label}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        {stat.suffix}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+
+            {/* Skills Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Code className="w-6 h-6 text-blue-600" />
+                  Skills & Technologies
+                </h3>
+              </div>
+
+              {isEditing && (
+                <div className="mb-4 flex gap-2">
+                  <input
+                    type="text"
+                    value={newSkill}
+                    onChange={(e) => setNewSkill(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
+                    placeholder="Add a skill..."
+                    className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:border-blue-500 focus:outline-none"
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleAddSkill}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add
+                  </motion.button>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                {(isEditing ? editForm.skills : studentData.skills)?.map((skill, index) => {
+                  const SkillIcon = skillIcons[skill];
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="group relative px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center gap-2 hover:shadow-md transition-all"
+                    >
+                      {SkillIcon && <SkillIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {skill}
+                      </span>
+                      {isEditing && (
+                        <button
+                          onClick={() => handleRemoveSkill(skill)}
+                          className="ml-1 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </motion.div>
+                  );
+                })}
+                {(!studentData.skills || studentData.skills.length === 0) && !isEditing && (
+                  <p className="text-gray-500 dark:text-gray-400">No skills added yet</p>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Achievement Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white relative overflow-hidden"
+            >
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute inset-0" style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                }} />
+              </div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="w-6 h-6" />
+                    <span className="font-semibold">Keep Growing!</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">Complete your profile to unlock opportunities</h3>
+                  <p className="text-blue-100 mb-4">Add more skills and project details to get better matches</p>
+                </div>
+                <TrendingUp className="w-24 h-24 opacity-20" />
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default StudentProfile;

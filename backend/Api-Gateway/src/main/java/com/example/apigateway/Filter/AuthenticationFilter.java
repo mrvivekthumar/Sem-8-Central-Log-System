@@ -11,9 +11,12 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     @Autowired
     private RouteValidator validator;
@@ -32,21 +35,24 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
             // Handle OPTIONS requests immediately (CORS preflight)
             if (exchange.getRequest().getMethod() == HttpMethod.OPTIONS) {
-                response.setStatusCode(HttpStatus.OK);
-                // Add CORS headers for preflight
-                response.getHeaders().add("Access-Control-Allow-Origin",
-                        exchange.getRequest().getHeaders().getFirst("Origin"));
-                response.getHeaders().add("Access-Control-Allow-Methods",
-                        "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH");
-                response.getHeaders().add("Access-Control-Allow-Headers", "*");
-                response.getHeaders().add("Access-Control-Allow-Credentials", "true");
-                response.getHeaders().add("Access-Control-Max-Age", "3600");
-                return response.setComplete();
+                // response.setStatusCode(HttpStatus.OK);
+                // // Add CORS headers for preflight
+                // response.getHeaders().add("Access-Control-Allow-Origin",
+                // exchange.getRequest().getHeaders().getFirst("Origin"));
+                // response.getHeaders().add("Access-Control-Allow-Methods",
+                // "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH");
+                // response.getHeaders().add("Access-Control-Allow-Headers", "*");
+                // response.getHeaders().add("Access-Control-Allow-Credentials", "true");
+                // response.getHeaders().add("Access-Control-Max-Age", "3600");
+                // return response.setComplete();
+
+                return chain.filter(exchange);
             }
 
             // Check if the route needs authentication
             if (validator.isSecured.test(exchange.getRequest())) {
                 // Check for authorization header
+                ServerHttpResponse response = exchange.getResponse();
                 if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                     response.setStatusCode(HttpStatus.UNAUTHORIZED);
                     return response.setComplete();
@@ -63,7 +69,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 try {
                     jwtUtil.validateToken(authHeader);
                 } catch (Exception e) {
-                    System.out.println("Invalid token: " + e.getMessage());
+                    logger.error("Invalid token attempt: {}", e.getMessage());
                     response.setStatusCode(HttpStatus.UNAUTHORIZED);
                     return response.setComplete();
                 }

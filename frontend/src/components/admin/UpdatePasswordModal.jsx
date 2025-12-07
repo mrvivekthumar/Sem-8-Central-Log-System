@@ -1,221 +1,256 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, CheckCircle, Eye, EyeOff, Lock, X } from 'lucide-react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock, Eye, EyeOff, Check } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosInstance';
 
-const passwordSchema = z.object({
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
-
-const UpdatePasswordModal = ({ isOpen, onClose, user, onUpdate }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+const UpdatePasswordModal = ({ isOpen, onClose, userId }) => {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-
-  const { register, handleSubmit, formState: { errors }, reset } = useForm({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: {
-      password: '',
-      confirmPassword: '',
-    }
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false
   });
+  const [formData, setFormData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [errors, setErrors] = useState({});
 
-  const updatePassword = async (userData) => {
-    try {
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-      const response = await axiosInstance.post(
-        '/auth/updatePassword',
-        userData
-      );
-
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Failed to update password');
-      }
-
-      const data = await response.text();
-      return data;
-    } catch (error) {
-      console.error('Error updating password:', error);
-      throw error;
-    }
+    return {
+      minLength: password.length >= minLength,
+      hasUpperCase,
+      hasLowerCase,
+      hasNumber,
+      hasSpecialChar
+    };
   };
 
-  const onSubmit = async (data) => {
+  const passwordValidation = validatePassword(formData.newPassword);
+  const isPasswordValid = Object.values(passwordValidation).every(Boolean);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    if (!formData.currentPassword) {
+      newErrors.currentPassword = 'Current password is required';
+    }
+
+    if (!formData.newPassword) {
+      newErrors.newPassword = 'New password is required';
+    } else if (!isPasswordValid) {
+      newErrors.newPassword = 'Password does not meet requirements';
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
-    setMessage({ type: '', text: '' });
-
     try {
-      // Prepare data for API
-      const userData = {
-        username: user.email, // Assuming user.email contains the email/username
-        password: data.password,
-        userRole: user.role?.toUpperCase() // Assuming user.role contains 'student' or 'faculty'
-      };
-
-      const result = await updatePassword(userData);
-
-      // Display success message
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
-
-      // Clear form
-      reset();
-
-      // If onUpdate callback exists, call it
-      if (onUpdate) {
-        onUpdate(user.id, data.password, result);
-      }
-
-      // Close modal after delay
-      setTimeout(() => {
-        onClose();
-      }, 2000);
+      await axiosInstance.put(`/auth/update-password/${userId}`, {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword
+      });
+      toast.success('Password updated successfully!');
+      handleClose();
     } catch (error) {
-      setMessage({ type: 'error', text: `Failed to update password: ${error.message}` });
+      console.error('Error updating password:', error);
+      toast.error(error.response?.data?.message || 'Failed to update password');
     } finally {
       setLoading(false);
     }
   };
 
-  // This prevents event propagation
-  const stopPropagation = (e) => {
-    e.stopPropagation();
+  const handleClose = () => {
+    setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setErrors({});
+    setShowPassword({ current: false, new: false, confirm: false });
+    onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        // Modal container - exactly matching RegisterModal structure
-        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center">
-          {/* Semi-transparent backdrop */}
-          <div
-            className="absolute inset-0 bg-black bg-opacity-50"
-            onClick={onClose}
-          ></div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={handleClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md border border-gray-200 dark:border-gray-700 shadow-2xl"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
+                <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Update Password
+              </h2>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </motion.button>
+          </div>
 
-          {/* Modal content - stop propagation on this element */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="relative bg-white dark:bg-gray-800 w-full max-w-md mx-4 rounded-lg shadow-xl z-10"
-            onClick={stopPropagation}
-          >
-            {/* Close button */}
-            <div className="absolute right-0 top-0 pr-4 pt-4">
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            {/* Current Password */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Current Password *
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword.current ? 'text' : 'password'}
+                  value={formData.currentPassword}
+                  onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                  className={`w-full px-4 py-3 rounded-xl border-2 ${errors.currentPassword ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+                    } bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors pr-12`}
+                  placeholder="Enter current password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {errors.currentPassword && (
+                <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {errors.currentPassword}
+                </p>
+              )}
             </div>
 
-            {/* Form content */}
-            <div className="p-6">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Update Password
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Set a new password for {user?.name}
-              </p>
+            {/* New Password */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                New Password *
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword.new ? 'text' : 'password'}
+                  value={formData.newPassword}
+                  onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                  className={`w-full px-4 py-3 rounded-xl border-2 ${errors.newPassword ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+                    } bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors pr-12`}
+                  placeholder="Enter new password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
 
-              {/* Status message */}
-              {message.text && (
-                <div className={`mb-4 p-3 rounded-lg ${message.type === 'success'
-                  ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400'
-                  : 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400'
-                  }`}>
-                  {message.text}
+              {/* Password Requirements */}
+              {formData.newPassword && (
+                <div className="mt-3 space-y-2">
+                  {Object.entries({
+                    minLength: 'At least 8 characters',
+                    hasUpperCase: 'One uppercase letter',
+                    hasLowerCase: 'One lowercase letter',
+                    hasNumber: 'One number',
+                    hasSpecialChar: 'One special character'
+                  }).map(([key, label]) => (
+                    <div key={key} className="flex items-center gap-2 text-sm">
+                      {passwordValidation[key] ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-gray-400" />
+                      )}
+                      <span className={passwordValidation[key] ? 'text-green-600' : 'text-gray-500'}>
+                        {label}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    New Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      {...register('password')}
-                      className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter new password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-500"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      {...register('confirmPassword')}
-                      className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Confirm new password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-500"
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${loading ? 'opacity-70 cursor-not-allowed' : ''
-                      }`}
-                    disabled={loading}
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    {loading ? 'Updating...' : 'Update Password'}
-                  </motion.button>
-                </div>
-              </form>
             </div>
-          </motion.div>
-        </div>
-      )}
+
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Confirm Password *
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword.confirm ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className={`w-full px-4 py-3 rounded-xl border-2 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+                    } bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors pr-12`}
+                  placeholder="Confirm new password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading || !isPasswordValid}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </motion.div>
     </AnimatePresence>
   );
 };

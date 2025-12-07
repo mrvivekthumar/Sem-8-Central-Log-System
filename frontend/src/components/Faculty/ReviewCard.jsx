@@ -1,71 +1,73 @@
-import { useNavigate } from 'react-router-dom';
-import { Users, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Calendar, MessageCircle, Star, ThumbsUp } from 'lucide-react';
 
-const statusColors = {
-  OPEN_FOR_APPLICATIONS: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
-  IN_PROGRESS: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
-  COMPLETED: "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400",
-  CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
-  ON_HOLD: "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400",
-  APPROVED: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
-};
-
-// Component
-const ReviewCard = ({ project }) => {
-  const navigate = useNavigate();
-
-  const viewDetails = () => {
-    console.log(project);
-    navigate(`/project/${project.projectId}/report`);
-  };
-
-  // Determine status class dynamically
-  const statusClass = statusColors[project.status] || "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
-
+const ReviewCard = ({ review, index = 0 }) => {
   return (
     <motion.div
-      whileHover={{ y: -5 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all"
     >
-      <div className="p-6">
-        {/* Project Title & Status */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {project.title}
-          </h3>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusClass}`}>
-            {project.status.replace(/_/g, " ")}
-          </span>
-        </div>
-
-        {/* Project Details */}
-        <div className="flex justify-between text-gray-500 dark:text-gray-400 mb-4">
-          <div className="flex items-center">
-            <span className="text-sm">{new Date(project.deadline).toLocaleDateString()}</span>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+            {review.studentName?.charAt(0) || 'S'}
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900 dark:text-white">
+              {review.studentName || 'Anonymous Student'}
+            </h3>
+            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+              <Calendar className="w-3.5 h-3.5" />
+              {review.date ? new Date(review.date).toLocaleDateString() : 'Recent'}
+            </div>
           </div>
         </div>
 
-        {/* Technology Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {project.technologies?.map((tech, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 rounded"
-            >
-              {tech}
-            </span>
-          ))}
+        {/* Rating */}
+        <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-xl">
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          <span className="font-bold text-gray-900 dark:text-white">
+            {review.rating || 5.0}
+          </span>
         </div>
+      </div>
 
-        {/* View Details Button */}
-        <button
-          onClick={viewDetails}
-          className="w-full flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+      {/* Review Text */}
+      <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+        {review.comment || 'Great project experience! Learned a lot and enjoyed working on it.'}
+      </p>
+
+      {/* Project Info */}
+      {review.projectTitle && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Project</p>
+          <p className="font-semibold text-blue-600 dark:text-blue-400">
+            {review.projectTitle}
+          </p>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="flex items-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
         >
-          View Details
-          <ChevronRight className="w-4 h-4 ml-2" />
-        </button>
+          <ThumbsUp className="w-4 h-4" />
+          <span>{review.likes || 0}</span>
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          <MessageCircle className="w-4 h-4" />
+          <span>Reply</span>
+        </motion.button>
       </div>
     </motion.div>
   );

@@ -1,130 +1,105 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { createContext, useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
-import axiosInstance from '../api/axiosInstance'
+import axiosInstance from '../api/axiosInstance';
 
-const AuthContext = createContext(undefined);
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Set token in axios headers whenever it changes
   useEffect(() => {
-    if (token) {
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      delete axiosInstance.defaults.headers.common['Authorization'];
-    }
-  }, [token]);
+    checkAuth();
+  }, []);
 
-  const fetchUserData = async (storedToken) => {
+  const checkAuth = async () => {
     try {
-      const response = await axiosInstance.get(`/auth/user?token=${storedToken}`);
-      const userData = response.data;
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
 
-      if (userData.userRole === 'STUDENT') {
-        const studentResponse = await axiosInstance.get(
-          `/STUDENT-SERVICE/students/email/${userData.username}`
-        );
-        Object.assign(userData, studentResponse.data);
-        userData.id = userData.studentId;
-      } else if (userData.userRole === 'FACULTY') {
-        const facultyResponse = await axiosInstance.get(
-          `/FACULTY-SERVICE/api/faculty/email/${userData.username}`
-        );
-        Object.assign(userData, facultyResponse.data);
-        userData.id = userData.f_id;
+      if (token && userData) {
+        setUser(JSON.parse(userData));
+        setIsAuthenticated(true);
+        // Set token in axios default headers
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
-
-      setUser(userData);
-      navigate(
-        userData.userRole === 'STUDENT'
-          ? '/student/dashboard'
-          : userData.userRole === 'FACULTY'
-            ? '/faculty/dashboard'
-            : '/admin/dashboard',
-        { replace: true }
-      );
-
     } catch (error) {
-      console.error('Failed to fetch user data:', error);
+      console.error('Auth check failed:', error);
       logout();
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      axiosInstance.get(`/auth/validate?token=${storedToken}`)
-        .then(() => {
-          setToken(storedToken);
-          fetchUserData(storedToken);
-        })
-        .catch(() => {
-          logout();
-        });
-    }
-  }, []);
-
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
-      const response = await axiosInstance.post('/auth/token',
-        { username, password },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
+      const response = await axiosInstance.post('/auth/login', { email, password });
+      const { token, user: userData } = response.data;
 
-      const newToken = response.data.token;
-      localStorage.setItem('token', newToken);
-      setToken(newToken);
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      await fetchUserData(newToken);
+      setUser(userData);
+      setIsAuthenticated(true);
       toast.success('Login successful!');
+
+      return userData;
     } catch (error) {
-      console.error('Login error:', error);
-      if (error.response?.status === 403) {
-        toast.error('Access forbidden. Please check your credentials.');
-      } else if (error.response?.status === 401) {
-        toast.error('Invalid credentials. Please try again.');
-      } else {
-        toast.error('Login failed. Please try again later.');
-      }
+      console.error('Login failed:', error);
+      toast.error(error.response?.data?.message || 'Login failed');
+      throw error;
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await axiosInstance.post('/auth/register', userData);
+      toast.success('Registration successful! Please login.');
+      return response.data;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      toast.error(error.response?.data?.message || 'Registration failed');
       throw error;
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    setUser(null);
-    setToken(null);
+    localStorage.removeItem('user');
     delete axiosInstance.defaults.headers.common['Authorization'];
-    navigate('/login');
+    setUser(null);
+    setIsAuthenticated(false);
     toast.success('Logged out successfully');
   };
 
-  return (
-    <AuthContext.Provider value={{
-      user,
-      token,
-      isAuthenticated: !!token,
-      login,
-      logout
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  const updateUser = (updatedData) => {
+    const updatedUser = { ...user, ...updatedData };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+  const value = {
+    user,
+    loading,
+    isAuthenticated,
+    login,
+    register,
+    logout,
+    updateUser,
+    checkAuth
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export default AuthContext;

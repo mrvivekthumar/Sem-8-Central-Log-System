@@ -1,80 +1,327 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { motion } from 'framer-motion';
-import ProjectCard from '../components/ProjectCard';
-import SearchBar from '../components/SearchBar';
-import StudentProjectCard from '../components/StudentProjectCard';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ChevronDown,
+  Grid, List,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+  Sparkles,
+  Target,
+  X
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import axiosInstance from '../api/axiosInstance';
-const Dashboard = () => {
-  const [projects, setProjects] = useState(null); // Initially null
-  const [searchQuery, setSearchQuery] = useState('');
+import ProjectCard from '../components/ProjectCard';
+
+const Projects = () => {
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
+  const [selectedDomain, setSelectedDomain] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
+
+  const domains = ['all', 'Web Development', 'Mobile Development', 'Machine Learning', 'AI', 'Data Science', 'Cloud Computing'];
+  const statuses = ['all', 'OPEN_FOR_APPLICATIONS', 'IN_PROGRESS'];
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await axiosInstance.get('/STUDENT-SERVICE/students/project/visible');
-        
-        // Check if response data is empty or null
-        if (!response.data || response.data.length === 0) {
-          setProjects([]); // Set an empty array to show "No projects available"
-        } else {
-          setProjects(response.data);
-        }
-      } catch (error) {
-        setError('Failed to fetch projects');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProjects();
   }, []);
 
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/STUDENT-SERVICE/students/project/visible');
+      setProjects(response.data || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      toast.error('Failed to load projects');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredProjects = projects
-    ? projects.filter((project) =>
-        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.faculty.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.status.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : [];
+    .filter(project => {
+      const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.faculty?.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesDomain = selectedDomain === 'all' || project.domain === selectedDomain;
+      const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
+      return matchesSearch && matchesDomain && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortBy === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortBy === 'title') return a.title.localeCompare(b.title);
+      return 0;
+    });
+
+  const handleApply = (project) => {
+    // Navigate to application page
+    window.location.href = `/student/project/${project.projectId}`;
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedDomain('all');
+    setSelectedStatus('all');
+    setSortBy('newest');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
+        />
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8"
-      >
-        Available Projects
-      </motion.h1>
-
-      <SearchBar value={searchQuery} onChange={setSearchQuery} />
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : filteredProjects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <StudentProjectCard key={project.id} project={project} />
-          ))}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 backdrop-blur-lg bg-white/80 dark:bg-gray-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <motion.h1
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <Target className="w-8 h-8 text-blue-600" />
+                Browse Projects
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-gray-600 dark:text-gray-400 mt-1"
+              >
+                Discover and apply to exciting academic projects
+              </motion.p>
+            </div>
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={fetchProjects}
+                className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </motion.button>
+            </div>
+          </div>
         </div>
-      ) : (
-        // Display an image when no projects are available
-        <div className="flex flex-col items-center col-span-full mt-10">
-          {/* <img
-            src="/assets/no_projects.jpeg" // Place this image inside 'public/assets'
-            alt="No projects available"
-            className="w-64 h-64"
-          /> */}
-          <p className="mt-4 text-lg text-gray-500">No projects available</p>
-        </div>
-      )}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search and Filters Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-8"
+        >
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search projects, faculty, or keywords..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+            </div>
+
+            {/* Filter Toggle */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+            >
+              <SlidersHorizontal className="w-5 h-5" />
+              Filters
+              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </motion.button>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
+                  ? 'bg-white dark:bg-gray-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+              >
+                <Grid className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
+                  ? 'bg-white dark:bg-gray-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+              >
+                <List className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Expanded Filters */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Domain Filter */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Domain
+                    </label>
+                    <select
+                      value={selectedDomain}
+                      onChange={(e) => setSelectedDomain(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+                    >
+                      {domains.map(domain => (
+                        <option key={domain} value={domain}>
+                          {domain === 'all' ? 'All Domains' : domain}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status Filter */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+                    >
+                      {statuses.map(status => (
+                        <option key={status} value={status}>
+                          {status === 'all' ? 'All Status' : status.replace(/_/g, ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Sort By */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Sort By
+                    </label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="title">Title (A-Z)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Clear Filters */}
+                {(searchQuery || selectedDomain !== 'all' || selectedStatus !== 'all' || sortBy !== 'newest') && (
+                  <div className="mt-4 flex justify-end">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={clearFilters}
+                      className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 flex items-center gap-2"
+                    >
+                      <X className="w-4 h-4" />
+                      Clear All Filters
+                    </motion.button>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Results Count */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-between mb-6"
+        >
+          <p className="text-gray-600 dark:text-gray-400">
+            Showing <span className="font-semibold text-gray-900 dark:text-white">{filteredProjects.length}</span> of{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">{projects.length}</span> projects
+          </p>
+        </motion.div>
+
+        {/* Projects Grid/List */}
+        {filteredProjects.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-12 text-center"
+          >
+            <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No Projects Found
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Try adjusting your filters or search query
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={clearFilters}
+              className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Clear Filters
+            </motion.button>
+          </motion.div>
+        ) : (
+          <div className={viewMode === 'grid'
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+            : 'space-y-4'
+          }>
+            {filteredProjects.map((project, index) => (
+              <motion.div
+                key={project.projectId}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <ProjectCard
+                  project={project}
+                  showApplyButton={true}
+                  onApply={handleApply}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default Projects;

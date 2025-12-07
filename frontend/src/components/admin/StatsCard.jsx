@@ -1,34 +1,84 @@
 import { motion } from 'framer-motion';
+import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 
-const StatsCard = ({ title, value, icon: Icon, color }) => {
-  const colorClasses = {
-    blue: 'from-blue-500 to-blue-600 shadow-blue-500/30',
-    purple: 'from-purple-500 to-purple-600 shadow-purple-500/30',
-    green: 'from-green-500 to-green-600 shadow-green-500/30',
-    amber: 'from-amber-500 to-amber-600 shadow-amber-500/30',
-    red: 'from-red-500 to-red-600 shadow-red-500/30',
+const StatsCard = ({
+  title,
+  value,
+  icon: Icon,
+  change,
+  changeType = 'neutral', // increase, decrease, neutral
+  gradient = 'from-blue-500 to-purple-600',
+  delay = 0
+}) => {
+  const getTrendIcon = () => {
+    switch (changeType) {
+      case 'increase':
+        return <TrendingUp className="w-4 h-4" />;
+      case 'decrease':
+        return <TrendingDown className="w-4 h-4" />;
+      default:
+        return <Minus className="w-4 h-4" />;
+    }
+  };
+
+  const getTrendColor = () => {
+    switch (changeType) {
+      case 'increase':
+        return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
+      case 'decrease':
+        return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+      default:
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700';
+    }
   };
 
   return (
     <motion.div
-      whileHover={{ y: -5 }}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-2xl transition-all group relative overflow-hidden"
     >
-      <div className="p-6">
+      {/* Background Gradient Effect */}
+      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-5 rounded-full blur-2xl group-hover:opacity-10 transition-opacity`} />
+
+      <div className="relative z-10">
+        {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
-            {title}
-          </h3>
-          <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center shadow-lg`}>
-            <Icon className="h-5 w-5 text-white" />
+          <div className={`w-12 h-12 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+            {Icon && <Icon className="w-6 h-6 text-white" />}
           </div>
+          {change && (
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${getTrendColor()}`}>
+              {getTrendIcon()}
+              <span>{change}</span>
+            </div>
+          )}
         </div>
-        <div className="flex items-end">
-          <span className="text-3xl font-bold text-gray-900 dark:text-white">
-            {value.toLocaleString()}
-          </span>
-        </div>
+
+        {/* Value */}
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: delay + 0.1, type: "spring" }}
+          className="text-4xl font-bold text-gray-900 dark:text-white mb-2"
+        >
+          {value}
+        </motion.div>
+
+        {/* Title */}
+        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+          {title}
+        </p>
       </div>
+
+      {/* Hover Border Effect */}
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        whileHover={{ scale: 1, opacity: 1 }}
+        className={`absolute inset-0 border-2 border-transparent bg-gradient-to-br ${gradient} rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity pointer-events-none`}
+      />
     </motion.div>
   );
 };
