@@ -1,15 +1,16 @@
-package com.example.facultyservice.notification.Service;
-
-import com.example.facultyservice.notification.Dao.NotificationDao;
-import com.example.facultyservice.notification.model.Notification;
-import com.example.facultyservice.notification.model.NotificationRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
+package com.example.facultyservice.notification.service;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+
+import com.example.facultyservice.notification.dao.NotificationDao;
+import com.example.facultyservice.notification.model.Notification;
+import com.example.facultyservice.notification.model.NotificationRequest;
 
 @Service
 public class NotificationService {
@@ -35,14 +36,14 @@ public class NotificationService {
         Notification savedNotification = notificationDao.save(notification);
 
         messagingTemplate.convertAndSend(
-            "/topic/notifications/" + notificationRequest.getReceiverId(),
-            savedNotification
-        );
+                "/topic/notifications/" + notificationRequest.getReceiverId(),
+                savedNotification);
 
         return savedNotification;
     }
 
-    public Notification sendNotificationToMultipleReceivers(NotificationRequest notificationRequest, List<String> receiverIds) {
+    public Notification sendNotificationToMultipleReceivers(NotificationRequest notificationRequest,
+            List<String> receiverIds) {
         Notification notification = new Notification();
         notification.setSenderId(notificationRequest.getSenderId());
         notification.setSenderType(notificationRequest.getSenderType());
@@ -58,9 +59,8 @@ public class NotificationService {
             Notification savedNotification = notificationDao.save(notification);
 
             messagingTemplate.convertAndSend(
-                "/topic/notifications/" + receiverId,
-                savedNotification
-            );
+                    "/topic/notifications/" + receiverId,
+                    savedNotification);
         }
 
         return notification;

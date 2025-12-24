@@ -1,10 +1,11 @@
-package com.example.facultyservice.notification.Dao;
+package com.example.facultyservice.notification.dao;
 
-import com.example.facultyservice.notification.model.Notification;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.example.facultyservice.notification.model.Notification;
 
 @Repository
 public interface NotificationDao extends JpaRepository<Notification, Long> {

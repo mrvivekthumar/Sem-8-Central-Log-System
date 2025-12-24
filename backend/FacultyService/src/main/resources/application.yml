@@ -66,3 +66,11 @@ auth-service:
 
 student-service:
   url: ${STUDENT_SERVICE_URL:http://localhost:8084}
+# Feign Client Logging Configuration
+feign:
+  client:
+    config:
+      default:
+        loggerLevel: full
+        connectTimeout: 5000
+        readTimeout: 10000

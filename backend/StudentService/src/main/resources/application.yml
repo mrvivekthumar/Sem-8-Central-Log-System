@@ -72,3 +72,12 @@ logging:
   level:
     com.example.studentservice: INFO
     org.springframework.web: DEBUG
+
+# Feign Client Logging Configuration
+feign:
+  client:
+    config:
+      default:
+        loggerLevel: full
+        connectTimeout: 5000
+        readTimeout: 10000
