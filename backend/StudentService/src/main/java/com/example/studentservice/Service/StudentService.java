@@ -12,6 +12,7 @@ import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.InputSource;
@@ -87,16 +88,45 @@ public class StudentService {
                 }
             }
 
+            // Save students first
             studentDao.saveAll(students);
+            logger.info("Saved {} students to database", students.size());
 
-            // Convert UserCredential to Map for authInterface
-            List<Map<String, Object>> userMaps = users.stream()
-                    .map(this::convertUserCredentialToMap)
-                    .collect(Collectors.toList());
-            authInterface.addNewUser(userMaps);
+            // Register users in Auth Service one by one
+            int successCount = 0;
+            int failCount = 0;
+            List<String> failedEmails = new ArrayList<>();
 
-            logger.info("Bulk registration completed. Records added: {}", students.size());
-            return "Bulk registration completed. Records added: " + students.size();
+            for (UserCredential credential : users) {
+                try {
+                    Map<String, Object> userMap = convertUserCredentialToMap(credential);
+                    ResponseEntity<String> response = authInterface.addNewUser(userMap);
+
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        successCount++;
+                        logger.info("Registered user in Auth Service: {}", credential.getUsername());
+                    } else {
+                        failCount++;
+                        failedEmails.add(credential.getUsername());
+                        logger.warn("Failed to register user in Auth Service: {}", credential.getUsername());
+                    }
+                } catch (Exception e) {
+                    failCount++;
+                    failedEmails.add(credential.getUsername());
+                    logger.error("Error registering user {}: {}", credential.getUsername(), e.getMessage());
+                }
+            }
+
+            String resultMessage = String.format(
+                    "Bulk registration completed. Students added: %d, Auth registrations - Success: %d, Failed: %d",
+                    students.size(), successCount, failCount);
+
+            if (!failedEmails.isEmpty()) {
+                resultMessage += ". Failed emails: " + String.join(", ", failedEmails);
+            }
+
+            logger.info(resultMessage);
+            return resultMessage;
 
         } catch (Exception e) {
             logger.error("Bulk registration failed", e);
@@ -106,7 +136,7 @@ public class StudentService {
 
     private Map<String, Object> convertUserCredentialToMap(UserCredential credential) {
         return Map.of(
-                "username", credential.getUsername(),
+                "email", credential.getUsername(),
                 "password", credential.getPassword(),
                 "role", credential.getUserRole().toString());
     }
