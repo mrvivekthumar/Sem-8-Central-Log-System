@@ -40,12 +40,8 @@ public class ReportReviewService {
             }
             Report report = reportOptional.get();
 
-            // Fetch student details
-            ResponseEntity<Student> studentResponse = studentService.getStudentById(studentId);
-            if (!studentResponse.getStatusCode().is2xxSuccessful() || studentResponse.getBody() == null) {
-                return new ResponseEntity<>("Student not found", HttpStatus.NOT_FOUND);
-            }
-            Student student = studentResponse.getBody();
+            // Fetch student details - FIXED: Now returns Student directly
+            Student student = studentService.getStudentById(studentId);
 
             // Ensure the report submitter cannot review it
             if (report.getSubmittedBy().getStudentId() == studentId) {

@@ -42,11 +42,8 @@ public class ReportService {
 
     public ResponseEntity<Report> submitReport(int studentId, int projectId, MultipartFile file) {
         try {
-            // Check if student exists
-            ResponseEntity<Student> existStudent = studentService.getStudentById(studentId);
-            if (!existStudent.getStatusCode().is2xxSuccessful() || existStudent.getBody() == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
+            // Check if student exists - FIXED: Now returns Student directly
+            Student student = studentService.getStudentById(studentId);
 
             // Check if student is part of the project
             StudentProject studentProject = studentProjectDao.findByStudent_StudentIdAndProjectId(studentId, projectId);
@@ -62,7 +59,7 @@ public class ReportService {
             Report report = new Report();
             report.setStudentProject(studentProject);
             report.setDocumentUrl(fileUrl);
-            report.setSubmittedBy(existStudent.getBody());
+            report.setSubmittedBy(student); // FIXED: Use student directly
             report.setSubmissionDate(LocalDate.now());
             report.setStatus(ReportStatus.PENDING);
 
