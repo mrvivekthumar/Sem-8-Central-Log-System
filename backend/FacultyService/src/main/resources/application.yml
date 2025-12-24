@@ -37,7 +37,7 @@ spring:
         enabled: true
 
 server:
-  port: ${FACULTY_SERVICE_PORT:8082}
+  port: ${FACULTY_SERVICE_PORT:8080}
 
 jwt:
   secret: ${JWT_SECRET:default-secret-key-change-in-production}

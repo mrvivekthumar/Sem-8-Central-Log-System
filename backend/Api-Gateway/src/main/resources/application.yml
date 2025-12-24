@@ -72,9 +72,9 @@ spring:
         - id: student-service
           uri: ${STUDENT_SERVICE_URL:http://localhost:8084}
           predicates:
-            - Path=/api/student/**
+            - Path=/api/students/** 
           filters:
-            - RewritePath=/api/student/(?<segment>.*), /${segment}
+            - RewritePath=/api/students/(?<segment>.*), /${segment}
             - AuthenticationFilter
     
     kubernetes:
@@ -85,7 +85,7 @@ spring:
         enabled: true
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:8765}
 
 management:
   endpoints:
