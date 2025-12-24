@@ -60,3 +60,9 @@ logging:
   level:
     com.example.facultyservice: INFO
     org.springframework.web: DEBUG
+
+auth-service:
+  url: ${AUTH_SERVICE_URL:http://localhost:8070}
+
+student-service:
+  url: ${STUDENT_SERVICE_URL:http://localhost:8084}

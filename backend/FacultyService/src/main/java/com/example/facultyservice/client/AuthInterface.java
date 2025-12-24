@@ -7,15 +7,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
 import java.util.Map;
 
 @FeignClient(name = "auth-service", url = "${auth-service.url:http://localhost:8070}")
 public interface AuthInterface {
 
-    @PostMapping("/auth/register")
-    ResponseEntity<String> addNewUser(@RequestBody List<Map<String, Object>> users);
-    
-    @GetMapping("/auth/validate")
+    // Changed: Now accepts single user Map instead of List
+    // Path changed from /auth/register to /register to match Auth Service
+    @PostMapping("/register")
+    ResponseEntity<String> addNewUser(@RequestBody Map<String, Object> user);
+
+    @GetMapping("/validate")
     String validateToken(@RequestParam String token);
 }

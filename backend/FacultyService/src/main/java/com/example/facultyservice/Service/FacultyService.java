@@ -92,14 +92,16 @@ public class FacultyService {
         try {
             // Step 1: Create user credentials
             Map<String, Object> user = new HashMap<>();
-            user.put("username", faculty.getEmail());
+            user.put("email", faculty.getEmail()); // Changed from username
             user.put("password", faculty.getPassword());
-            user.put("userRole", "FACULTY");
+            user.put("role", "FACULTY"); // Changed from userRole
 
-            logger.info("Registering faculty user: {}", user.get("username"));
-            ResponseEntity<String> authResponse = authInterface.addNewUser(Arrays.asList(user));
+            logger.info("Registering faculty user: {}", user.get("email"));
 
-            if (authResponse.getStatusCode() != HttpStatus.OK) {
+            // Call auth service with single user
+            ResponseEntity<String> authResponse = authInterface.addNewUser(user);
+
+            if (!authResponse.getStatusCode().is2xxSuccessful()) {
                 return new ResponseEntity<>("Auth registration failed", HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
@@ -107,7 +109,8 @@ public class FacultyService {
             faculty.setPassword(null); // Don't store password
             facultyDao.save(faculty);
 
-            return new ResponseEntity<>("Faculty registration successful", HttpStatus.OK);
+            logger.info("Faculty registration successful: {}", faculty.getEmail());
+            return new ResponseEntity<>("Faculty registration successful", HttpStatus.CREATED);
         } catch (Exception e) {
             logger.error("Faculty registration failed: {}", e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -258,21 +261,14 @@ public class FacultyService {
 
             // Use streaming implementation
             try (InputStream inputStream = file.getInputStream()) {
-                // Create streaming reader
                 OPCPackage pkg = OPCPackage.open(inputStream);
                 XSSFReader reader = new XSSFReader(pkg);
                 SharedStrings sst = reader.getSharedStringsTable();
 
-                // Get the first sheet
-                // Note: XMLReaderFactory is deprecated in newer versions, use SAXParserFactory
-                // instead
                 XMLReader parser = XMLReaderFactory.createXMLReader();
-
-                // Set up custom handler
                 SheetHandler handler = new SheetHandler(sst, faculties, users, facultyDao);
                 parser.setContentHandler(handler);
 
-                // Process first sheet only
                 InputStream sheetStream = reader.getSheetsData().next();
                 InputSource sheetSource = new InputSource(sheetStream);
                 parser.parse(sheetSource);
@@ -280,35 +276,62 @@ public class FacultyService {
 
                 recordCount = handler.getRowCount();
 
-                // Check if handler encountered any duplicate emails
                 if (handler.getDuplicateEmail() != null) {
                     return new ResponseEntity<>("Email " + handler.getDuplicateEmail() + " is already registered",
                             HttpStatus.CONFLICT);
                 }
             }
 
-            // Batch save all records
+            // Save faculties to database
             if (!faculties.isEmpty()) {
-                // Process in batches of 500
                 int batchSize = 500;
                 for (int i = 0; i < faculties.size(); i += batchSize) {
                     int endIndex = Math.min(i + batchSize, faculties.size());
                     facultyDao.saveAll(faculties.subList(i, endIndex));
                 }
+                logger.info("Saved {} faculties to database", faculties.size());
+            }
 
-                for (int i = 0; i < users.size(); i += batchSize) {
-                    int endIndex = Math.min(i + batchSize, users.size());
-                    authInterface.addNewUser(users.subList(i, endIndex));
+            // Register users in Auth Service one by one
+            int successCount = 0;
+            int failCount = 0;
+            List<String> failedEmails = new ArrayList<>();
+
+            for (Map<String, Object> user : users) {
+                try {
+                    ResponseEntity<String> response = authInterface.addNewUser(user);
+
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        successCount++;
+                        logger.info("Registered faculty in Auth Service: {}", user.get("email"));
+                    } else {
+                        failCount++;
+                        failedEmails.add((String) user.get("email"));
+                        logger.warn("Failed to register faculty in Auth Service: {}", user.get("email"));
+                    }
+                } catch (Exception e) {
+                    failCount++;
+                    failedEmails.add((String) user.get("email"));
+                    logger.error("Error registering faculty {}: {}", user.get("email"), e.getMessage());
                 }
             }
 
-            return new ResponseEntity<>("File uploaded successfully: " + recordCount + " records added.",
-                    HttpStatus.OK);
+            String resultMessage = String.format(
+                    "Bulk registration completed. Faculties added: %d, Auth registrations - Success: %d, Failed: %d",
+                    faculties.size(), successCount, failCount);
+
+            if (!failedEmails.isEmpty()) {
+                resultMessage += ". Failed emails: " + String.join(", ", failedEmails);
+            }
+
+            logger.info(resultMessage);
+            return new ResponseEntity<>(resultMessage, HttpStatus.OK);
+
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("File processing failed due to IO error", e);
             return new ResponseEntity<>("File processing failed due to IO error", HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("File upload failed: {}", e.getMessage());
             return new ResponseEntity<>("File upload failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
