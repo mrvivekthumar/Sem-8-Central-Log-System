@@ -1,8 +1,9 @@
-package com.example.facultyservice.Service;
+package com.example.facultyservice.service;
 
-import com.example.facultyservice.Dao.ProjectDao;
-import com.example.facultyservice.Model.Project;
-import com.example.facultyservice.Model.Status;
+import com.example.facultyservice.domain.Project;
+import com.example.facultyservice.domain.Status;
+import com.example.facultyservice.repository.ProjectDao;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

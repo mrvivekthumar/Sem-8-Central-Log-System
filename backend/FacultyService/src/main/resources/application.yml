@@ -3,9 +3,9 @@ spring:
     name: faculty-service
   
   datasource:
-    url: ${FACULTY_DB_URL:jdbc:postgresql://${FACULTY_DB_HOST:localhost}:${FACULTY_DB_PORT:5433}/${FACULTY_DB_NAME:facultydb}}
+    url: ${FACULTY_DB_URL:jdbc:postgresql://${FACULTY_DB_HOST:localhost}:${FACULTY_DB_PORT:5432}/${FACULTY_DB_NAME:facultydb}}
     username: ${FACULTY_DB_USERNAME:postgres}
-    password: ${FACULTY_DB_PASSWORD:postgres}
+    password: ${FACULTY_DB_PASSWORD:Mr.VivekThumar@2004}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5

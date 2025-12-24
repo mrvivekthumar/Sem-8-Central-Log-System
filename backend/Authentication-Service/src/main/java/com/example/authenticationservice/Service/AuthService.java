@@ -1,78 +1,93 @@
-package com.example.authenticationservice.Service;
+package com.example.authenticationservice.service;
 
-import com.example.authenticationservice.Dao.UserCredentialDao;
-import com.example.authenticationservice.Model.UserCredential;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.authenticationservice.domain.UserCredential;
+import com.example.authenticationservice.dto.RegisterRequest;
+import com.example.authenticationservice.dto.UserResponse;
+import com.example.authenticationservice.exception.AuthenticationException;
+import com.example.authenticationservice.exception.InvalidRequestException;
+import com.example.authenticationservice.repository.UserCredentialRepository;
 
 @Service
 public class AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
     @Autowired
-    private UserCredentialDao userCredentialDao;
+    private UserCredentialRepository userCredentialRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Autowired
     private JwtService jwtService;
 
-    public String saveUser(List<UserCredential> users){
-        users.parallelStream().forEach(user -> {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        });
-
-        userCredentialDao.saveAll(users);
-        return "Users saved";
-    }
-    public String generateToken(String username) {
-        UserCredential user = userCredentialDao.findByUsername(username).orElseThrow(() ->
-                new RuntimeException("User not found"));
-
-
-        return jwtService.generateToken(username);
-    }
-    public boolean validateToken(String token) {
-        return jwtService.validateToken(token);
-    }
-
-    public ResponseEntity<String> updatePassword(UserCredential user) {
-        UserCredential existingUser=userCredentialDao.findByUsername(user.getUsername())
-                .orElseThrow(()-> new RuntimeException("User not found"));
-        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
-        userCredentialDao.save(existingUser);
-        return new ResponseEntity<>("Password updated successfully", HttpStatus.OK);
-
-    }
-    public ResponseEntity<UserCredential> getUserdetails(String token) {
-        if (!jwtService.validateToken(token)) {
-            return ResponseEntity.status(401).build();
-        }
-        System.out.println("Fuck You Bro");
-        String username = jwtService.extractUsername(token);
-        UserCredential user = jwtService.getUserByUsername(username);
-        return ResponseEntity.ok(user);
-
-
-    }
-
-    public ResponseEntity<UserCredential> saveOneUser(UserCredential user) {
+    public String saveUser(List<UserCredential> credentials) {
         try {
-            Optional<UserCredential> existingUser = userCredentialDao.findByUsernameAndUserRole(user.getUsername(),user.getUserRole());
-            if (existingUser.isPresent()) {
-                return new ResponseEntity<>(HttpStatus.CONFLICT); // 409 Conflict
+            for (UserCredential credential : credentials) {
+                if (!userCredentialRepository.existsByEmail(credential.getEmail())) {
+                    credential.setPassword(passwordEncoder.encode(credential.getPassword()));
+                    userCredentialRepository.save(credential);
+                }
             }
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            userCredentialDao.save(user);
-            return new ResponseEntity<>(user,HttpStatus.OK);
+            return "Users registered successfully";
         } catch (Exception e) {
-             // Print real error
-            System.out.println();
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            logger.error("Error in bulk user registration", e);
+            return "Failed to register users: " + e.getMessage();
+        }
+    }
+
+    public UserResponse register(RegisterRequest request) {
+
+        if (userCredentialRepository.existsByEmail(request.getEmail())) {
+            throw new InvalidRequestException("User with this email already exists");
         }
 
+        if (!request.getRole().equals("STUDENT") && !request.getRole().equals("FACULTY")) {
+            throw new InvalidRequestException("Invalid role");
+        }
+
+        UserCredential user = new UserCredential();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
+        user.setName(request.getName());
+
+        UserCredential saved = userCredentialRepository.save(user);
+
+        return new UserResponse(
+                saved.getId(),
+                saved.getEmail(),
+                saved.getRole());
     }
+
+    public String generateToken(String email) {
+        UserCredential user = getUserByEmail(email);
+        return jwtService.generateToken(user);
+    }
+
+    public void validateToken(String token) {
+        jwtService.validateToken(token);
+    }
+
+    public UserCredential getUserByEmail(String email) {
+        return userCredentialRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public void updatePassword(UserCredential credential) {
+        UserCredential user = userCredentialRepository.findByEmail(credential.getEmail())
+                .orElseThrow(() -> new AuthenticationException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(credential.getPassword()));
+        userCredentialRepository.save(user);
+    }
+
 }

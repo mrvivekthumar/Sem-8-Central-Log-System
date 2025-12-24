@@ -5,7 +5,7 @@ spring:
   datasource:
     url: ${STUDENT_DB_URL:jdbc:postgresql://${STUDENT_DB_HOST:localhost}:${STUDENT_DB_PORT:5434}/${STUDENT_DB_NAME:studentdb}}
     username: ${STUDENT_DB_USERNAME:postgres}
-    password: ${STUDENT_DB_PASSWORD:postgres}
+    password: ${STUDENT_DB_PASSWORD:Mr.VivekThumar@2004}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5

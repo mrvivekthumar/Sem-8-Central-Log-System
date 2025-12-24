@@ -11,10 +11,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import axiosInstance from '../api/axiosInstance';
+import { studentService } from '../api';
 import ProjectCard from '../components/ProjectCard';
+import { useAuth } from '../contexts/AuthContext';
 
-const Projects = () => {
+const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,6 +24,7 @@ const Projects = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+  const { user } = useAuth();
 
   const domains = ['all', 'Web Development', 'Mobile Development', 'Machine Learning', 'AI', 'Data Science', 'Cloud Computing'];
   const statuses = ['all', 'OPEN_FOR_APPLICATIONS', 'IN_PROGRESS'];
@@ -34,8 +36,8 @@ const Projects = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/STUDENT-SERVICE/students/project/visible');
-      setProjects(response.data || []);
+      const response = await studentService.getProjects();
+      setProjects(response.data || response || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast.error('Failed to load projects');
@@ -46,9 +48,9 @@ const Projects = () => {
 
   const filteredProjects = projects
     .filter(project => {
-      const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.faculty?.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.faculty?.name?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesDomain = selectedDomain === 'all' || project.domain === selectedDomain;
       const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
       return matchesSearch && matchesDomain && matchesStatus;
@@ -56,13 +58,13 @@ const Projects = () => {
     .sort((a, b) => {
       if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
       if (sortBy === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
+      if (sortBy === 'title') return a.title?.localeCompare(b.title);
       return 0;
     });
 
   const handleApply = (project) => {
-    // Navigate to application page
-    window.location.href = `/student/project/${project.projectId}`;
+    // Navigate to project details page
+    window.location.href = `/project/${project.projectId || project.id}`;
   };
 
   const clearFilters = () => {
@@ -97,7 +99,7 @@ const Projects = () => {
                 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2"
               >
                 <Target className="w-8 h-8 text-blue-600" />
-                Browse Projects
+                {user?.role === 'STUDENT' ? 'Browse Projects' : 'All Projects'}
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: -20 }}
@@ -105,7 +107,9 @@ const Projects = () => {
                 transition={{ delay: 0.1 }}
                 className="text-gray-600 dark:text-gray-400 mt-1"
               >
-                Discover and apply to exciting academic projects
+                {user?.role === 'STUDENT'
+                  ? 'Discover and apply to exciting academic projects'
+                  : 'Manage and review your projects'}
               </motion.p>
             </div>
             <div className="flex items-center gap-3">
@@ -305,14 +309,14 @@ const Projects = () => {
           }>
             {filteredProjects.map((project, index) => (
               <motion.div
-                key={project.projectId}
+                key={project.projectId || project.id || index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
                 <ProjectCard
                   project={project}
-                  showApplyButton={true}
+                  showApplyButton={user?.role === 'STUDENT'}
                   onApply={handleApply}
                 />
               </motion.div>
@@ -324,4 +328,4 @@ const Projects = () => {
   );
 };
 
-export default Projects;
+export default Dashboard;

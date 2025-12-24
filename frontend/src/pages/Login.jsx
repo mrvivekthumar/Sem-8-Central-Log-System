@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  role: z.enum(['STUDENT', 'FACULTY', 'ADMIN'])
+  role: z.enum(['STUDENT', 'FACULTY'])
 });
 
 const Login = () => {
@@ -41,9 +41,18 @@ const Login = () => {
   };
 
   const roles = [
-    { value: 'STUDENT', label: 'Student', icon: GraduationCap },
-    { value: 'FACULTY', label: 'Faculty', icon: Users },
-    { value: 'ADMIN', label: 'Admin', icon: Shield }
+    {
+      value: 'STUDENT',
+      label: 'Student',
+      icon: GraduationCap,
+      description: 'Access your projects'
+    },
+    {
+      value: 'FACULTY',
+      label: 'Faculty',
+      icon: Users,
+      description: 'Manage your projects'
+    }
   ];
 
   return (
@@ -153,12 +162,12 @@ const Login = () => {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Role Selection */}
+                {/* Role Selection - Only Student and Faculty */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     I am a...
                   </label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {roles.map((role) => {
                       const Icon = role.icon;
                       return (
@@ -175,9 +184,12 @@ const Login = () => {
                         >
                           <Icon className={`w-6 h-6 mx-auto mb-2 ${selectedRole === role.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
                             }`} />
-                          <span className={`text-sm font-semibold ${selectedRole === role.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                          <span className={`text-sm font-semibold block ${selectedRole === role.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
                             }`}>
                             {role.label}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-500 mt-1 block">
+                            {role.description}
                           </span>
                           {selectedRole === role.value && (
                             <motion.div
@@ -280,11 +292,11 @@ const Login = () => {
                   )}
                 </motion.button>
 
-                {/* Contact Admin */}
+                {/* Sign Up Link */}
                 <p className="text-center text-sm text-gray-600 dark:text-gray-400">
                   Don't have an account?{' '}
-                  <Link to="/contact" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                    Contact Admin
+                  <Link to="/signup" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                    Sign Up
                   </Link>
                 </p>
 
@@ -296,10 +308,9 @@ const Login = () => {
               </form>
             </div>
           </motion.div>
-
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

@@ -1,4 +1,4 @@
-package com.example.studentservice.Controller;
+package com.example.studentservice.controller;
 
 import java.util.List;
 
@@ -13,104 +13,127 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.studentservice.Model.Student;
-import com.example.studentservice.Model.StudentProject;
-import com.example.studentservice.Service.StudentProjectService;
+import com.example.studentservice.domain.Student;
+import com.example.studentservice.domain.StudentProject;
+import com.example.studentservice.security.CurrentUser;
+import com.example.studentservice.service.StudentProjectService;
 
 @RestController
-@RequestMapping("api/studentProject")
+@RequestMapping("/students/projects")
 public class StudentProjectController {
 
     @Autowired
     private StudentProjectService studentProjectService;
 
-    @GetMapping("{projectId}")
-    public ResponseEntity<List<Student>> getStudents(@PathVariable int projectId) {
-        return studentProjectService.getStudentIds(projectId);
+    @Autowired
+    private CurrentUser currentUser;
 
+    /*
+     * =========================
+     * PROJECT → STUDENTS (READ)
+     * =========================
+     */
+
+    @GetMapping("/{projectId}/students")
+    public ResponseEntity<List<Student>> getStudentsByProject(@PathVariable int projectId) {
+        return studentProjectService.getStudentIds(projectId);
     }
 
-    @GetMapping("{projectId}/student-count")
+    @GetMapping("/{projectId}/student-count")
     public ResponseEntity<Integer> getStudentCountByProject(@PathVariable int projectId) {
         return studentProjectService.getStudentCountByProjectId(projectId);
     }
 
-    @GetMapping("student/{projectId}")
-    public ResponseEntity<List<StudentProject>> getAllStud(@PathVariable int projectId) {
+    @GetMapping("/{projectId}/student-projects")
+    public ResponseEntity<List<StudentProject>> getAllStudentsByProject(@PathVariable int projectId) {
         return studentProjectService.getAllStudentsBYProj(projectId);
     }
 
-    @PutMapping("updateStatus/{studentId}/{projectId}")
-    public ResponseEntity<String> updateStatus(@PathVariable int studentId, @PathVariable int projectId) {
+    /*
+     * =========================
+     * STUDENT-SCOPED ACTIONS
+     * =========================
+     */
 
+    @PutMapping("/{projectId}/status")
+    public ResponseEntity<String> updateStatus(@PathVariable int projectId) {
+        int studentId = currentUser.getUserId().intValue();
         return studentProjectService.updateStatus(studentId, projectId);
-
     }
 
-    @GetMapping("{studentId}/project/{projectId}/status")
-    public ResponseEntity<Boolean> checkApplicationStatus(@PathVariable int studentId, @PathVariable int projectId) {
+    @GetMapping("/{projectId}/status")
+    public ResponseEntity<Boolean> checkMyApplicationStatus(@PathVariable int projectId) {
+        int studentId = currentUser.getUserId().intValue();
         return studentProjectService.checkApplicationStatus(studentId, projectId);
-
     }
 
-    @GetMapping("/appliedProjects")
-    public ResponseEntity<List<Integer>> getAppliedProjectIds() {
-        return studentProjectService.getAppliedProjectIds();
-    }
-
-    @GetMapping("approvedProject/{studentId}")
-    public ResponseEntity<Integer> getApprovedProject(@PathVariable int studentId) {
-        return studentProjectService.getApprovedProject(studentId);
-
-    }
-
-    @GetMapping("appliedProject/{studentId}")
-    public ResponseEntity<List<Integer>> getAppliedProjectsIds(@PathVariable int studentId) {
-        System.out.println("Are you there");
-        ;
+    @GetMapping("/me/applied-projects")
+    public ResponseEntity<List<Integer>> getMyAppliedProjects() {
+        int studentId = currentUser.getUserId().intValue();
         return studentProjectService.getApliedProjectsIds(studentId);
     }
 
-    @PatchMapping("updatePreference/{studentId}/project/{projectId}/{newPreference}")
-    public ResponseEntity<String> updateProjectPreference(@PathVariable int studentId, @PathVariable int projectId,
+    @GetMapping("/me/approved-project")
+    public ResponseEntity<Integer> getMyApprovedProject() {
+        int studentId = currentUser.getUserId().intValue();
+        return studentProjectService.getApprovedProject(studentId);
+    }
+
+    @PatchMapping("/{projectId}/preference/{newPreference}")
+    public ResponseEntity<String> updateProjectPreference(
+            @PathVariable int projectId,
             @PathVariable int newPreference) {
+
+        int studentId = currentUser.getUserId().intValue();
         return studentProjectService.updateProjectPrefernce(studentId, projectId, newPreference);
     }
 
-    @GetMapping("projectIdsByPref/{studentId}")
-    public ResponseEntity<List<Integer>> getProjectIdsByPref(@PathVariable int studentId) {
+    @GetMapping("/me/project-preferences")
+    public ResponseEntity<List<Integer>> getProjectIdsByPreference() {
+        int studentId = currentUser.getUserId().intValue();
         return studentProjectService.getProjIdsByPref(studentId);
     }
 
-    @GetMapping("{projectId}/student/{studentId}")
-    public ResponseEntity<StudentProject> getStudentProject(@PathVariable int projectId, @PathVariable int studentId) {
+    @GetMapping("/{projectId}/me")
+    public ResponseEntity<StudentProject> getMyStudentProject(
+            @PathVariable int projectId) {
+
+        int studentId = currentUser.getUserId().intValue();
         return studentProjectService.findProjectByProjIdAndStudId(projectId, studentId);
     }
 
-    @PostMapping("{projectId}/student")
-    public ResponseEntity<List<StudentProject>> getStudentProjectByIds(@PathVariable int projectId,
+    /*
+     * =========================
+     * FACULTY / INTERNAL
+     * =========================
+     */
+
+    @PostMapping("/{projectId}/students")
+    public ResponseEntity<List<StudentProject>> getStudentProjectsByIds(
+            @PathVariable int projectId,
             @RequestBody List<Integer> studentIds) {
+
         return studentProjectService.findProjectByProjIdAndStudIds(projectId, studentIds);
     }
 
-    @GetMapping("{projectId}/aprovedStudents")
-    public ResponseEntity<List<Integer>> getApprovedStudentsByProjectId(@PathVariable int projectId) {
+    @GetMapping("/{projectId}/approved-students")
+    public ResponseEntity<List<Integer>> getApprovedStudentsByProject(@PathVariable int projectId) {
         return studentProjectService.getApprovedStudentsByProjectId(projectId);
-
     }
 
-    @GetMapping("{studentId}/pendingApprovals")
-    public ResponseEntity<List<Integer>> getStudentPendingApprovals(@PathVariable int studentId) {
+    @GetMapping("/me/pending-approvals")
+    public ResponseEntity<List<Integer>> getMyPendingApprovals() {
+        int studentId = currentUser.getUserId().intValue();
         return studentProjectService.getStudentPendingApprovals(studentId);
     }
 
-    @GetMapping("{studentId}/getProjectFaculties/project/{projectId}")
-    public ResponseEntity<List<Integer>> geIdsOfFacultiesByProject(@PathVariable int studentId,
-            @PathVariable int projectId) {
+    @GetMapping("/{projectId}/faculties")
+    public ResponseEntity<List<Integer>> getFacultiesByProject(@PathVariable int projectId) {
+        int studentId = currentUser.getUserId().intValue();
         return studentProjectService.getFacultiesByProject(studentId, projectId);
     }
 
-    @GetMapping("{projectId}/completeIds")
+    @GetMapping("/{projectId}/completed-students")
     public ResponseEntity<List<Integer>> getCompletedStudentIds(@PathVariable int projectId) {
         return studentProjectService.findCompletedStudentIds(projectId);
     }

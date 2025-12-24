@@ -1,4 +1,4 @@
-package com.example.studentservice.Service;
+package com.example.studentservice.service;
 
 
 import java.util.ArrayList;
@@ -13,13 +13,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.studentservice.Dao.StudentDao;
-import com.example.studentservice.Dao.StudentProjectDao;
-import com.example.studentservice.Feign.FacultyInterface;
-import com.example.studentservice.Model.Student;
-import com.example.studentservice.Model.StudentProject;
-import com.example.studentservice.Vo.Project;
-import com.example.studentservice.Vo.Status;
+import com.example.studentservice.client.FacultyInterface;
+import com.example.studentservice.client.dto.Project;
+import com.example.studentservice.client.dto.Status;
+import com.example.studentservice.domain.Student;
+import com.example.studentservice.domain.StudentProject;
+import com.example.studentservice.repository.StudentDao;
+import com.example.studentservice.repository.StudentProjectDao;
 
 @Service
 public class StudentProjectService {

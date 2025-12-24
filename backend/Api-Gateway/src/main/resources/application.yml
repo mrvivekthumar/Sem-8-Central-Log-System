@@ -99,8 +99,9 @@ management:
       enabled: true
 
 logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.web: DEBUG
-    reactor.netty: DEBUG
-    com.example.apigateway: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{X-Correlation-Id}] %-5level %logger{36} - %msg%n"
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}

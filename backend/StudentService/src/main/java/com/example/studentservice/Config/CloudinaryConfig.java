@@ -1,4 +1,4 @@
-package com.example.studentservice.Config;
+package com.example.studentservice.config;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;

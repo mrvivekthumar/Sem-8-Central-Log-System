@@ -29,7 +29,7 @@ services:
       POSTGRES_USER: faculty_user
       POSTGRES_PASSWORD: faculty_password
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - faculty-db-data:/var/lib/postgresql/data
     networks:
@@ -48,7 +48,7 @@ services:
       POSTGRES_USER: student_user
       POSTGRES_PASSWORD: student_password
     ports:
-      - "5434:5432"
+      - "5432:5432"
     volumes:
       - student-db-data:/var/lib/postgresql/data
     networks:

@@ -1,4 +1,4 @@
-package com.example.studentservice.Service;
+package com.example.studentservice.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

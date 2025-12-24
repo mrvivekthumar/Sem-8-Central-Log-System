@@ -1,4 +1,4 @@
-package com.example.studentservice.Service;
+package com.example.studentservice.service;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -10,16 +10,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.studentservice.Dao.ReportDao;
-import com.example.studentservice.Dao.ReportReviewDao;
-import com.example.studentservice.Dao.StudentProjectDao;
-import com.example.studentservice.Feign.FacultyInterface;
-import com.example.studentservice.Model.Report;
-import com.example.studentservice.Model.ReportReview;
-import com.example.studentservice.Model.ReportStatus;
-import com.example.studentservice.Model.Student;
-import com.example.studentservice.Model.StudentProject;
-import com.example.studentservice.Vo.Status;
+import com.example.studentservice.client.FacultyInterface;
+import com.example.studentservice.client.dto.Status;
+import com.example.studentservice.domain.Report;
+import com.example.studentservice.domain.ReportReview;
+import com.example.studentservice.domain.ReportStatus;
+import com.example.studentservice.domain.Student;
+import com.example.studentservice.domain.StudentProject;
+import com.example.studentservice.repository.ReportDao;
+import com.example.studentservice.repository.ReportReviewDao;
+import com.example.studentservice.repository.StudentProjectDao;
 
 import jakarta.transaction.Transactional;
 

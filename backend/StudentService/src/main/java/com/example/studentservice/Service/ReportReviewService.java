@@ -1,4 +1,4 @@
-package com.example.studentservice.Service;
+package com.example.studentservice.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,11 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.example.studentservice.Dao.ReportDao;
-import com.example.studentservice.Dao.ReportReviewDao;
-import com.example.studentservice.Model.Report;
-import com.example.studentservice.Model.ReportReview;
-import com.example.studentservice.Model.Student;
+import com.example.studentservice.domain.Report;
+import com.example.studentservice.domain.ReportReview;
+import com.example.studentservice.domain.Student;
+import com.example.studentservice.repository.ReportDao;
+import com.example.studentservice.repository.ReportReviewDao;
 
 @Service
 public class ReportReviewService {

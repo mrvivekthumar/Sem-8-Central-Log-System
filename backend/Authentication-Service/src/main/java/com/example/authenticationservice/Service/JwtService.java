@@ -1,43 +1,42 @@
-package com.example.authenticationservice.Service;
+package com.example.authenticationservice.service;
 
-import com.example.authenticationservice.Dao.UserCredentialDao;
-import com.example.authenticationservice.Model.UserCredential;
+import java.security.Key;
+import java.util.Date;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.example.authenticationservice.domain.UserCredential;
+import com.example.authenticationservice.exception.AuthenticationException;
+import com.example.authenticationservice.repository.UserCredentialRepository;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class JwtService {
     @Autowired
-    private UserCredentialDao userCredentialDao;
+    private UserCredentialRepository userCredentialRepository;
 
-    @Value("${jwt.secret}")
+    @Value("${security.jwt.secret}")
     public String SECRET;
 
     private static final long TOKEN_VALIDITY = 1000 * 60 * 30;
 
-    public boolean validateToken(String token) {
+    public void validateToken(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
+            Jwts.parserBuilder()
                     .setSigningKey(getSignKey())
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-            return true;
-
+                    .parseClaimsJws(token);
         } catch (JwtException | IllegalArgumentException e) {
-            throw new RuntimeException("Token validation failed: " + e.getMessage());
+            throw new AuthenticationException("Invalid or expired token");
         }
     }
 
@@ -50,12 +49,11 @@ public class JwtService {
         return claims.getSubject(); // The username is stored as the subject in the token
     }
 
-    public String generateToken(String username) {
-
-        ;
-
+    public String generateToken(UserCredential user) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getEmail())
+                .claim("userId", user.getId())
+                .claim("role", user.getRole())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
@@ -71,13 +69,31 @@ public class JwtService {
                 .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
     }
 
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("userId", Long.class);
+    }
+
+    public String extractRole(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("role", String.class);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public UserCredential getUserByUsername(String username) {
-        return userCredentialDao.findByUsername(username)
+        return userCredentialRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

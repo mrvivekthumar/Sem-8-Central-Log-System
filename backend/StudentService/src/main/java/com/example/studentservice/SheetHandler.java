@@ -1,10 +1,10 @@
 package com.example.studentservice;
 
-import com.example.studentservice.Dao.StudentDao;
-import com.example.studentservice.Model.Student;
-import com.example.studentservice.Vo.UserCredential;
-import com.example.studentservice.Vo.UserRole;
-import com.example.studentservice.Model.Student;
+import com.example.studentservice.client.dto.UserCredential;
+import com.example.studentservice.client.dto.UserRole;
+import com.example.studentservice.domain.Student;
+import com.example.studentservice.repository.StudentDao;
+
 import org.apache.poi.xssf.model.SharedStrings;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

@@ -1,10 +1,11 @@
-package com.example.studentservice.Service;
+package com.example.studentservice.service;
 
-import com.example.studentservice.Vo.PersonalProjectDTO;
-import com.example.studentservice.Model.PersonalProject;
-import com.example.studentservice.Model.Student;
-import com.example.studentservice.Dao.PersonalProjectDao;
-import com.example.studentservice.Dao.StudentDao;
+import com.example.studentservice.client.dto.PersonalProjectDTO;
+import com.example.studentservice.domain.PersonalProject;
+import com.example.studentservice.domain.Student;
+import com.example.studentservice.repository.PersonalProjectDao;
+import com.example.studentservice.repository.StudentDao;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

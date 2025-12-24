@@ -1,7 +1,8 @@
-package com.example.facultyservice.Controller;
+package com.example.facultyservice.controller;
 
-import com.example.facultyservice.Dao.FacultyDao;
-import com.example.facultyservice.Model.Faculty;
+import com.example.facultyservice.domain.Faculty;
+import com.example.facultyservice.repository.FacultyDao;
+
 import org.apache.poi.xssf.model.SharedStrings;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

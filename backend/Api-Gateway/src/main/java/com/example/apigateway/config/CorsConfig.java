@@ -19,8 +19,7 @@ public class CorsConfig {
         corsConfig.setAllowedOrigins(Arrays.asList(
                 "https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app",
                 "http://localhost:3000",
-                "http://localhost:5173"
-        ));
+                "http://localhost:5173"));
 
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         corsConfig.setAllowedHeaders(Arrays.asList("*"));

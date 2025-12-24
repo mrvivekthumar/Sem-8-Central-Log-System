@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 
 const AuthContext = createContext();
@@ -16,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
@@ -27,8 +29,10 @@ export const AuthProvider = ({ children }) => {
       const userData = localStorage.getItem('user');
 
       if (token && userData) {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
         setIsAuthenticated(true);
+
         // Set token in axios default headers
         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
@@ -40,35 +44,59 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (email, password, role) => {
     try {
-      const response = await axiosInstance.post('/auth/login', { email, password });
+      // Call the new /api/auth/login endpoint
+      const response = await axiosInstance.post('/api/auth/login', {
+        email,
+        password
+      });
+
       const { token, user: userData } = response.data;
 
+      // Verify user role matches selected role
+      if (userData.role !== role) {
+        toast.error(`Invalid credentials for ${role} role`);
+        throw new Error('Role mismatch');
+      }
+
+      // Store token and user data
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       setUser(userData);
       setIsAuthenticated(true);
-      toast.success('Login successful!');
+
+      toast.success(`Welcome back, ${userData.name}!`);
+
+      // Navigate based on role
+      if (userData.role === 'FACULTY') {
+        navigate('/faculty/dashboard');
+      } else if (userData.role === 'STUDENT') {
+        navigate('/dashboard');
+      }
 
       return userData;
     } catch (error) {
       console.error('Login failed:', error);
-      toast.error(error.response?.data?.message || 'Login failed');
+      const errorMessage = error.response?.data?.message || 'Invalid email or password';
+      toast.error(errorMessage);
       throw error;
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await axiosInstance.post('/auth/register', userData);
-      toast.success('Registration successful! Please login.');
+      // Call the new /api/auth/register endpoint
+      const response = await axiosInstance.post('/api/auth/register', userData);
+
+      toast.success('Registration successful! Please login to continue.');
       return response.data;
     } catch (error) {
       console.error('Registration failed:', error);
-      toast.error(error.response?.data?.message || 'Registration failed');
+      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -80,6 +108,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     toast.success('Logged out successfully');
+    navigate('/login');
   };
 
   const updateUser = (updatedData) => {

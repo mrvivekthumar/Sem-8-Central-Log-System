@@ -1,10 +1,7 @@
-package com.example.authenticationservice.Controller;
+package com.example.authenticationservice.controller;
 
-import com.example.authenticationservice.Dto.AuthRequest;
-import com.example.authenticationservice.Dto.SignupRequest;
-import com.example.authenticationservice.Model.UserCredential;
-import com.example.authenticationservice.Service.AuthService;
-import jakarta.annotation.PostConstruct;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +10,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.example.authenticationservice.domain.UserCredential;
+import com.example.authenticationservice.dto.LoginRequest;
+import com.example.authenticationservice.dto.LoginResponse;
+import com.example.authenticationservice.dto.RegisterRequest;
+import com.example.authenticationservice.dto.UserResponse;
+import com.example.authenticationservice.exception.AuthenticationException;
+import com.example.authenticationservice.exception.InvalidRequestException;
+import com.example.authenticationservice.service.AuthService;
+
+import jakarta.annotation.PostConstruct;
 
 @RestController
 @RequestMapping("auth")
@@ -32,64 +40,73 @@ public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @PostMapping("registerOne")
-    public ResponseEntity addSingleOne(@RequestBody UserCredential user) {
-        return authService.saveOneUser(user);
-    }
-
-    @PostMapping("register")
-    public String addNewUser(@RequestBody List<UserCredential> users) {
-        return authService.saveUser(users);
-    }
-
-    @PostMapping("updatePassword")
-    public ResponseEntity updatePassword(@RequestBody UserCredential user) {
-        return authService.updatePassword(user);
-    }
-
     @PostConstruct
     public void init() {
         logger.info("AuthController Initialized!");
     }
 
-    @PostMapping("token")
-    public ResponseEntity<Map<String, String>> getToken(@RequestBody AuthRequest authRequest) {
-        logger.info("Attempting login for user: {}", authRequest.getUsername());
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
 
+        logger.info("Registration attempt for user: {}", registerRequest.getEmail());
+
+        // Validate role
+        if (!registerRequest.getRole().equals("STUDENT") &&
+                !registerRequest.getRole().equals("FACULTY")) {
+            throw new InvalidRequestException("Invalid role. Only STUDENT and FACULTY are allowed.");
+
+        }
+
+        // Create user credential
+        UserResponse userResponse = authService.register(registerRequest);
+
+        logger.info("Registration successful for user: {}", registerRequest.getEmail());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+
+        logger.info("Login attempt for user: {}", loginRequest.getEmail());
+
+        // Authenticate user
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()));
 
         if (authentication.isAuthenticated()) {
-            String token = authService.generateToken(authRequest.getUsername());
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
+            // Generate token
+            String token = authService.generateToken(loginRequest.getEmail());
+
+            // Get user details
+            UserCredential user = authService.getUserByEmail(loginRequest.getEmail());
+
+            // Build user DTO
+            UserResponse userResponse = new UserResponse(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getRole());
+
+            // Build response
+            LoginResponse response = LoginResponse.builder()
+                    .accessToken(token)
+                    .expiresIn(3600) // or from config
+                    .user(userResponse)
+                    .build();
+
+            logger.info("Login successful for user: {}", loginRequest.getEmail());
             return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid credentials"));
+            throw new AuthenticationException("Invalid credentials");
         }
+
     }
 
     @GetMapping("/validate")
-    public String validateToken(@RequestParam String token) {
-        if (authService.validateToken(token)) {
-            return "Token is valid";
-        } else {
-            throw new RuntimeException("Invalid or expired token");
-        }
-    }
-
-    @GetMapping("/user")
-    public ResponseEntity getUserDetails(@RequestParam("token") String token) {
-        logger.debug("Fetching user details for token validation.");
-        return authService.getUserdetails(token);
-    }
-
-    @GetMapping("hello")
-    public String hello() {
-        return "hello world";
+    public ResponseEntity<?> validateToken(@RequestParam String token) {
+        authService.validateToken(token);
+        return ResponseEntity.ok(Map.of("valid", true, "message", "Token is valid"));
     }
 }

@@ -1,0 +1,502 @@
+Folder PATH listing for volume New Volume
+Volume serial number is C85C-06FB
+D:.
+|   .env
+|   .gitattributes
+|   .gitignore
+|   docker-compose.yml
+|   mvnw
+|   mvnw.cmd
+|   pom.xml
+|   project-structure.txt
+|   
++---.mvn
+|   \---wrapper
+|           maven-wrapper.properties
+|           
++---Api-Gateway
+|   |   .gitattributes
+|   |   .gitignore
+|   |   Dockerfile
+|   |   mvnw
+|   |   mvnw.cmd
+|   |   pom.xml
+|   |   
+|   +---.mvn
+|   |   \---wrapper
+|   |           maven-wrapper.properties
+|   |           
+|   +---src
+|   |   +---main
+|   |   |   +---java
+|   |   |   |   \---com
+|   |   |   |       \---example
+|   |   |   |           \---apigateway
+|   |   |   |               |   ApiGatewayApplication.java
+|   |   |   |               |   
+|   |   |   |               +---config
+|   |   |   |               |       CorsConfig.java
+|   |   |   |               |       
+|   |   |   |               +---security
+|   |   |   |               |       AuthenticationFilter.java
+|   |   |   |               |       RouteValidator.java
+|   |   |   |               |       
+|   |   |   |               \---util
+|   |   |   |                       JwtUtil.java
+|   |   |   |                       
+|   |   |   \---resources
+|   |   |           application.yml
+|   |   |           
+|   |   \---test
+|   |       \---java
+|   |           \---com
+|   |               \---example
+|   |                   \---apigateway
+|   |                           ApiGatewayApplicationTests.java
+|   |                           
+|   \---target
+|       +---classes
+|       |   |   application.yml
+|       |   |   
+|       |   \---com
+|       |       \---example
+|       |           \---apigateway
+|       |               |   ApiGatewayApplication.class
+|       |               |   
+|       |               +---config
+|       |               |       CorsConfig.class
+|       |               |       
+|       |               +---security
+|       |               |       AuthenticationFilter$Config.class
+|       |               |       AuthenticationFilter.class
+|       |               |       RouteValidator.class
+|       |               |       
+|       |               \---util
+|       |                       JwtUtil.class
+|       |                       
+|       +---generated-sources
+|       |   \---annotations
+|       +---generated-test-sources
+|       |   \---test-annotations
+|       \---test-classes
+|           \---com
+|               \---example
+|                   \---apigateway
+|                           ApiGatewayApplicationTests.class
+|                           
++---Authentication-Service
+|   |   .gitignore
+|   |   Dockerfile
+|   |   pom.xml
+|   |   
+|   +---src
+|   |   \---main
+|   |       +---java
+|   |       |   \---com
+|   |       |       \---example
+|   |       |           \---authenticationservice
+|   |       |               |   AuthenticationServiceApplication.java
+|   |       |               |   
+|   |       |               +---config
+|   |       |               |       AuthConfig.java
+|   |       |               |       CustomUserDetails.java
+|   |       |               |       UserDetailsServiceImpl.java
+|   |       |               |       
+|   |       |               +---controller
+|   |       |               |       AuthController.java
+|   |       |               |       
+|   |       |               +---domain
+|   |       |               |       UserCredential.java
+|   |       |               |       UserRole.java
+|   |       |               |       
+|   |       |               +---dto
+|   |       |               |       AuthRequest.java
+|   |       |               |       LoginRequest.java
+|   |       |               |       LoginResponse.java
+|   |       |               |       RegisterRequest.java
+|   |       |               |       SignupRequest.java
+|   |       |               |       UserDTO.java
+|   |       |               |       
+|   |       |               +---repository
+|   |       |               |       UserCredentialRepository.java
+|   |       |               |       
+|   |       |               \---service
+|   |       |                       AuthService.java
+|   |       |                       CustomUserDetailsService.java
+|   |       |                       JwtService.java
+|   |       |                       
+|   |       \---resources
+|   |               application.yml
+|   |               
+|   \---target
+|       +---classes
+|       |   |   application.yml
+|       |   |   
+|       |   \---com
+|       |       \---example
+|       |           \---authenticationservice
+|       |               |   AuthenticationServiceApplication.class
+|       |               |   
+|       |               +---config
+|       |               |       AuthConfig.class
+|       |               |       CustomUserDetails.class
+|       |               |       UserDetailsServiceImpl.class
+|       |               |       
+|       |               +---controller
+|       |               |       AuthController.class
+|       |               |       
+|       |               +---domain
+|       |               |       UserCredential.class
+|       |               |       UserRole.class
+|       |               |       
+|       |               +---dto
+|       |               |       AuthRequest.class
+|       |               |       LoginRequest.class
+|       |               |       LoginResponse$LoginResponseBuilder.class
+|       |               |       LoginResponse.class
+|       |               |       RegisterRequest.class
+|       |               |       SignupRequest.class
+|       |               |       UserDTO$UserDTOBuilder.class
+|       |               |       UserDTO.class
+|       |               |       
+|       |               +---repository
+|       |               |       UserCredentialRepository.class
+|       |               |       
+|       |               \---service
+|       |                       AuthService.class
+|       |                       CustomUserDetailsService.class
+|       |                       JwtService.class
+|       |                       
+|       +---generated-sources
+|       |   \---annotations
+|       +---generated-test-sources
+|       |   \---test-annotations
+|       +---maven-status
+|       |   \---maven-compiler-plugin
+|       |       \---compile
+|       |           \---default-compile
+|       |                   createdFiles.lst
+|       |                   inputFiles.lst
+|       |                   
+|       \---test-classes
++---FacultyService
+|   |   .gitignore
+|   |   Dockerfile
+|   |   pom.xml
+|   |   
+|   +---src
+|   |   \---main
+|   |       +---java
+|   |       |   \---com
+|   |       |       \---example
+|   |       |           \---facultyservice
+|   |       |               |   FacultyServiceApplication.java
+|   |       |               |   
+|   |       |               +---client
+|   |       |               |       AuthInterface.java
+|   |       |               |       NotificationInterface.java
+|   |       |               |       StudentInterface.java
+|   |       |               |       
+|   |       |               +---config
+|   |       |               |       Config.java
+|   |       |               |       FeignClientInterceptor.java
+|   |       |               |       RestTemplateConfig.java
+|   |       |               |       
+|   |       |               +---controller
+|   |       |               |       FacultyController.java
+|   |       |               |       ProjectController.java
+|   |       |               |       SheetHandler.java
+|   |       |               |       
+|   |       |               +---domain
+|   |       |               |       Faculty.java
+|   |       |               |       Project.java
+|   |       |               |       Status.java
+|   |       |               |       Student.java
+|   |       |               |       StudentAvaibility.java
+|   |       |               |       
+|   |       |               +---dto
+|   |       |               +---notification
+|   |       |               |   +---Controller
+|   |       |               |   |       NotificationController.java
+|   |       |               |   |       
+|   |       |               |   +---Dao
+|   |       |               |   |       NotificationDao.java
+|   |       |               |   |       
+|   |       |               |   +---model
+|   |       |               |   |       Notification.java
+|   |       |               |   |       NotificationRequest.java
+|   |       |               |   |       NotificationType.java
+|   |       |               |   |       ReceiverType.java
+|   |       |               |   |       SenderType.java
+|   |       |               |   |       
+|   |       |               |   \---Service
+|   |       |               |           NotificationService.java
+|   |       |               |           
+|   |       |               +---repository
+|   |       |               |       FacultyDao.java
+|   |       |               |       ProjectDao.java
+|   |       |               |       
+|   |       |               \---service
+|   |       |                       FacultyService.java
+|   |       |                       ProjectScheduler.java
+|   |       |                       ProjectService.java
+|   |       |                       
+|   |       \---resources
+|   |               application.yml
+|   |               
+|   \---target
+|       +---classes
+|       |   |   application.yml
+|       |   |   
+|       |   \---com
+|       |       \---example
+|       |           \---facultyservice
+|       |               |   FacultyServiceApplication.class
+|       |               |   
+|       |               +---client
+|       |               |       AuthInterface.class
+|       |               |       NotificationInterface.class
+|       |               |       StudentInterface.class
+|       |               |       
+|       |               +---config
+|       |               |       Config$1.class
+|       |               |       Config.class
+|       |               |       FeignClientInterceptor.class
+|       |               |       RestTemplateConfig.class
+|       |               |       
+|       |               +---controller
+|       |               |       FacultyController.class
+|       |               |       ProjectController.class
+|       |               |       SheetHandler.class
+|       |               |       
+|       |               +---domain
+|       |               |       Faculty.class
+|       |               |       Project.class
+|       |               |       Status.class
+|       |               |       Student.class
+|       |               |       StudentAvaibility.class
+|       |               |       
+|       |               +---dto
+|       |               +---notification
+|       |               |   +---Controller
+|       |               |   |       NotificationController.class
+|       |               |   |       
+|       |               |   +---Dao
+|       |               |   |       NotificationDao.class
+|       |               |   |       
+|       |               |   +---model
+|       |               |   |       Notification.class
+|       |               |   |       NotificationRequest.class
+|       |               |   |       NotificationType.class
+|       |               |   |       ReceiverType.class
+|       |               |   |       SenderType.class
+|       |               |   |       
+|       |               |   \---Service
+|       |               |           NotificationService.class
+|       |               |           
+|       |               +---repository
+|       |               |       FacultyDao.class
+|       |               |       ProjectDao.class
+|       |               |       
+|       |               \---service
+|       |                       FacultyService.class
+|       |                       ProjectScheduler.class
+|       |                       ProjectService.class
+|       |                       
+|       +---generated-sources
+|       |   \---annotations
+|       +---generated-test-sources
+|       |   \---test-annotations
+|       +---maven-status
+|       |   \---maven-compiler-plugin
+|       |       \---compile
+|       |           \---default-compile
+|       |                   createdFiles.lst
+|       |                   inputFiles.lst
+|       |                   
+|       \---test-classes
++---k8s
+|   |   00-namespace.yaml
+|   |   01-secrets.yaml
+|   |   04-rabbitmq.yaml
+|   |   05-rbac.yaml
+|   |   07-ingress.yaml
+|   |   cleanup.sh
+|   |   deploy.sh
+|   |   
+|   +---02-configmaps
+|   |       api-gateway-config.yaml
+|   |       auth-service-config.yaml
+|   |       faculty-service-config.yaml
+|   |       student-service-config.yaml
+|   |       
+|   +---03-databases
+|   |       auth-db.yaml
+|   |       faculty-db.yaml
+|   |       student-db.yaml
+|   |       
+|   \---06-services
+|           api-gateway.yaml
+|           auth-service.yaml
+|           faculty-service.yaml
+|           student-service.yaml
+|           
++---NotificationService
+|   |   .gitignore
+|   |   
+|   \---src
+|       \---main
+|           +---java
+|           |   \---com
+|           |       \---example
+|           |           \---notificationservice
+|           |               |   NotificationServiceApplication.java
+|           |               |   
+|           |               \---config
+|           |                       CorsConfig.java
+|           |                       WebSocketConfig.java
+|           |                       
+|           \---resources
+|                   application.properties
+|                   
+\---StudentService
+    |   .gitignore
+    |   Dockerfile
+    |   pom.xml
+    |   
+    +---src
+    |   \---main
+    |       +---java
+    |       |   \---com
+    |       |       \---example
+    |       |           \---studentservice
+    |       |               |   SheetHandler.java
+    |       |               |   StudentServiceApplication.java
+    |       |               |   
+    |       |               +---client
+    |       |               |       AuthInterface.java
+    |       |               |       FacultyInterface.java
+    |       |               |       
+    |       |               +---config
+    |       |               |       CloudinaryConfig.java
+    |       |               |       FeignClientInterceptor.java
+    |       |               |       RestTemplateConfig.java
+    |       |               |       
+    |       |               +---controller
+    |       |               |       PersonalProjectController.java
+    |       |               |       ReportController.java
+    |       |               |       ReportReviewController.java
+    |       |               |       StudentController.java
+    |       |               |       StudentProjectController.java
+    |       |               |       
+    |       |               +---domain
+    |       |               |       PersonalProject.java
+    |       |               |       Report.java
+    |       |               |       ReportReview.java
+    |       |               |       ReportStatus.java
+    |       |               |       Student.java
+    |       |               |       StudentAvaibility.java
+    |       |               |       StudentProject.java
+    |       |               |       
+    |       |               +---dto
+    |       |               |       NotificationRequest.java
+    |       |               |       
+    |       |               +---exception
+    |       |               |       Faculty.java
+    |       |               |       PersonalProjectDTO.java
+    |       |               |       Project.java
+    |       |               |       Status.java
+    |       |               |       UserCredential.java
+    |       |               |       UserRole.java
+    |       |               |       
+    |       |               +---repository
+    |       |               |       PersonalProjectDao.java
+    |       |               |       ReportDao.java
+    |       |               |       ReportReviewDao.java
+    |       |               |       StudentDao.java
+    |       |               |       StudentProjectDao.java
+    |       |               |       
+    |       |               \---service
+    |       |                       CloudinaryService.java
+    |       |                       PersonalProjectService.java
+    |       |                       ReportReviewService.java
+    |       |                       ReportService.java
+    |       |                       StudentProjectService.java
+    |       |                       StudentService.java
+    |       |                       
+    |       \---resources
+    |               application.yml
+    |               
+    \---target
+        +---classes
+        |   |   application.yml
+        |   |   
+        |   \---com
+        |       \---example
+        |           \---studentservice
+        |               |   SheetHandler.class
+        |               |   StudentServiceApplication.class
+        |               |   
+        |               +---client
+        |               |       AuthInterface.class
+        |               |       FacultyInterface.class
+        |               |       
+        |               +---config
+        |               |       CloudinaryConfig.class
+        |               |       FeignClientInterceptor.class
+        |               |       RestTemplateConfig.class
+        |               |       
+        |               +---controller
+        |               |       PersonalProjectController.class
+        |               |       ReportController.class
+        |               |       ReportReviewController.class
+        |               |       StudentController.class
+        |               |       StudentProjectController.class
+        |               |       
+        |               +---domain
+        |               |       PersonalProject.class
+        |               |       Report.class
+        |               |       ReportReview.class
+        |               |       ReportStatus.class
+        |               |       Student.class
+        |               |       StudentAvaibility.class
+        |               |       StudentProject.class
+        |               |       
+        |               +---dto
+        |               |       NotificationRequest.class
+        |               |       
+        |               +---exception
+        |               |       Faculty.class
+        |               |       PersonalProjectDTO.class
+        |               |       Project.class
+        |               |       Status.class
+        |               |       UserCredential.class
+        |               |       UserRole.class
+        |               |       
+        |               +---repository
+        |               |       PersonalProjectDao.class
+        |               |       ReportDao.class
+        |               |       ReportReviewDao.class
+        |               |       StudentDao.class
+        |               |       StudentProjectDao.class
+        |               |       
+        |               \---service
+        |                       CloudinaryService.class
+        |                       PersonalProjectService.class
+        |                       ReportReviewService.class
+        |                       ReportService.class
+        |                       StudentProjectService.class
+        |                       StudentService.class
+        |                       
+        +---generated-sources
+        |   \---annotations
+        +---generated-test-sources
+        |   \---test-annotations
+        +---maven-status
+        |   \---maven-compiler-plugin
+        |       \---compile
+        |           \---default-compile
+        |                   createdFiles.lst
+        |                   inputFiles.lst
+        |                   
+        \---test-classes

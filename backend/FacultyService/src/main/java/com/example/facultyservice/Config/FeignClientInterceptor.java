@@ -1,4 +1,4 @@
-package com.example.facultyservice.Config;
+package com.example.facultyservice.config;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;

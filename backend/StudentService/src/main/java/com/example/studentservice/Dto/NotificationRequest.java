@@ -1,6 +1,6 @@
-package com.example.studentservice.Dto;
+package com.example.studentservice.dto;
 
-import com.example.studentservice.Model.Student;
+import com.example.studentservice.domain.Student;
 
 public class NotificationRequest {
     private int projectId;

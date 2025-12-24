@@ -1,25 +1,21 @@
-package com.example.facultyservice.Service;
+package com.example.facultyservice.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-import com.example.facultyservice.Controller.SheetHandler;
-import com.example.facultyservice.Dao.FacultyDao;
-import com.example.facultyservice.Dao.ProjectDao;
-import com.example.facultyservice.Feign.AuthInterface;
-import com.example.facultyservice.Feign.StudentInterface;
-import com.example.facultyservice.Model.*;
-import jakarta.transaction.Transactional;
 import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStrings;
-import org.apache.poi.xssf.model.SharedStringsTable;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -29,23 +25,23 @@ import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
-import com.example.facultyservice.notification.model.NotificationType;
-import com.example.facultyservice.notification.model.NotificationRequest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Arrays;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.example.facultyservice.client.AuthInterface;
+import com.example.facultyservice.client.StudentInterface;
+import com.example.facultyservice.controller.SheetHandler;
+import com.example.facultyservice.domain.Faculty;
+import com.example.facultyservice.domain.Project;
+import com.example.facultyservice.domain.Status;
+import com.example.facultyservice.domain.Student;
+import com.example.facultyservice.domain.StudentAvaibility;
+import com.example.facultyservice.repository.FacultyDao;
+import com.example.facultyservice.repository.ProjectDao;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class FacultyService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(FacultyService.class);
     @Autowired
     private AuthInterface authInterface;
@@ -368,6 +364,3 @@ public class FacultyService {
         }
     }
 }
-
-
-

@@ -1,10 +1,11 @@
-package com.example.facultyservice.Controller;
+package com.example.facultyservice.controller;
 
-import com.example.facultyservice.Model.Faculty;
-import com.example.facultyservice.Model.Project;
-import com.example.facultyservice.Model.Student;
-import com.example.facultyservice.Service.FacultyService;
-import com.example.facultyservice.Service.ProjectService;
+import com.example.facultyservice.domain.Faculty;
+import com.example.facultyservice.domain.Project;
+import com.example.facultyservice.domain.Student;
+import com.example.facultyservice.service.FacultyService;
+import com.example.facultyservice.service.ProjectService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
