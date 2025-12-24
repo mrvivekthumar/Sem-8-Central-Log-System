@@ -72,13 +72,20 @@ public class FacultyService {
 
     public ResponseEntity<List<Project>> getProjectsById(int facultyId) {
         try {
-            Faculty faculty = facultyDao.findById(facultyId).get();
+            // Fix: Cast int to Integer for findById
+            Optional<Faculty> facultyOpt = facultyDao.findById(facultyId);
+            if (!facultyOpt.isPresent()) {
+                logger.error("Faculty not found with id: {}", facultyId);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            Faculty faculty = facultyOpt.get();
             List<Project> projects = projectDao.findByFacultyId(faculty.getFId());
             return new ResponseEntity<>(projects, HttpStatus.OK);
         } catch (Exception e) {
+            logger.error("Failed to get projects for faculty {}: {}", facultyId, e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     public ResponseEntity<String> registerFacultyWithAuth(Faculty faculty) {
@@ -109,7 +116,12 @@ public class FacultyService {
 
     public ResponseEntity<List<String>> getProjectsByName(int fId) {
         try {
-            Faculty faculty = facultyDao.findById(fId).get();
+            Optional<Faculty> facultyOpt = facultyDao.findById(fId);
+            if (!facultyOpt.isPresent()) {
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
+            }
+
+            Faculty faculty = facultyOpt.get();
             List<Project> projects = projectDao.findByFacultyId(faculty.getFId());
             List<String> projectNames = new ArrayList<>();
             for (Project project : projects) {
@@ -117,6 +129,7 @@ public class FacultyService {
             }
             return new ResponseEntity<>(projectNames, HttpStatus.OK);
         } catch (Exception e) {
+            logger.error("Failed to get project names for faculty {}: {}", fId, e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -165,71 +178,75 @@ public class FacultyService {
 
     public ResponseEntity<String> getApprovedStudent(int facultyId, int projectId, List<Integer> studentIds) {
         try {
-
             ResponseEntity<List<Student>> responseEntityStudent = studentInterface.getStudentsById(studentIds);
 
             List<Student> students = null;
             if (responseEntityStudent.getStatusCode() == HttpStatus.OK) {
                 students = responseEntityStudent.getBody();
-                System.out.println(students);
+                logger.info("Retrieved {} students", students != null ? students.size() : 0);
             }
+
+            if (students == null || students.isEmpty()) {
+                return new ResponseEntity<>("No students found", HttpStatus.NOT_FOUND);
+            }
+
             for (Student s : students) {
-                // if (s.getStudentAvaibility() != StudentAvaibility.AVAILABLE) {
-                // return new ResponseEntity<>("Student is aleready asigned ",
-                // HttpStatus.CONFLICT);
-                // }
                 s.setStudentAvaibility(StudentAvaibility.NOT_AVAILABLE);
-                System.out.println(studentIds);
                 studentInterface.makeUnavailable(s.getStudentId());
-                // restTemplate.put(STUDENT + "/" + s.getStudentId(), s);
             }
+
             for (int studentId : studentIds) {
-                // String updateUrl = STUDENT_SERVICE + "/updateStatus/" + studentId + "/" +
-                // projectId;
                 studentInterface.updateStatus(studentId, projectId);
-                // restTemplate.put(updateUrl, null);
-
             }
 
-            // if (student.getStudentAvaibility() != StudentAvaibility.AVAILABLE) {
-            // return new ResponseEntity<>("Student is aleready asigned ",
-            // HttpStatus.CONFLICT);
-            // }
-            Project project = projectDao.findById(projectId).get();
-            project.setStatus(Status.APPROVED);
-            System.out.println("Are you update bro");
-            projectDao.save(project);
-            System.out.println("Are you after update bro");
-            //
-            //
-            if (project == null) {
-                return new ResponseEntity<>("Project Not found", HttpStatus.NOT_FOUND);
+            Optional<Project> projectOpt = projectDao.findById(projectId);
+            if (!projectOpt.isPresent()) {
+                return new ResponseEntity<>("Project not found", HttpStatus.NOT_FOUND);
             }
+
+            Project project = projectOpt.get();
+
+            // Fix: Compare int values directly
             if (project.getFaculty().getFId() != facultyId) {
-
                 return new ResponseEntity<>("Unauthorized faculty for this project", HttpStatus.UNAUTHORIZED);
             }
 
-            return new ResponseEntity<>("Project is given to student " + " by " + project.getFaculty().getName(),
+            project.setStatus(Status.APPROVED);
+            projectDao.save(project);
+            logger.info("Project {} approved and assigned to students", projectId);
+
+            return new ResponseEntity<>(
+                    "Project is given to students by " + project.getFaculty().getName(),
                     HttpStatus.OK);
-            //
-            // return new ResponseEntity<>("Success",HttpStatus.OK);
+
         } catch (Exception e) {
+            logger.error("Failed to approve students for project {}: {}", projectId, e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     public ResponseEntity<List<Project>> createProjects(List<Project> projects, int facultyId) {
         try {
-            for (Project p : projects) {
-                p.setFaculty(facultyDao.findById(facultyId).get());
+            Optional<Faculty> facultyOpt = facultyDao.findById(facultyId);
+            if (!facultyOpt.isPresent()) {
+                logger.error("Faculty not found with id: {}", facultyId);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-            return new ResponseEntity<>(projectDao.saveAll(projects), HttpStatus.OK);
+
+            Faculty faculty = facultyOpt.get();
+
+            for (Project p : projects) {
+                p.setFaculty(faculty);
+            }
+
+            List<Project> savedProjects = projectDao.saveAll(projects);
+            logger.info("Created {} projects for faculty {}", savedProjects.size(), facultyId);
+
+            return new ResponseEntity<>(savedProjects, HttpStatus.OK);
         } catch (Exception e) {
+            logger.error("Failed to create projects for faculty {}: {}", facultyId, e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     @Transactional
