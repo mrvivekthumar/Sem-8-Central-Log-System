@@ -39,6 +39,7 @@ public class ReportService {
     private ReportReviewService reportReviewService;
     @Autowired
     private ReportReviewDao reportReviewDao;
+
     public ResponseEntity<Report> submitReport(int studentId, int projectId, MultipartFile file) {
         try {
             // Check if student exists
@@ -92,20 +93,15 @@ public class ReportService {
         }
     }
 
-
-
-
     public ResponseEntity<Report> findReportForTeamByProjectId(int projectId) {
-        try{
-            Optional<Report>report=reportDao.findReportByProjectId(projectId);
-            if(report.isPresent()){
-                Report report1=report.get();
-                return new ResponseEntity<>(report1,HttpStatus.OK);
-            }
-            else{
+        try {
+            Optional<Report> report = reportDao.findReportByProjectId(projectId);
+            if (report.isPresent()) {
+                Report report1 = report.get();
+                return new ResponseEntity<>(report1, HttpStatus.OK);
+            } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-
 
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -142,21 +138,21 @@ public class ReportService {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     public ResponseEntity<String> finalSubmit(int reportId) {
-        try{
-            Optional<Report>report=reportDao.findById(reportId);
-            if(report.isPresent()){
-                Report report1=report.get();
+        try {
+            Optional<Report> report = reportDao.findById(reportId);
+            if (report.isPresent()) {
+                Report report1 = report.get();
                 report1.setFinalSubmission(true);
-//                report1.setStatus(ReportStatus.SUBMITTED);
+                // report1.setStatus(ReportStatus.SUBMITTED);
                 reportDao.save(report1);
-                return new ResponseEntity<>("Report submitted successfully",HttpStatus.OK);
-            }
-            else{
-                return new ResponseEntity<>("Report not found",HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>("Report submitted successfully", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Report not found", HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

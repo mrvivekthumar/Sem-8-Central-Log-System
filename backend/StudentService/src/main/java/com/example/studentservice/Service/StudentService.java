@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
@@ -16,17 +18,19 @@ import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.example.studentservice.SheetHandler;
+import com.example.studentservice.util.SheetHandler;
 import com.example.studentservice.client.AuthInterface;
 import com.example.studentservice.client.FacultyInterface;
 import com.example.studentservice.client.dto.Project;
 import com.example.studentservice.client.dto.Status;
 import com.example.studentservice.client.dto.UserCredential;
+import com.example.studentservice.domain.PersonalProject;
 import com.example.studentservice.domain.Student;
 import com.example.studentservice.domain.StudentAvaibility;
 import com.example.studentservice.domain.StudentProject;
 import com.example.studentservice.exception.InvalidOperationException;
 import com.example.studentservice.exception.ResourceNotFoundException;
+import com.example.studentservice.repository.PersonalProjectDao;
 import com.example.studentservice.repository.StudentDao;
 import com.example.studentservice.repository.StudentProjectDao;
 
@@ -42,6 +46,7 @@ public class StudentService {
     private final CloudinaryService cloudinaryService;
     private final StudentDao studentDao;
     private final StudentProjectDao studentProjectDao;
+    private final PersonalProjectDao personalProjectDao;
     private final StudentProjectService studentProjectService;
     private final FacultyInterface facultyInterface;
     private final AuthInterface authInterface;
@@ -83,14 +88,27 @@ public class StudentService {
             }
 
             studentDao.saveAll(students);
-            authInterface.addNewUser(users);
 
+            // Convert UserCredential to Map for authInterface
+            List<Map<String, Object>> userMaps = users.stream()
+                    .map(this::convertUserCredentialToMap)
+                    .collect(Collectors.toList());
+            authInterface.addNewUser(userMaps);
+
+            logger.info("Bulk registration completed. Records added: {}", students.size());
             return "Bulk registration completed. Records added: " + students.size();
 
         } catch (Exception e) {
             logger.error("Bulk registration failed", e);
-            throw new InvalidOperationException("Bulk registration failed");
+            throw new InvalidOperationException("Bulk registration failed: " + e.getMessage());
         }
+    }
+
+    private Map<String, Object> convertUserCredentialToMap(UserCredential credential) {
+        return Map.of(
+                "username", credential.getUsername(),
+                "password", credential.getPassword(),
+                "role", credential.getUserRole().toString());
     }
 
     /*
@@ -100,15 +118,15 @@ public class StudentService {
      */
 
     public void applyProject(int studentId, int projectId) {
+        logger.info("Student {} applying for project {}", studentId, projectId);
 
         Student student = studentDao.findStudentByStudentId(studentId);
         if (student == null) {
-            throw new ResourceNotFoundException("Student not found");
+            throw new ResourceNotFoundException("Student not found with id: " + studentId);
         }
 
         if (student.getStudentAvaibility() == StudentAvaibility.NOT_AVAILABLE) {
-            throw new InvalidOperationException(
-                    "Student already working on a project");
+            throw new InvalidOperationException("Student already working on a project");
         }
 
         if (studentProjectDao.existsByStudent_StudentIdAndProjectId(studentId, projectId)) {
@@ -117,7 +135,7 @@ public class StudentService {
 
         Project project = facultyInterface.getProjectById(projectId).getBody();
         if (project == null) {
-            throw new ResourceNotFoundException("Project not found");
+            throw new ResourceNotFoundException("Project not found with id: " + projectId);
         }
 
         Integer maxPref = studentProjectDao.findMaxPreferenceByStudentId(studentId);
@@ -131,9 +149,11 @@ public class StudentService {
         sp.setApplicationDate(LocalDate.now());
 
         studentProjectDao.save(sp);
+        logger.info("Student {} applied for project {} with preference {}", studentId, projectId, preference);
     }
 
     public void withdrawProject(int studentId, int projectId) {
+        logger.info("Student {} withdrawing from project {}", studentId, projectId);
 
         StudentProject sp = studentProjectDao
                 .findByStudent_StudentIdAndProjectId(studentId, projectId);
@@ -158,6 +178,7 @@ public class StudentService {
         }
 
         studentProjectDao.saveAll(remaining);
+        logger.info("Student {} withdrew from project {}", studentId, projectId);
     }
 
     /*
@@ -173,6 +194,7 @@ public class StudentService {
     }
 
     public Student updateStudentDetails(int studentId, Student updated) {
+        logger.info("Updating student details for id: {}", studentId);
         Student student = getStudentById(studentId);
 
         student.setGithubProfileLink(updated.getGithubProfileLink());
@@ -187,9 +209,42 @@ public class StudentService {
     }
 
     public Student updateGithubLink(int studentId, String githubLink) {
+        logger.info("Updating GitHub link for student id: {}", studentId);
         Student student = getStudentById(studentId);
         student.setGithubProfileLink(githubLink);
         return studentDao.save(student);
+    }
+
+    public void makeUnavailable(int studentId) {
+        logger.info("Marking student {} as unavailable", studentId);
+        Student student = getStudentById(studentId);
+        student.setStudentAvaibility(StudentAvaibility.NOT_AVAILABLE);
+        studentDao.save(student);
+    }
+
+    /*
+     * =========================
+     * PERSONAL PROJECTS
+     * =========================
+     */
+
+    public PersonalProject addPersonalProject(int studentId, PersonalProject personalProject) {
+        logger.info("Adding personal project for student id: {}", studentId);
+        Student student = getStudentById(studentId);
+        personalProject.setStudent(student);
+        return personalProjectDao.save(personalProject);
+    }
+
+    public void deletePersonalProject(int studentId, int personalProjectId) {
+        logger.info("Deleting personal project {} for student {}", personalProjectId, studentId);
+        PersonalProject project = personalProjectDao.findById(personalProjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Personal project not found"));
+
+        if (project.getStudent().getStudentId() != studentId) {
+            throw new InvalidOperationException("Unauthorized to delete this project");
+        }
+
+        personalProjectDao.delete(project);
     }
 
     /*
@@ -199,9 +254,33 @@ public class StudentService {
      */
 
     public Student uploadAvatar(int studentId, MultipartFile image) {
+        logger.info("Uploading avatar for student id: {}", studentId);
         Student student = getStudentById(studentId);
-        student.setImageUrl(cloudinaryService.uploadFile(image));
+        String imageUrl = cloudinaryService.uploadFile(image);
+        student.setImageUrl(imageUrl);
         return studentDao.save(student);
+    }
+
+    public Student uploadImageToCloudinary(MultipartFile image, int studentId) {
+        return uploadAvatar(studentId, image);
+    }
+
+    /*
+     * =========================
+     * FACULTY ACTIONS
+     * =========================
+     */
+
+    public void updateScoreByFaculty(int projectId, float ratings) {
+        logger.info("Updating scores for project {} with rating {}", projectId, ratings);
+        List<StudentProject> studentProjects = studentProjectDao.findByProjectIdAndStatus(projectId, Status.APPROVED);
+
+        for (StudentProject sp : studentProjects) {
+            Student student = sp.getStudent();
+            student.setRatings(student.getRatings() + ratings); // Changed from getScore/setScore
+            student.setTotalRatings(student.getTotalRatings() + 1);
+            studentDao.save(student);
+        }
     }
 
     /*
@@ -214,12 +293,24 @@ public class StudentService {
         return facultyInterface.getAllProjects().getBody();
     }
 
+    public List<Student> getAllStudents() {
+        return studentDao.findAll();
+    }
+
+    public Student getStudentByEmail(String email) {
+        Student student = studentDao.findByEmail(email);
+        if (student == null) {
+            throw new ResourceNotFoundException("Student not found with email: " + email);
+        }
+        return student;
+    }
+
     public List<Student> getAllStudentsById(List<Integer> ids) {
         return studentDao.findAllByStudentId(ids);
     }
 
     public int getCount() {
-        return studentDao.findTotalUsers();
+        return (int) studentDao.count();
     }
 
     public List<Integer> getCompletedProjects(int studentId) {

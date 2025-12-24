@@ -1,4 +1,4 @@
-package com.example.studentservice;
+package com.example.studentservice.util;
 
 import com.example.studentservice.client.dto.UserCredential;
 import com.example.studentservice.client.dto.UserRole;

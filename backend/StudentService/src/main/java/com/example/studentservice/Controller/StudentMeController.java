@@ -36,6 +36,6 @@ public class StudentMeController {
     @PutMapping
     public ResponseEntity<Student> updateMyProfile(@RequestBody Student student) {
         int studentId = currentUser.getUserId().intValue();
-        return studentService.updateStudentDetails(studentId, student);
+        return ResponseEntity.ok(studentService.updateStudentDetails(studentId, student));
     }
 }

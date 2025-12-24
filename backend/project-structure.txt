@@ -35,15 +35,16 @@ D:.
 |   |   |   |               |   ApiGatewayApplication.java
 |   |   |   |               |   
 |   |   |   |               +---config
+|   |   |   |               |       CorrelationIdFilter.java
 |   |   |   |               |       CorsConfig.java
 |   |   |   |               |       
-|   |   |   |               +---security
-|   |   |   |               |       AuthenticationFilter.java
-|   |   |   |               |       RouteValidator.java
-|   |   |   |               |       
-|   |   |   |               \---util
-|   |   |   |                       JwtUtil.java
-|   |   |   |                       
+|   |   |   |               \---security
+|   |   |   |                   |   AuthenticationFilter.java
+|   |   |   |                   |   RouteValidator.java
+|   |   |   |                   |   
+|   |   |   |                   \---jwt
+|   |   |   |                           JwtUtil.java
+|   |   |   |                           
 |   |   |   \---resources
 |   |   |           application.yml
 |   |   |           
@@ -64,16 +65,17 @@ D:.
 |       |               |   ApiGatewayApplication.class
 |       |               |   
 |       |               +---config
+|       |               |       CorrelationIdFilter.class
 |       |               |       CorsConfig.class
 |       |               |       
-|       |               +---security
-|       |               |       AuthenticationFilter$Config.class
-|       |               |       AuthenticationFilter.class
-|       |               |       RouteValidator.class
-|       |               |       
-|       |               \---util
-|       |                       JwtUtil.class
-|       |                       
+|       |               \---security
+|       |                   |   AuthenticationFilter$Config.class
+|       |                   |   AuthenticationFilter.class
+|       |                   |   RouteValidator.class
+|       |                   |   
+|       |                   \---jwt
+|       |                           JwtUtil.class
+|       |                           
 |       +---generated-sources
 |       |   \---annotations
 |       +---generated-test-sources
@@ -97,11 +99,6 @@ D:.
 |   |       |           \---authenticationservice
 |   |       |               |   AuthenticationServiceApplication.java
 |   |       |               |   
-|   |       |               +---config
-|   |       |               |       AuthConfig.java
-|   |       |               |       CustomUserDetails.java
-|   |       |               |       UserDetailsServiceImpl.java
-|   |       |               |       
 |   |       |               +---controller
 |   |       |               |       AuthController.java
 |   |       |               |       
@@ -110,19 +107,27 @@ D:.
 |   |       |               |       UserRole.java
 |   |       |               |       
 |   |       |               +---dto
-|   |       |               |       AuthRequest.java
 |   |       |               |       LoginRequest.java
 |   |       |               |       LoginResponse.java
 |   |       |               |       RegisterRequest.java
-|   |       |               |       SignupRequest.java
-|   |       |               |       UserDTO.java
+|   |       |               |       UserResponse.java
+|   |       |               |       
+|   |       |               +---exception
+|   |       |               |       AuthenticationException.java
+|   |       |               |       ErrorResponse.java
+|   |       |               |       GlobalExceptionHandler.java
+|   |       |               |       InvalidRequestException.java
 |   |       |               |       
 |   |       |               +---repository
 |   |       |               |       UserCredentialRepository.java
 |   |       |               |       
+|   |       |               +---security
+|   |       |               |       CustomUserDetails.java
+|   |       |               |       SecurityConfig.java
+|   |       |               |       UserDetailsServiceImpl.java
+|   |       |               |       
 |   |       |               \---service
 |   |       |                       AuthService.java
-|   |       |                       CustomUserDetailsService.java
 |   |       |                       JwtService.java
 |   |       |                       
 |   |       \---resources
@@ -137,11 +142,6 @@ D:.
 |       |           \---authenticationservice
 |       |               |   AuthenticationServiceApplication.class
 |       |               |   
-|       |               +---config
-|       |               |       AuthConfig.class
-|       |               |       CustomUserDetails.class
-|       |               |       UserDetailsServiceImpl.class
-|       |               |       
 |       |               +---controller
 |       |               |       AuthController.class
 |       |               |       
@@ -150,21 +150,30 @@ D:.
 |       |               |       UserRole.class
 |       |               |       
 |       |               +---dto
-|       |               |       AuthRequest.class
 |       |               |       LoginRequest.class
 |       |               |       LoginResponse$LoginResponseBuilder.class
 |       |               |       LoginResponse.class
 |       |               |       RegisterRequest.class
-|       |               |       SignupRequest.class
-|       |               |       UserDTO$UserDTOBuilder.class
-|       |               |       UserDTO.class
+|       |               |       UserResponse$UserResponseBuilder.class
+|       |               |       UserResponse.class
+|       |               |       
+|       |               +---exception
+|       |               |       AuthenticationException.class
+|       |               |       ErrorResponse$ErrorResponseBuilder.class
+|       |               |       ErrorResponse.class
+|       |               |       GlobalExceptionHandler.class
+|       |               |       InvalidRequestException.class
 |       |               |       
 |       |               +---repository
 |       |               |       UserCredentialRepository.class
 |       |               |       
+|       |               +---security
+|       |               |       CustomUserDetails.class
+|       |               |       SecurityConfig.class
+|       |               |       UserDetailsServiceImpl.class
+|       |               |       
 |       |               \---service
 |       |                       AuthService.class
-|       |                       CustomUserDetailsService.class
 |       |                       JwtService.class
 |       |                       
 |       +---generated-sources
@@ -215,6 +224,9 @@ D:.
 |   |       |               |       StudentAvaibility.java
 |   |       |               |       
 |   |       |               +---dto
+|   |       |               +---Feign
+|   |       |               |       AuthInterface.java
+|   |       |               |       
 |   |       |               +---notification
 |   |       |               |   +---Controller
 |   |       |               |   |       NotificationController.java
@@ -277,6 +289,9 @@ D:.
 |       |               |       StudentAvaibility.class
 |       |               |       
 |       |               +---dto
+|       |               +---Feign
+|       |               |       AuthInterface.class
+|       |               |       
 |       |               +---notification
 |       |               |   +---Controller
 |       |               |   |       NotificationController.class
@@ -374,9 +389,17 @@ D:.
     |       |               |   StudentServiceApplication.java
     |       |               |   
     |       |               +---client
-    |       |               |       AuthInterface.java
-    |       |               |       FacultyInterface.java
-    |       |               |       
+    |       |               |   |   AuthInterface.java
+    |       |               |   |   FacultyInterface.java
+    |       |               |   |   
+    |       |               |   \---dto
+    |       |               |           Faculty.java
+    |       |               |           PersonalProjectDTO.java
+    |       |               |           Project.java
+    |       |               |           Status.java
+    |       |               |           UserCredential.java
+    |       |               |           UserRole.java
+    |       |               |           
     |       |               +---config
     |       |               |       CloudinaryConfig.java
     |       |               |       FeignClientInterceptor.java
@@ -387,6 +410,7 @@ D:.
     |       |               |       ReportController.java
     |       |               |       ReportReviewController.java
     |       |               |       StudentController.java
+    |       |               |       StudentMeController.java
     |       |               |       StudentProjectController.java
     |       |               |       
     |       |               +---domain
@@ -402,12 +426,11 @@ D:.
     |       |               |       NotificationRequest.java
     |       |               |       
     |       |               +---exception
-    |       |               |       Faculty.java
-    |       |               |       PersonalProjectDTO.java
-    |       |               |       Project.java
-    |       |               |       Status.java
-    |       |               |       UserCredential.java
-    |       |               |       UserRole.java
+    |       |               |       ApiError.java
+    |       |               |       GlobalExceptionHandler.java
+    |       |               |       InvalidOperationException.java
+    |       |               |       ResourceNotFoundException.java
+    |       |               |       UnauthorizedOperationException.java
     |       |               |       
     |       |               +---repository
     |       |               |       PersonalProjectDao.java
@@ -415,6 +438,9 @@ D:.
     |       |               |       ReportReviewDao.java
     |       |               |       StudentDao.java
     |       |               |       StudentProjectDao.java
+    |       |               |       
+    |       |               +---security
+    |       |               |       CurrentUser.java
     |       |               |       
     |       |               \---service
     |       |                       CloudinaryService.java
@@ -438,9 +464,17 @@ D:.
         |               |   StudentServiceApplication.class
         |               |   
         |               +---client
-        |               |       AuthInterface.class
-        |               |       FacultyInterface.class
-        |               |       
+        |               |   |   AuthInterface.class
+        |               |   |   FacultyInterface.class
+        |               |   |   
+        |               |   \---dto
+        |               |           Faculty.class
+        |               |           PersonalProjectDTO.class
+        |               |           Project.class
+        |               |           Status.class
+        |               |           UserCredential.class
+        |               |           UserRole.class
+        |               |           
         |               +---config
         |               |       CloudinaryConfig.class
         |               |       FeignClientInterceptor.class
@@ -451,6 +485,7 @@ D:.
         |               |       ReportController.class
         |               |       ReportReviewController.class
         |               |       StudentController.class
+        |               |       StudentMeController.class
         |               |       StudentProjectController.class
         |               |       
         |               +---domain
@@ -466,12 +501,12 @@ D:.
         |               |       NotificationRequest.class
         |               |       
         |               +---exception
-        |               |       Faculty.class
-        |               |       PersonalProjectDTO.class
-        |               |       Project.class
-        |               |       Status.class
-        |               |       UserCredential.class
-        |               |       UserRole.class
+        |               |       ApiError$ApiErrorBuilder.class
+        |               |       ApiError.class
+        |               |       GlobalExceptionHandler.class
+        |               |       InvalidOperationException.class
+        |               |       ResourceNotFoundException.class
+        |               |       UnauthorizedOperationException.class
         |               |       
         |               +---repository
         |               |       PersonalProjectDao.class
@@ -479,6 +514,9 @@ D:.
         |               |       ReportReviewDao.class
         |               |       StudentDao.class
         |               |       StudentProjectDao.class
+        |               |       
+        |               +---security
+        |               |       CurrentUser.class
         |               |       
         |               \---service
         |                       CloudinaryService.class

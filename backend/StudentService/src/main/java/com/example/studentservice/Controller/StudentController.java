@@ -3,6 +3,7 @@ package com.example.studentservice.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,12 +45,12 @@ public class StudentController {
 
     @PostMapping("/register")
     public ResponseEntity<Student> registerStudent(@RequestBody Student student) {
-        return studentService.registerStudent(student);
+        return ResponseEntity.status(HttpStatus.CREATED).body(studentService.registerStudent(student));
     }
 
     @PostMapping(value = "/register-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> registerFile(@RequestParam("file") MultipartFile file) {
-        return studentService.registerFile(file);
+        return ResponseEntity.ok(studentService.registerFile(file));
     }
 
     /*
@@ -61,13 +62,15 @@ public class StudentController {
     @PostMapping("/projects/{projectId}/apply")
     public ResponseEntity<String> applyProject(@PathVariable int projectId) {
         int studentId = currentUser.getUserId().intValue();
-        return studentService.applyProject(studentId, projectId);
+        studentService.applyProject(studentId, projectId);
+        return ResponseEntity.ok("Applied successfully");
     }
 
     @PostMapping("/projects/{projectId}/withdraw")
     public ResponseEntity<String> withdrawProject(@PathVariable int projectId) {
         int studentId = currentUser.getUserId().intValue();
-        return studentService.withdrawProject(studentId, projectId);
+        studentService.withdrawProject(studentId, projectId);
+        return ResponseEntity.ok("Withdrawn successfully");
     }
 
     /*
@@ -76,7 +79,7 @@ public class StudentController {
      * =========================
      */
 
-    @GetMapping("/me")
+    @GetMapping("/{studentId}")
     public ResponseEntity<Student> getStudent(@PathVariable int studentId) {
         return ResponseEntity.ok(studentService.getStudentById(studentId));
     }
@@ -84,13 +87,13 @@ public class StudentController {
     @PutMapping("/me/github")
     public ResponseEntity<Student> updateGithubProfile(@RequestParam String githubLink) {
         int studentId = currentUser.getUserId().intValue();
-        return studentService.updateGithubLink(studentId, githubLink);
+        return ResponseEntity.ok(studentService.updateGithubLink(studentId, githubLink));
     }
 
     @PutMapping("/me")
     public ResponseEntity<Student> updateProfile(@RequestBody Student student) {
         int studentId = currentUser.getUserId().intValue();
-        return studentService.updateStudentDetails(studentId, student);
+        return ResponseEntity.ok(studentService.updateStudentDetails(studentId, student));
     }
 
     /*
@@ -104,15 +107,17 @@ public class StudentController {
             @RequestBody PersonalProject personalProject) {
 
         int studentId = currentUser.getUserId().intValue();
-        return studentService.addProject(studentId, personalProject);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(studentService.addPersonalProject(studentId, personalProject));
     }
 
     @DeleteMapping("/me/projects/{personalProjectId}")
-    public ResponseEntity<Student> deletePersonalProject(
+    public ResponseEntity<String> deletePersonalProject(
             @PathVariable int personalProjectId) {
 
         int studentId = currentUser.getUserId().intValue();
-        return studentService.deleteProject(studentId, personalProjectId);
+        studentService.deletePersonalProject(studentId, personalProjectId);
+        return ResponseEntity.ok("Personal project deleted successfully");
     }
 
     /*
@@ -124,13 +129,14 @@ public class StudentController {
     @PutMapping("/me/unavailable")
     public ResponseEntity<String> makeUnavailable() {
         int studentId = currentUser.getUserId().intValue();
-        return studentService.makeUnavailibity(studentId);
+        studentService.makeUnavailable(studentId);
+        return ResponseEntity.ok("Marked as unavailable");
     }
 
     @GetMapping("/me/completed-projects")
     public ResponseEntity<List<Integer>> getCompletedProjects() {
         int studentId = currentUser.getUserId().intValue();
-        return studentService.getCompletedProjects(studentId);
+        return ResponseEntity.ok(studentService.getCompletedProjects(studentId));
     }
 
     /*
@@ -141,7 +147,7 @@ public class StudentController {
 
     @GetMapping("/projects")
     public ResponseEntity<List<Project>> getAllProjects() {
-        return studentService.getAllProjets();
+        return ResponseEntity.ok(studentService.getAllProjects());
     }
 
     @GetMapping("/projects/visible")
@@ -165,7 +171,7 @@ public class StudentController {
             @RequestParam("image") MultipartFile avatar) {
 
         int studentId = currentUser.getUserId().intValue();
-        return studentService.editAvtar(studentId, avatar);
+        return ResponseEntity.ok(studentService.uploadAvatar(studentId, avatar));
     }
 
     @PostMapping(value = "/me/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -173,7 +179,7 @@ public class StudentController {
             @RequestParam("image") MultipartFile image) {
 
         int studentId = currentUser.getUserId().intValue();
-        return studentService.uploadImageToCloudinary(image, studentId);
+        return ResponseEntity.ok(studentService.uploadImageToCloudinary(image, studentId));
     }
 
     /*
@@ -187,7 +193,8 @@ public class StudentController {
             @PathVariable int projectId,
             @PathVariable float ratings) {
 
-        return studentService.updateScoreByFaculty(projectId, ratings);
+        studentService.updateScoreByFaculty(projectId, ratings);
+        return ResponseEntity.ok("Ratings updated successfully");
     }
 
     /*
@@ -198,16 +205,16 @@ public class StudentController {
 
     @GetMapping("/count")
     public ResponseEntity<Integer> getCount() {
-        return studentService.getCount();
+        return ResponseEntity.ok(studentService.getCount());
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<Student>> getAllStudents() {
-        return studentService.findAll();
+        return ResponseEntity.ok(studentService.getAllStudents());
     }
 
     @GetMapping("/email/{email}")
     public ResponseEntity<Student> getStudentByEmail(@PathVariable String email) {
-        return studentService.findByEmail(email);
+        return ResponseEntity.ok(studentService.getStudentByEmail(email));
     }
 }
