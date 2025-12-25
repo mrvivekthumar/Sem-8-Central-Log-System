@@ -52,7 +52,8 @@ export const AuthProvider = ({ children }) => {
         password
       });
 
-      const { token, user: userData } = response.data;
+      // ✅ FIX: Backend returns 'accessToken', not 'token'
+      const { accessToken, user: userData } = response.data;
 
       // Verify user role matches selected role
       if (userData.role !== role) {
@@ -60,15 +61,15 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Role mismatch');
       }
 
-      // Store token and user data
-      localStorage.setItem('token', token);
+      // ✅ FIX: Store accessToken as 'token'
+      localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
       setUser(userData);
       setIsAuthenticated(true);
 
-      toast.success(`Welcome back, ${userData.name}!`);
+      toast.success(`Welcome back, ${userData.name || userData.email}!`);
 
       // Navigate based on role
       if (userData.role === 'FACULTY') {

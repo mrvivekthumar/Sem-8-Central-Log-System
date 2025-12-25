@@ -56,10 +56,10 @@ const Navbar = () => {
 
     if (user.role === 'STUDENT') {
       return [
-        { name: 'Dashboard', path: '/student/dashboard', icon: Home },
-        { name: 'Projects', path: '/student/projects', icon: Briefcase },
-        { name: 'Applied', path: '/student/applied-projects', icon: Bell },
-        { name: 'Profile', path: '/student/profile', icon: User }
+        { name: 'Dashboard', path: '/dashboard', icon: Home },
+        { name: 'Applied', path: '/applied-projects', icon: Bell },
+        { name: 'Completed', path: '/completed-projects', icon: Briefcase },
+        { name: 'Profile', path: '/profile', icon: User }
       ];
     }
 
@@ -67,19 +67,13 @@ const Navbar = () => {
       return [
         { name: 'Dashboard', path: '/faculty/dashboard', icon: Home },
         { name: 'Projects', path: '/faculty/projects', icon: Briefcase },
-        { name: 'Profile', path: '/faculty/profile', icon: User }
+        { name: 'Assign', path: '/faculty/assign-projects', icon: Settings },
+        { name: 'Profile', path: '/profile', icon: User }
       ];
     }
-
-    if (user.role === 'ADMIN') {
-      return [
-        { name: 'Dashboard', path: '/admin/dashboard', icon: Home },
-        { name: 'Settings', path: '/admin/settings', icon: Settings }
-      ];
-    }
-
     return [];
   };
+
 
   const navLinks = getNavLinks();
 
@@ -95,7 +89,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to={user ? `/${user.role.toLowerCase()}/dashboard` : '/'}>
+          <Link to={user?.role === 'FACULTY' ? '/faculty/dashboard' : user ? '/dashboard' : '/'}>
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -218,7 +212,7 @@ const Navbar = () => {
                       </div>
 
                       <Link
-                        to={`/${user.role.toLowerCase()}/profile`}
+                        to="/profile"
                         className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       >
                         <User className="w-4 h-4" />
@@ -226,7 +220,7 @@ const Navbar = () => {
                       </Link>
 
                       <Link
-                        to={`/${user.role.toLowerCase()}/settings`}
+                        to="/settings"
                         className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       >
                         <Settings className="w-4 h-4" />
