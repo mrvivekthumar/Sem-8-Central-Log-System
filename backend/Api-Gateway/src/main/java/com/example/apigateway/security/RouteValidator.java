@@ -11,12 +11,17 @@ import org.springframework.stereotype.Component;
 public class RouteValidator {
 
         private static final List<String> OPEN_API_ENDPOINTS = List.of(
+                        "/api/auth/register",
+                        "/api/auth/token",
+                        "/api/auth/validate",
                         "/auth/register",
                         "/auth/token",
                         "/auth/validate",
                         "/eureka");
 
         public static final Map<String, List<String>> ROLE_BASED_ROUTES = Map.of(
+                        "/api/student", List.of("STUDENT"),
+                        "/api/faculty", List.of("FACULTY"),
                         "/student", List.of("STUDENT"),
                         "/faculty", List.of("FACULTY"));
 
