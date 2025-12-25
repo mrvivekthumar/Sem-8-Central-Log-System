@@ -19,19 +19,18 @@ public class Report {
     @OneToOne
     @JsonIgnore
     @JoinColumn(name = "application_id", nullable = false)
-    private StudentProject studentProject;  // Link to student's project application
+    private StudentProject studentProject; // Link to student's project application
     @ManyToOne
     @JoinColumn(name = "submitted_by", nullable = false)
-    private Student submittedBy;  // Student who uploaded the report
+    private Student submittedBy; // Student who uploaded the report
 
-    private String documentUrl;  // Link to the report file
+    private String documentUrl; // Link to the report file
 
-    private LocalDate submissionDate;  // Date when the report was submitted
+    private LocalDate submissionDate; // Date when the report was submitted
 
     @Enumerated(EnumType.STRING)
-    private ReportStatus status = ReportStatus.PENDING;  // PENDING, APPROVED, NEEDS_RESUBMISSION
+    private ReportStatus status = ReportStatus.PENDING; // PENDING, APPROVED, NEEDS_RESUBMISSION
 
-    private String feedback;  // Faculty feedback for resubmission
-    private boolean isFinalSubmission = false;  // False when under student review, True when sent to faculty
+    private String feedback; // Faculty feedback for resubmission
+    private boolean isFinalSubmission = false; // False when under student review, True when sent to faculty
 }
-
