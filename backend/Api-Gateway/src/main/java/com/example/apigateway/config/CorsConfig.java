@@ -7,6 +7,7 @@ import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 public class CorsConfig {
@@ -15,16 +16,38 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // Only use allowedOrigins
+        // Allow all origins for development (change in production)
+        corsConfig.addAllowedOriginPattern("*");
+        
+        // Specific allowed origins
         corsConfig.setAllowedOrigins(Arrays.asList(
                 "https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app",
                 "http://localhost:3000",
-                "http://localhost:5173"));
+                "http://localhost:5173",
+                "http://localhost:5174"
+        ));
 
-        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
-        corsConfig.setAllowedHeaders(Arrays.asList("*"));
+        // Allow all HTTP methods
+        corsConfig.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"
+        ));
+        
+        // Allow all headers
+        corsConfig.setAllowedHeaders(List.of("*"));
+        
+        // Allow credentials (cookies, authorization headers)
         corsConfig.setAllowCredentials(true);
-        corsConfig.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        
+        // Expose headers that frontend can read
+        corsConfig.setExposedHeaders(Arrays.asList(
+                "Authorization", 
+                "Content-Type",
+                "X-Correlation-ID",
+                "Access-Control-Allow-Origin",
+                "Access-Control-Allow-Credentials"
+        ));
+        
+        // Cache preflight response for 1 hour
         corsConfig.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
