@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import com.example.facultyservice.notification.dao.NotificationDao;
+import com.example.facultyservice.notification.repository.NotificationDao;
 import com.example.facultyservice.notification.model.Notification;
 import com.example.facultyservice.notification.model.NotificationRequest;
 
@@ -16,7 +16,7 @@ import com.example.facultyservice.notification.model.NotificationRequest;
 public class NotificationService {
 
     @Autowired
-    private NotificationDao notificationDao;
+    private NotificationRepository notificationDao;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ReportDao extends JpaRepository<Report,Integer> {
+public interface ReportRepository extends JpaRepository<Report,Integer> {
     @Query("SELECT r FROM Report r WHERE r.studentProject.projectId = :projectId")
     Optional<Report> findReportByProjectId(@Param("projectId") int projectId);
 }

@@ -7,6 +7,6 @@ import com.example.studentservice.domain.PersonalProject;
 
 import java.util.List;
 @Repository
-public interface PersonalProjectDao extends JpaRepository<PersonalProject,Integer> {
+public interface PersonalProjectRepository extends JpaRepository<PersonalProject,Integer> {
     List<PersonalProject> findByStudent_StudentId(int studentId);
 }

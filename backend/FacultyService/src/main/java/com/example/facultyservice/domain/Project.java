@@ -1,11 +1,22 @@
 package com.example.facultyservice.domain;
 
-import jakarta.persistence.*;
-import lombok.*;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
@@ -22,8 +33,8 @@ public class Project {
     @Column(length = 1000)
     private String description;
     @Enumerated(EnumType.STRING)
-    private Status status=Status.OPEN_FOR_APPLICATIONS;
-    private LocalDateTime date=LocalDateTime.now();
+    private Status status = Status.OPEN_FOR_APPLICATIONS;
+    private LocalDateTime date = LocalDateTime.now();
     private List<String> skills;
     @ManyToOne
     @JoinColumn(name = "facultyId")
@@ -31,9 +42,5 @@ public class Project {
     private LocalDateTime deadline;
     private LocalDateTime applicationDeadline;
     private Integer maxStudents;
-
-
-
-
 
 }

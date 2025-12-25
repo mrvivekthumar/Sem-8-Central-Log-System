@@ -1,0 +1,511 @@
+Folder PATH listing for volume New Volume
+Volume serial number is C85C-06FB
+D:.
+|   .env
+|   .gitattributes
+|   .gitignore
+|   docker-compose.yml
+|   mvnw
+|   mvnw.cmd
+|   pom.xml
+|   project-structure.txt
+|   
++---.mvn
+|   \---wrapper
+|           maven-wrapper.properties
+|           
++---Api-Gateway
+|   |   .gitattributes
+|   |   .gitignore
+|   |   Dockerfile
+|   |   mvnw
+|   |   mvnw.cmd
+|   |   pom.xml
+|   |   
+|   +---.mvn
+|   |   \---wrapper
+|   |           maven-wrapper.properties
+|   |           
+|   +---src
+|   |   +---main
+|   |   |   +---java
+|   |   |   |   \---com
+|   |   |   |       \---example
+|   |   |   |           \---apigateway
+|   |   |   |               |   ApiGatewayApplication.java
+|   |   |   |               |   
+|   |   |   |               +---config
+|   |   |   |               |       CorrelationIdFilter.java
+|   |   |   |               |       CorsConfig.java
+|   |   |   |               |       
+|   |   |   |               \---security
+|   |   |   |                   |   AuthenticationFilter.java
+|   |   |   |                   |   RouteValidator.java
+|   |   |   |                   |   
+|   |   |   |                   \---jwt
+|   |   |   |                           JwtUtil.java
+|   |   |   |                           
+|   |   |   \---resources
+|   |   |           application.yml
+|   |   |           logback-spring.xml
+|   |   |           
+|   |   \---test
+|   |       \---java
+|   |           \---com
+|   |               \---example
+|   |                   \---apigateway
+|   |                           ApiGatewayApplicationTests.java
+|   |                           
+|   \---target
+|       |   Api-Gateway-0.0.1-SNAPSHOT.jar
+|       |   Api-Gateway-0.0.1-SNAPSHOT.jar.original
+|       |   
+|       +---classes
+|       |   |   application.yml
+|       |   |   logback-spring.xml
+|       |   |   
+|       |   \---com
+|       |       \---example
+|       |           \---apigateway
+|       |               |   ApiGatewayApplication.class
+|       |               |   
+|       |               +---config
+|       |               |       CorrelationIdFilter.class
+|       |               |       CorsConfig.class
+|       |               |       
+|       |               \---security
+|       |                   |   AuthenticationFilter$Config.class
+|       |                   |   AuthenticationFilter.class
+|       |                   |   RouteValidator.class
+|       |                   |   
+|       |                   \---jwt
+|       |                           JwtUtil.class
+|       |                           
+|       +---generated-sources
+|       |   \---annotations
+|       +---generated-test-sources
+|       |   \---test-annotations
+|       +---maven-archiver
+|       |       pom.properties
+|       |       
+|       +---maven-status
+|       |   \---maven-compiler-plugin
+|       |       +---compile
+|       |       |   \---default-compile
+|       |       |           createdFiles.lst
+|       |       |           inputFiles.lst
+|       |       |           
+|       |       \---testCompile
+|       |           \---default-testCompile
+|       |                   createdFiles.lst
+|       |                   inputFiles.lst
+|       |                   
+|       \---test-classes
+|           \---com
+|               \---example
+|                   \---apigateway
+|                           ApiGatewayApplicationTests.class
+|                           
++---Authentication-Service
+|   |   .gitignore
+|   |   Dockerfile
+|   |   pom.xml
+|   |   
+|   +---src
+|   |   \---main
+|   |       +---java
+|   |       |   \---com
+|   |       |       \---example
+|   |       |           \---authenticationservice
+|   |       |               |   AuthenticationServiceApplication.java
+|   |       |               |   
+|   |       |               +---controller
+|   |       |               |       AuthController.java
+|   |       |               |       
+|   |       |               +---domain
+|   |       |               |       UserCredential.java
+|   |       |               |       UserRole.java
+|   |       |               |       
+|   |       |               +---dto
+|   |       |               |       LoginRequest.java
+|   |       |               |       LoginResponse.java
+|   |       |               |       RegisterRequest.java
+|   |       |               |       UserResponse.java
+|   |       |               |       
+|   |       |               +---exception
+|   |       |               |       AuthenticationException.java
+|   |       |               |       ErrorResponse.java
+|   |       |               |       GlobalExceptionHandler.java
+|   |       |               |       InvalidRequestException.java
+|   |       |               |       
+|   |       |               +---filter
+|   |       |               |       CorrelationIdFilter.java
+|   |       |               |       
+|   |       |               +---repository
+|   |       |               |       UserCredentialRepository.java
+|   |       |               |       
+|   |       |               +---security
+|   |       |               |       CustomUserDetails.java
+|   |       |               |       SecurityConfig.java
+|   |       |               |       UserDetailsServiceImpl.java
+|   |       |               |       
+|   |       |               \---service
+|   |       |                       AuthService.java
+|   |       |                       JwtService.java
+|   |       |                       
+|   |       \---resources
+|   |               application.yml
+|   |               logback-spring.xml
+|   |               
+|   \---target
+|       |   Authentication-Service-0.0.1-SNAPSHOT.jar
+|       |   Authentication-Service-0.0.1-SNAPSHOT.jar.original
+|       |   
+|       +---classes
+|       |   |   application.yml
+|       |   |   logback-spring.xml
+|       |   |   
+|       |   \---com
+|       |       \---example
+|       |           \---authenticationservice
+|       |               |   AuthenticationServiceApplication.class
+|       |               |   
+|       |               +---controller
+|       |               |       AuthController.class
+|       |               |       
+|       |               +---domain
+|       |               |       UserCredential.class
+|       |               |       UserRole.class
+|       |               |       
+|       |               +---dto
+|       |               |       LoginRequest.class
+|       |               |       LoginResponse$LoginResponseBuilder.class
+|       |               |       LoginResponse.class
+|       |               |       RegisterRequest.class
+|       |               |       UserResponse$UserResponseBuilder.class
+|       |               |       UserResponse.class
+|       |               |       
+|       |               +---exception
+|       |               |       AuthenticationException.class
+|       |               |       ErrorResponse$ErrorResponseBuilder.class
+|       |               |       ErrorResponse.class
+|       |               |       GlobalExceptionHandler.class
+|       |               |       InvalidRequestException.class
+|       |               |       
+|       |               +---filter
+|       |               |       CorrelationIdFilter.class
+|       |               |       
+|       |               +---repository
+|       |               |       UserCredentialRepository.class
+|       |               |       
+|       |               +---security
+|       |               |       CustomUserDetails.class
+|       |               |       SecurityConfig.class
+|       |               |       UserDetailsServiceImpl.class
+|       |               |       
+|       |               \---service
+|       |                       AuthService.class
+|       |                       JwtService.class
+|       |                       
+|       +---generated-sources
+|       |   \---annotations
+|       +---maven-archiver
+|       |       pom.properties
+|       |       
+|       \---maven-status
+|           \---maven-compiler-plugin
+|               \---compile
+|                   \---default-compile
+|                           createdFiles.lst
+|                           inputFiles.lst
+|                           
++---FacultyService
+|   |   .gitignore
+|   |   Dockerfile
+|   |   pom.xml
+|   |   
+|   +---src
+|   |   \---main
+|   |       +---java
+|   |       |   \---com
+|   |       |       \---example
+|   |       |           \---facultyservice
+|   |       |               |   FacultyServiceApplication.java
+|   |       |               |   
+|   |       |               +---client
+|   |       |               |       AuthInterface.java
+|   |       |               |       NotificationInterface.java
+|   |       |               |       StudentInterface.java
+|   |       |               |       
+|   |       |               +---domain
+|   |       |               |       Faculty.java
+|   |       |               |       Project.java
+|   |       |               |       Status.java
+|   |       |               |       Student.java
+|   |       |               |       StudentAvaibility.java
+|   |       |               |       
+|   |       |               +---filter
+|   |       |               |       CorrelationIdFilter.java
+|   |       |               |       
+|   |       |               +---notification
+|   |       |               |   +---controller
+|   |       |               |   |       NotificationController.java
+|   |       |               |   |       
+|   |       |               |   +---dao
+|   |       |               |   |       NotificationDao.java
+|   |       |               |   |       
+|   |       |               |   +---model
+|   |       |               |   |       Notification.java
+|   |       |               |   |       NotificationRequest.java
+|   |       |               |   |       NotificationType.java
+|   |       |               |   |       ReceiverType.java
+|   |       |               |   |       SenderType.java
+|   |       |               |   |       
+|   |       |               |   \---service
+|   |       |               |           NotificationService.java
+|   |       |               |           
+|   |       |               \---repository
+|   |       |                       FacultyDao.java
+|   |       |                       ProjectDao.java
+|   |       |                       
+|   |       \---resources
+|   |               application.yml
+|   |               logback-spring.xml
+|   |               
+|   \---target
+|       |   FacultyService-0.0.1-SNAPSHOT.jar
+|       |   
+|       +---classes
+|       |   |   application.yml
+|       |   |   logback-spring.xml
+|       |   |   
+|       |   \---com
+|       |       \---example
+|       |           \---facultyservice
+|       |               |   FacultyServiceApplication.class
+|       |               |   
+|       |               +---client
+|       |               |       AuthInterface.class
+|       |               |       NotificationInterface.class
+|       |               |       StudentInterface.class
+|       |               |       
+|       |               +---domain
+|       |               |       Faculty.class
+|       |               |       Project.class
+|       |               |       Status.class
+|       |               |       Student.class
+|       |               |       StudentAvaibility.class
+|       |               |       
+|       |               +---filter
+|       |               |       CorrelationIdFilter.class
+|       |               |       
+|       |               +---notification
+|       |               |   +---controller
+|       |               |   |       NotificationController.class
+|       |               |   |       
+|       |               |   +---dao
+|       |               |   |       NotificationDao.class
+|       |               |   |       
+|       |               |   +---model
+|       |               |   |       Notification.class
+|       |               |   |       NotificationRequest.class
+|       |               |   |       NotificationType.class
+|       |               |   |       ReceiverType.class
+|       |               |   |       SenderType.class
+|       |               |   |       
+|       |               |   \---service
+|       |               |           NotificationService.class
+|       |               |           
+|       |               \---repository
+|       |                       FacultyDao.class
+|       |                       ProjectDao.class
+|       |                       
+|       +---generated-sources
+|       |   \---annotations
+|       +---generated-test-sources
+|       |   \---test-annotations
+|       +---maven-archiver
+|       |       pom.properties
+|       |       
+|       +---maven-status
+|       |   \---maven-compiler-plugin
+|       |       \---compile
+|       |           \---default-compile
+|       |                   createdFiles.lst
+|       |                   inputFiles.lst
+|       |                   
+|       \---test-classes
++---k8s
+|   |   00-namespace.yaml
+|   |   01-secrets.yaml
+|   |   04-rabbitmq.yaml
+|   |   05-rbac.yaml
+|   |   07-ingress.yaml
+|   |   cleanup.sh
+|   |   deploy.sh
+|   |   
+|   +---02-configmaps
+|   |       api-gateway-config.yaml
+|   |       auth-service-config.yaml
+|   |       faculty-service-config.yaml
+|   |       student-service-config.yaml
+|   |       
+|   +---03-databases
+|   |       auth-db.yaml
+|   |       faculty-db.yaml
+|   |       student-db.yaml
+|   |       
+|   \---06-services
+|           api-gateway.yaml
+|           auth-service.yaml
+|           faculty-service.yaml
+|           student-service.yaml
+|           
++---NotificationService
+|   |   .gitignore
+|   |   
+|   \---src
+|       \---main
+|           +---java
+|           |   \---com
+|           |       \---example
+|           |           \---notificationservice
+|           |               |   NotificationServiceApplication.java
+|           |               |   
+|           |               \---config
+|           |                       CorsConfig.java
+|           |                       WebSocketConfig.java
+|           |                       
+|           \---resources
+|                   application.properties
+|                   
+\---StudentService
+    |   .gitignore
+    |   Dockerfile
+    |   pom.xml
+    |   
+    +---src
+    |   \---main
+    |       +---java
+    |       |   \---com
+    |       |       \---example
+    |       |           \---studentservice
+    |       |               |   StudentServiceApplication.java
+    |       |               |   
+    |       |               +---client
+    |       |               |   |   AuthInterface.java
+    |       |               |   |   FacultyInterface.java
+    |       |               |   |   
+    |       |               |   \---dto
+    |       |               |           Faculty.java
+    |       |               |           PersonalProjectDTO.java
+    |       |               |           Project.java
+    |       |               |           Status.java
+    |       |               |           UserCredential.java
+    |       |               |           UserRole.java
+    |       |               |           
+    |       |               +---domain
+    |       |               |       PersonalProject.java
+    |       |               |       Report.java
+    |       |               |       ReportReview.java
+    |       |               |       ReportStatus.java
+    |       |               |       Student.java
+    |       |               |       StudentAvaibility.java
+    |       |               |       StudentProject.java
+    |       |               |       
+    |       |               +---exception
+    |       |               |       ApiError.java
+    |       |               |       GlobalExceptionHandler.java
+    |       |               |       InvalidOperationException.java
+    |       |               |       ResourceNotFoundException.java
+    |       |               |       UnauthorizedOperationException.java
+    |       |               |       
+    |       |               +---filter
+    |       |               |       CorrelationIdFilter.java
+    |       |               |       
+    |       |               +---repository
+    |       |               |       PersonalProjectDao.java
+    |       |               |       ReportDao.java
+    |       |               |       ReportReviewDao.java
+    |       |               |       StudentDao.java
+    |       |               |       StudentProjectDao.java
+    |       |               |       
+    |       |               +---security
+    |       |               |       CurrentUser.java
+    |       |               |       
+    |       |               \---util
+    |       |                       SheetHandler.java
+    |       |                       
+    |       \---resources
+    |               application.yml
+    |               logback-spring.xml
+    |               
+    \---target
+        |   StudentService-0.0.1-SNAPSHOT.jar
+        |   
+        +---classes
+        |   |   application.yml
+        |   |   logback-spring.xml
+        |   |   
+        |   \---com
+        |       \---example
+        |           \---studentservice
+        |               |   StudentServiceApplication.class
+        |               |   
+        |               +---client
+        |               |   |   AuthInterface.class
+        |               |   |   FacultyInterface.class
+        |               |   |   
+        |               |   \---dto
+        |               |           Faculty.class
+        |               |           PersonalProjectDTO.class
+        |               |           Project.class
+        |               |           Status.class
+        |               |           UserCredential.class
+        |               |           UserRole.class
+        |               |           
+        |               +---domain
+        |               |       PersonalProject.class
+        |               |       Report.class
+        |               |       ReportReview.class
+        |               |       ReportStatus.class
+        |               |       Student.class
+        |               |       StudentAvaibility.class
+        |               |       StudentProject.class
+        |               |       
+        |               +---exception
+        |               |       ApiError$ApiErrorBuilder.class
+        |               |       ApiError.class
+        |               |       GlobalExceptionHandler.class
+        |               |       InvalidOperationException.class
+        |               |       ResourceNotFoundException.class
+        |               |       UnauthorizedOperationException.class
+        |               |       
+        |               +---filter
+        |               |       CorrelationIdFilter.class
+        |               |       
+        |               +---repository
+        |               |       PersonalProjectDao.class
+        |               |       ReportDao.class
+        |               |       ReportReviewDao.class
+        |               |       StudentDao.class
+        |               |       StudentProjectDao.class
+        |               |       
+        |               +---security
+        |               |       CurrentUser.class
+        |               |       
+        |               \---util
+        |                       SheetHandler.class
+        |                       
+        +---generated-sources
+        |   \---annotations
+        +---maven-archiver
+        |       pom.properties
+        |       
+        \---maven-status
+            \---maven-compiler-plugin
+                \---compile
+                    \---default-compile
+                            createdFiles.lst
+                            inputFiles.lst
+                            

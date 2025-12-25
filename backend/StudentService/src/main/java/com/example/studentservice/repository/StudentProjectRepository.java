@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface StudentProjectDao extends JpaRepository<StudentProject,Integer> {
+public interface StudentProjectRepository extends JpaRepository<StudentProject,Integer> {
 
     boolean existsByStudent_StudentIdAndProjectId(int projectId,int studentId);
     @Query("SELECT sp.student.studentId FROM StudentProject sp WHERE sp.projectId = :projectId")

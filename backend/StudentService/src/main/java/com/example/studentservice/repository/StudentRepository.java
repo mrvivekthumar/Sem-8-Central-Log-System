@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface StudentDao extends JpaRepository<Student,Integer> {
+public interface StudentRepository extends JpaRepository<Student,Integer> {
     Student findStudentByStudentId(int studentId);
 
     boolean existsByEmail(String email);

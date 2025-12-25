@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.example.facultyservice.domain.Faculty;
 
 @Repository
-public interface FacultyDao extends JpaRepository<Faculty, Integer> {
+public interface FacultyRepository extends JpaRepository<Faculty, Integer> {
 
     boolean existsByEmail(String email);
 

@@ -3,7 +3,7 @@ package com.example.studentservice.util;
 import com.example.studentservice.client.dto.UserCredential;
 import com.example.studentservice.client.dto.UserRole;
 import com.example.studentservice.domain.Student;
-import com.example.studentservice.repository.StudentDao;
+import com.example.studentservice.repository.StudentRepository;
 
 import org.apache.poi.xssf.model.SharedStrings;
 import org.xml.sax.Attributes;
