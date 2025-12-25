@@ -29,3 +29,9 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Audit and script files
+project-audit*.txt
+project-audit*.ps1
+sync-*.txt
+*.ps1
