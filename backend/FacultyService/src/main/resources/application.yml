@@ -1,7 +1,7 @@
 spring:
   application:
     name: faculty-service
-  
+
   datasource:
     url: ${FACULTY_DB_URL:jdbc:postgresql://${FACULTY_DB_HOST:localhost}:${FACULTY_DB_PORT:5432}/${FACULTY_DB_NAME:facultydb}}
     username: ${FACULTY_DB_USERNAME:postgres}
@@ -12,7 +12,7 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-  
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -21,13 +21,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-  
+
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
-  
+
   cloud:
     kubernetes:
       discovery:
@@ -37,7 +37,8 @@ spring:
         enabled: true
 
 server:
-  port: ${FACULTY_SERVICE_PORT:8080}
+  # FIX: match docker-compose (8082)
+  port: ${FACULTY_SERVICE_PORT:8082}
 
 jwt:
   secret: ${JWT_SECRET:default-secret-key-change-in-production}
@@ -62,11 +63,13 @@ logging:
     org.springframework.web: DEBUG
 
 auth-service:
-  url: ${AUTH_SERVICE_URL:http://localhost:8070}
+  # FIX: auth-service at 8081
+  url: ${AUTH_SERVICE_URL:http://localhost:8081}
 
 student-service:
-  url: ${STUDENT_SERVICE_URL:http://localhost:8084}
-# Feign Client Logging Configuration
+  # FIX: student-service at 8083
+  url: ${STUDENT_SERVICE_URL:http://localhost:8083}
+
 feign:
   client:
     config:

@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
-        @Query("SELECT p FROM Project p WHERE p.facultyId = :facultyId")
+        @Query("SELECT p FROM Project p WHERE p.faculty.id = :facultyId")
         List<Project> findByFacultyId(@Param("facultyId") Long facultyId);
 
         List<Project> findByStatus(String status);
@@ -26,10 +26,11 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
         List<Project> findExpiredProjects(@Param("status") Status status,
                         @Param("thresholdTime") LocalDateTime thresholdTime);
 
-        @Query("SELECT p FROM Project p where p.faculty.f_id=:facultyId AND p.projectId in :projectIds")
-        List<Project> findByFacultyIdAndProjectIds(int facultyId, List<Integer> projectIds);
+        @Query("SELECT p FROM Project p WHERE p.faculty.id = :facultyId AND p.id IN :projectIds")
+        List<Project> findByFacultyIdAndProjectIds(@Param("facultyId") int facultyId,
+                        @Param("projectIds") List<Integer> projectIds);
 
-        @Query("SELECT p FROM  Project p where p.projectId in :projectIds")
+        @Query("SELECT p FROM Project p WHERE p.id IN :projectIds")
         List<Project> findByProjectIds(@Param("projectIds") List<Integer> projectIds);
 
         @Query("SELECT count(p) FROM Project p where p.status = :status")

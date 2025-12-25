@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/auth/registerOne",
                                 "/auth/register",
+                                "/auth/login",
                                 "/auth/hello",
                                 "/auth/token",
                                 "/auth/validate",
@@ -72,16 +73,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
+
         // Allow multiple origins for development and production
         configuration.setAllowedOrigins(
                 List.of(
-                    "http://localhost:5173",
-                    "http://localhost:5174",
-                    "http://localhost:3000",
-                    "https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app"
-                ));
-        
+                        "http://localhost:5173",
+                        "http://localhost:5174",
+                        "http://localhost:3000",
+                        "https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app"));
+
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
