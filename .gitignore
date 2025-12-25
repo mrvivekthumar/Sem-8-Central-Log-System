@@ -1,0 +1,31 @@
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+target/
+dist/
+build/
+*.class
+*.jar
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
