@@ -30,13 +30,13 @@ public class SheetHandler extends DefaultHandler {
     // Cache to minimize database lookups
     private Set<String> emailCache = new HashSet<>();
 
-    public SheetHandler(SharedStrings sst, List<Student> students, List<UserCredential> users, StudentDao studentDao) {
+    public SheetHandler(SharedStrings sst, List<Student> students, List<UserCredential> users, StudentRepository StudentRepository) {
         this.sst = sst;
         this.students = students;
         this.users = users;
 
         // Prefetch all emails to avoid repeated DB calls
-        studentDao.findAllEmails().forEach(emailCache::add);
+        StudentRepository.findAllEmails().forEach(emailCache::add);
     }
 
     public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
