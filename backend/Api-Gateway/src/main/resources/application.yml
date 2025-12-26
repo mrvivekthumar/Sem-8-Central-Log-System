@@ -1,9 +1,17 @@
+# ===========================================
+# API GATEWAY CONFIGURATION
+# ===========================================
 spring:
   application:
     name: api-gateway
   
+  # Main Web Server Configuration (WebFlux)
+  main:
+    web-application-type: reactive
+  
   cloud:
     gateway:
+      # CORS Configuration
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -18,21 +26,34 @@ spring:
               - PUT
               - DELETE
               - OPTIONS
-              - HEAD
               - PATCH
             allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
       
+      # Default Filters for All Routes
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY,GATEWAY_TIMEOUT
+            methods: GET
+            backoff:
+              firstBackoff: 50ms
+              maxBackoff: 500ms
       
+      # Route Definitions
       routes:
-        # Auth Service Routes - Public endpoints
+        # =========================================
+        # AUTH SERVICE ROUTES
+        # =========================================
+        # Public Authentication Endpoints
         - id: auth-login
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/login
+            - Method=POST
           filters:
             - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
         
@@ -40,18 +61,20 @@ spring:
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/register
+            - Method=POST
           filters:
             - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
         
-        - id: auth-token
+        - id: auth-token-validation
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
-            - Path=/api/auth/token
+            - Path=/api/auth/validate,/api/auth/token
+            - Method=GET,POST
           filters:
             - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
         
-        # Auth Service - Other routes (protected)
-        - id: auth-service
+        # Protected Auth Routes
+        - id: auth-service-protected
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/**
@@ -59,7 +82,9 @@ spring:
             - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
             - AuthenticationFilter
         
-        # Faculty Service Routes (protected)
+        # =========================================
+        # FACULTY SERVICE ROUTES (Protected)
+        # =========================================
         - id: faculty-service
           uri: ${FACULTY_SERVICE_URL:http://localhost:8082}
           predicates:
@@ -68,40 +93,98 @@ spring:
             - RewritePath=/api/faculty/(?<segment>.*), /faculty/$\{segment}
             - AuthenticationFilter
         
-        # Student Service Routes (protected)
+        # =========================================
+        # STUDENT SERVICE ROUTES (Protected)
+        # =========================================
         - id: student-service
           uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
           predicates:
-            - Path=/api/student/**  
+            - Path=/api/student/**
           filters:
             - RewritePath=/api/student/(?<segment>.*), /student/$\{segment}
             - AuthenticationFilter
-    
-    kubernetes:
-      discovery:
-        enabled: true
-        all-namespaces: false
-      reload:
-        enabled: true
+      
+      # HTTP Client Configuration
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 30s
+        pool:
+          type: elastic
+          max-idle-time: 10s
 
+# ===========================================
+# SERVER CONFIGURATION
+# ===========================================
 server:
   port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
 
+# ===========================================
+# ACTUATOR & HEALTH CHECKS
+# ===========================================
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,gateway
+        include: health,info,metrics,gateway,refresh
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
     gateway:
+      access: unrestricted
+  health:
+    livenessstate:
       enabled: true
+    readinessstate:
+      enabled: true
+  simple:
+    metrics:
+      export:
+        enabled: true
 
+        
+
+        # ===========================================
+
+        # LOGGING CONFIGURATION
+
+        # ===========================================
 logging:
+  level:
+    root: INFO
+    com.cls.apigateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.server: DEBUG
+    reactor.netty: INFO
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{X-Correlation-Id}] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{X-Correlation-Id}] [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{X-Correlation-Id}] [%thread] %-5level %logger{36} - %msg%n"
 
+# ===========================================
+# SECURITY CONFIGURATION
+# ===========================================
 security:
   jwt:
     secret: ${JWT_SECRET}
+
+# ===========================================
+# CUSTOM APPLICATION PROPERTIES
+# ===========================================
+app:
+  security:
+    public-endpoints:
+      - /api/auth/login
+      - /api/auth/register
+      - /api/auth/validate
+      - /api/auth/token
+      - /actuator/**
+    role-mappings:
+      faculty:
+        - /api/faculty/**
+      student:
+        - /api/student/**
