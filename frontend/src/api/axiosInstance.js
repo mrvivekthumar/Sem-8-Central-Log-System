@@ -17,6 +17,20 @@ const axiosInstance = axios.create({
 });
 
 /**
+ * Get user data from localStorage
+ * @returns {Object|null} User object or null
+ */
+const getUserFromStorage = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  } catch (error) {
+    console.error('Error parsing user data from localStorage:', error);
+    return null;
+  }
+};
+
+/**
  * Request logger utility
  * @param {Object} config - Axios request config
  */
@@ -41,11 +55,15 @@ const logRequest = (config) => {
  */
 const logResponse = (response) => {
   const timestamp = new Date().toISOString();
+  const duration = response.config.metadata
+    ? Date.now() - response.config.metadata.startTime
+    : 0;
+
   console.group(`✅ API Response [${timestamp}]`);
   console.log('Status:', response.status);
   console.log('URL:', response.config.url);
   console.log('Data:', response.data);
-  console.log('Duration:', `${Date.now() - response.config.metadata.startTime}ms`);
+  console.log('Duration:', `${duration}ms`);
   console.groupEnd();
 };
 
@@ -83,6 +101,25 @@ axiosInstance.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // ✅ NEW: Add user ID header for backend identification
+    const user = getUserFromStorage();
+    if (user) {
+      // Add X-User-Id header (backend expects this)
+      if (user.id) {
+        config.headers['X-User-Id'] = user.id;
+      }
+
+      // Add X-User-Role header for role-based access
+      if (user.role) {
+        config.headers['X-User-Role'] = user.role;
+      }
+
+      // Add X-User-Email header (optional, for logging)
+      if (user.email) {
+        config.headers['X-User-Email'] = user.email;
+      }
     }
 
     // Log request in development
@@ -126,15 +163,33 @@ axiosInstance.interceptors.response.use(
             { refreshToken }
           );
 
-          const { accessToken } = response.data;
-          localStorage.setItem('accessToken', accessToken);
+          const { accessToken, user } = response.data;
 
+          // Update tokens and user data
+          localStorage.setItem('token', accessToken);
+          if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+
+          // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+          // ✅ Re-add user headers after token refresh
+          if (user && user.id) {
+            originalRequest.headers['X-User-Id'] = user.id;
+          }
+
           return axiosInstance(originalRequest);
         }
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
-        localStorage.clear();
+
+        // Clear all auth data
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+
+        // Redirect to login
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
@@ -143,11 +198,19 @@ axiosInstance.interceptors.response.use(
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
       console.error('Access denied. Insufficient permissions.');
+      // Optionally show a toast notification
+    }
+
+    // Handle 404 Not Found
+    if (error.response?.status === 404) {
+      console.error('Resource not found:', error.config?.url);
+      // Optionally show a toast notification
     }
 
     // Handle 500 Internal Server Error
     if (error.response?.status >= 500) {
       console.error('Server error occurred. Please try again later.');
+      // Optionally show a toast notification
     }
 
     return Promise.reject(error);
