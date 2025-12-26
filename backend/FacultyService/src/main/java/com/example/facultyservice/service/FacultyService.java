@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.example.facultyservice.domain.Faculty;
 import com.example.facultyservice.repository.FacultyRepository;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -18,105 +19,208 @@ public class FacultyService {
     @Autowired
     private FacultyRepository facultyRepository;
 
-    /**
-     * Get all faculty members
-     */
+    @PostConstruct
+    public void init() {
+        log.info("FacultyService initialized and ready");
+    }
+
+
     public List<Faculty> getAllFaculty() {
-        log.info("Fetching all faculty");
-        return facultyRepository.findAll();
+        log.info("Service: Fetching all faculty");
+
+        try {
+            List<Faculty> facultyList = facultyRepository.findAll();
+            log.info("Service: Successfully fetched {} faculty members", facultyList.size());
+            log.debug("Service: Faculty list: {}", facultyList);
+            return facultyList;
+        } catch (Exception e) {
+            log.error("Service: Error fetching all faculty: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
-    /**
-     * Get faculty by ID
-     */
+
     public Optional<Faculty> getFacultyById(Integer id) {
-        log.info("Fetching faculty by ID: {}", id);
-        return facultyRepository.findById(id);
+        log.info("Service: Fetching faculty by ID: {}", id);
+
+        try {
+            Optional<Faculty> faculty = facultyRepository.findById(id);
+            if (faculty.isPresent()) {
+                log.info("Service: Faculty found - ID: {}, Email: {}", id, faculty.get().getEmail());
+            } else {
+                log.warn("Service: Faculty not found with ID: {}", id);
+            }
+            return faculty;
+        } catch (Exception e) {
+            log.error("Service: Error fetching faculty by ID {}: {}", id, e.getMessage(), e);
+            throw e;
+        }
     }
 
-    /**
-     * Get faculty by email
-     */
+
     public Faculty getFacultyByEmail(String email) {
-        log.info("Fetching faculty by email: {}", email);
-        Faculty faculty = facultyRepository.findByEmail(email);
+        log.info("Service: Fetching faculty by email: {}", email);
 
-        if (faculty == null) {
-            log.error("Faculty not found with email: {}", email);
-            throw new RuntimeException("Faculty not found with email: " + email);
+        try {
+            Faculty faculty = facultyRepository.findByEmail(email);
+
+            if (faculty == null) {
+                log.error("Service: Faculty not found with email: {}", email);
+                throw new RuntimeException("Faculty not found with email: " + email);
+            }
+
+            log.info("Service: Faculty found - Email: {}, ID: {}, Name: {}",
+                    faculty.getEmail(), faculty.getFId(), faculty.getName());
+            return faculty;
+        } catch (RuntimeException e) {
+            log.error("Service: Error fetching faculty by email {}: {}", email, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Service: Unexpected error fetching faculty by email {}: {}",
+                    email, e.getMessage(), e);
+            throw e;
         }
-
-        return faculty;
     }
 
-    /**
-     * Create new faculty
-     */
     public Faculty createFaculty(Faculty faculty) {
-        log.info("Creating new faculty: {}", faculty.getEmail());
+        log.info("Service: Creating new faculty: {}", faculty.getEmail());
+        log.debug("Service: Faculty details - Name: {}, Email: {}, Department: {}",
+                faculty.getName(), faculty.getEmail(), faculty.getDepartment());
 
-        if (facultyRepository.existsByEmail(faculty.getEmail())) {
-            throw new RuntimeException("Faculty already exists with email: " + faculty.getEmail());
+        try {
+            if (facultyRepository.existsByEmail(faculty.getEmail())) {
+                log.warn("Service: Faculty already exists with email: {}", faculty.getEmail());
+                throw new RuntimeException("Faculty already exists with email: " + faculty.getEmail());
+            }
+
+            Faculty savedFaculty = facultyRepository.save(faculty);
+            log.info("Service: Faculty created successfully - ID: {}, Email: {}",
+                    savedFaculty.getFId(), savedFaculty.getEmail());
+            return savedFaculty;
+        } catch (RuntimeException e) {
+            log.error("Service: Error creating faculty {}: {}", faculty.getEmail(), e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Service: Unexpected error creating faculty {}: {}",
+                    faculty.getEmail(), e.getMessage(), e);
+            throw e;
         }
-
-        return facultyRepository.save(faculty);
     }
 
-    /**
-     * Update faculty profile
-     */
+
     public Faculty updateFaculty(Integer id, Faculty facultyDetails) {
-        log.info("Updating faculty with ID: {}", id);
+        log.info("Service: Updating faculty with ID: {}", id);
+        log.debug("Service: Update details - Name: {}, Department: {}",
+                facultyDetails.getName(), facultyDetails.getDepartment());
 
-        Faculty faculty = facultyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Faculty not found with id: " + id));
+        try {
+            Faculty faculty = facultyRepository.findById(id)
+                    .orElseThrow(() -> {
+                        log.error("Service: Faculty not found with ID: {}", id);
+                        return new RuntimeException("Faculty not found with id: " + id);
+                    });
 
-        // Update fields (excluding password and email for security)
-        if (facultyDetails.getName() != null) {
-            faculty.setName(facultyDetails.getName());
+            log.debug("Service: Current faculty details - Email: {}, Name: {}, Department: {}",
+                    faculty.getEmail(), faculty.getName(), faculty.getDepartment());
+
+            // Update fields (excluding password and email for security)
+            if (facultyDetails.getName() != null) {
+                log.debug("Service: Updating name from '{}' to '{}'",
+                        faculty.getName(), facultyDetails.getName());
+                faculty.setName(facultyDetails.getName());
+            }
+            if (facultyDetails.getDepartment() != null) {
+                log.debug("Service: Updating department from '{}' to '{}'",
+                        faculty.getDepartment(), facultyDetails.getDepartment());
+                faculty.setDepartment(facultyDetails.getDepartment());
+            }
+
+            Faculty updatedFaculty = facultyRepository.save(faculty);
+            log.info("Service: Faculty updated successfully - ID: {}, Email: {}",
+                    updatedFaculty.getFId(), updatedFaculty.getEmail());
+
+            return updatedFaculty;
+        } catch (RuntimeException e) {
+            log.error("Service: Error updating faculty ID {}: {}", id, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Service: Unexpected error updating faculty ID {}: {}",
+                    id, e.getMessage(), e);
+            throw e;
         }
-        if (facultyDetails.getDepartment() != null) {
-            faculty.setDepartment(facultyDetails.getDepartment());
-        }
-
-        Faculty updatedFaculty = facultyRepository.save(faculty);
-        log.info("Faculty updated successfully: {}", id);
-
-        return updatedFaculty;
     }
 
     /**
      * Delete faculty
      */
     public void deleteFaculty(Integer id) {
-        log.info("Deleting faculty with ID: {}", id);
+        log.info("Service: Deleting faculty with ID: {}", id);
 
-        if (!facultyRepository.existsById(id)) {
-            throw new RuntimeException("Faculty not found with id: " + id);
+        try {
+            if (!facultyRepository.existsById(id)) {
+                log.error("Service: Faculty not found with ID: {}", id);
+                throw new RuntimeException("Faculty not found with id: " + id);
+            }
+
+            facultyRepository.deleteById(id);
+            log.info("Service: Faculty deleted successfully - ID: {}", id);
+        } catch (RuntimeException e) {
+            log.error("Service: Error deleting faculty ID {}: {}", id, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Service: Unexpected error deleting faculty ID {}: {}",
+                    id, e.getMessage(), e);
+            throw e;
         }
-
-        facultyRepository.deleteById(id);
-        log.info("Faculty deleted successfully: {}", id);
     }
 
     /**
      * Get total faculty count
      */
     public Integer getTotalFacultyCount() {
-        return facultyRepository.findTotalUsers();
+        log.info("Service: Getting total faculty count");
+
+        try {
+            Integer count = facultyRepository.findTotalUsers();
+            log.info("Service: Total faculty count: {}", count);
+            return count;
+        } catch (Exception e) {
+            log.error("Service: Error getting faculty count: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
      * Get all faculty emails
      */
     public List<String> getAllFacultyEmails() {
-        return facultyRepository.findAllEmails();
+        log.info("Service: Getting all faculty emails");
+
+        try {
+            List<String> emails = facultyRepository.findAllEmails();
+            log.info("Service: Fetched {} faculty emails", emails.size());
+            log.debug("Service: Faculty emails: {}", emails);
+            return emails;
+        } catch (Exception e) {
+            log.error("Service: Error fetching faculty emails: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
      * Check if faculty exists by email
      */
     public boolean existsByEmail(String email) {
-        return facultyRepository.existsByEmail(email);
+        log.debug("Service: Checking if faculty exists with email: {}", email);
+
+        try {
+            boolean exists = facultyRepository.existsByEmail(email);
+            log.debug("Service: Faculty with email {} exists: {}", email, exists);
+            return exists;
+        } catch (Exception e) {
+            log.error("Service: Error checking faculty existence for email {}: {}",
+                    email, e.getMessage(), e);
+            throw e;
+        }
     }
 }
