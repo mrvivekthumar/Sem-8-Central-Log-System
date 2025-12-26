@@ -3,9 +3,10 @@ spring:
     name: auth-service
   
   datasource:
-    url: ${AUTH_DB_URL:jdbc:postgresql://${AUTH_DB_HOST:localhost}:${AUTH_DB_PORT:5432}/${AUTH_DB_NAME:authdb}}
-    username: ${AUTH_DB_USERNAME:postgres}
-    password: ${AUTH_DB_PASSWORD:Mr.VivekThumar@2004}
+    url: jdbc:postgresql://${AUTH_DB_HOST:localhost}:${AUTH_DB_PORT:5432}/${AUTH_DB_NAME:authdb}
+    username: ${AUTH_DB_USERNAME:auth_user}
+    password: ${AUTH_DB_PASSWORD:auth_password}  # FIXED: Removed hardcoded password
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -22,22 +23,16 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   
-  cloud:
-    kubernetes:
-      discovery:
-        enabled: true
-        all-namespaces: false
-      reload:
-        enabled: true
-        mode: event
-        strategy: refresh
+  # REMOVED: Kubernetes config (not needed for Docker Compose)
 
 server:
   port: ${AUTH_SERVICE_PORT:8081}
+  servlet:
+    context-path: /auth  # ADDED: To match Gateway routing
 
 jwt:
-  secret: ${JWT_SECRET:default-secret-key-change-in-production}
-  expiration: 1800000 # 30 minutes
+  secret: ${JWT_SECRET:default-secret-key-change-in-production-minimum-256-bits}
+  expiration: 1800000  # 30 minutes
 
 management:
   endpoints:

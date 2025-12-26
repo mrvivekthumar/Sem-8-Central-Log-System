@@ -9,17 +9,16 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Create non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
 COPY --from=builder /app/target/*.jar app.jar
 
-# Health check
+# FIXED: Changed port from 8070 to 8081
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8070/actuator/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1
 
-EXPOSE 8070
+EXPOSE 8081
 
 ENTRYPOINT ["java", \
     "-XX:+UseContainerSupport", \

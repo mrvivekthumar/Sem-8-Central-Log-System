@@ -3,9 +3,10 @@ spring:
     name: student-service
   
   datasource:
-    url: ${STUDENT_DB_URL:jdbc:postgresql://${STUDENT_DB_HOST:localhost}:${STUDENT_DB_PORT:5432}/${STUDENT_DB_NAME:studentdb}}
-    username: ${STUDENT_DB_USERNAME:postgres}
-    password: ${STUDENT_DB_PASSWORD:Mr.VivekThumar@2004}
+    url: jdbc:postgresql://${STUDENT_DB_HOST:localhost}:${STUDENT_DB_PORT:5432}/${STUDENT_DB_NAME:studentdb}
+    username: ${STUDENT_DB_USERNAME:student_user}  # CHANGED
+    password: ${STUDENT_DB_PASSWORD:student_password}  # CHANGED - NO HARDCODE
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -28,38 +29,31 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
-  cloud:
-    kubernetes:
-      discovery:
-        enabled: true
-        all-namespaces: false
-      reload:
-        enabled: true
+  # REMOVED Kubernetes config
 
 server:
   port: ${STUDENT_SERVICE_PORT:8083}
+  servlet:
+    context-path: /student
 
 jwt:
-  secret: ${JWT_SECRET:default-secret-key-change-in-production}
+  secret: ${JWT_SECRET:default-secret-key-change-in-production-minimum-256-bits}
 
-# Feign Client URLs
 auth-service:
-  # FIX: 8081 (auth-service)
   url: ${AUTH_SERVICE_URL:http://localhost:8081}
 
 faculty-service:
-  # FIX: 8082 (faculty-service)
   url: ${FACULTY_SERVICE_URL:http://localhost:8082}
 
 cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME}
-  api-key: ${CLOUDINARY_API_KEY}
-  api-secret: ${CLOUDINARY_API_SECRET}
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:your-cloud-name}
+  api-key: ${CLOUDINARY_API_KEY:your-api-key}
+  api-secret: ${CLOUDINARY_API_SECRET:your-api-secret}
 
 rabbitmq:
-  exchange: ${RABBITMQ_EXCHANGE:project-exchange}
-  queue: ${RABBITMQ_QUEUE:student-project-queue}
-  routing-key: ${RABBITMQ_ROUTING_KEY:project.created}
+  exchange: ${RABBITMQ_EXCHANGE:cls-exchange}
+  queue: ${RABBITMQ_QUEUE:student-queue}
+  routing-key: ${RABBITMQ_ROUTING_KEY:student.event}
 
 management:
   endpoints:
@@ -84,6 +78,6 @@ feign:
   client:
     config:
       default:
-        loggerLevel: full
+        loggerLevel: BASIC
         connectTimeout: 5000
         readTimeout: 10000
