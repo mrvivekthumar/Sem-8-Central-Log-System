@@ -1,7 +1,10 @@
 package com.example.authenticationservice.exception;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,51 +15,73 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthException(
-            AuthenticationException ex,
-            HttpServletRequest request) {
+        private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-        ErrorResponse response = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error("UNAUTHORIZED")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+        @PostConstruct
+        public void init() {
+                logger.info("GlobalExceptionHandler initialized and ready to handle exceptions");
+        }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-    }
+        @ExceptionHandler(AuthenticationException.class)
+        public ResponseEntity<ErrorResponse> handleAuthException(
+                        AuthenticationException ex,
+                        HttpServletRequest request) {
 
-    @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidRequest(
-            InvalidRequestException ex,
-            HttpServletRequest request) {
+                logger.error("Authentication Exception - Path: {}, Message: {}",
+                                request.getRequestURI(), ex.getMessage());
+                logger.debug("Authentication Exception details:", ex);
 
-        ErrorResponse response = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("BAD_REQUEST")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+                ErrorResponse response = ErrorResponse.builder()
+                                .timestamp(Instant.now())
+                                .status(HttpStatus.UNAUTHORIZED.value())
+                                .error("UNAUTHORIZED")
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
 
-        return ResponseEntity.badRequest().body(response);
-    }
+                logger.info("Returning UNAUTHORIZED response for path: {}", request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(InvalidRequestException.class)
+        public ResponseEntity<ErrorResponse> handleInvalidRequest(
+                        InvalidRequestException ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse response = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("INTERNAL_SERVER_ERROR")
-                .message("Something went wrong")
-                .path(request.getRequestURI())
-                .build();
+                logger.warn("Invalid Request Exception - Path: {}, Message: {}",
+                                request.getRequestURI(), ex.getMessage());
+                logger.debug("Invalid Request Exception details:", ex);
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
+                ErrorResponse response = ErrorResponse.builder()
+                                .timestamp(Instant.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("BAD_REQUEST")
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
+
+                logger.info("Returning BAD_REQUEST response for path: {}", request.getRequestURI());
+                return ResponseEntity.badRequest().body(response);
+        }
+
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ErrorResponse> handleGenericException(
+                        Exception ex,
+                        HttpServletRequest request) {
+
+                logger.error("Unhandled Exception - Path: {}, Type: {}, Message: {}",
+                                request.getRequestURI(), ex.getClass().getSimpleName(), ex.getMessage());
+                logger.error("Unhandled Exception full details:", ex);
+
+                ErrorResponse response = ErrorResponse.builder()
+                                .timestamp(Instant.now())
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                .error("INTERNAL_SERVER_ERROR")
+                                .message("Something went wrong")
+                                .path(request.getRequestURI())
+                                .build();
+
+                logger.info("Returning INTERNAL_SERVER_ERROR response for path: {}", request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
 }

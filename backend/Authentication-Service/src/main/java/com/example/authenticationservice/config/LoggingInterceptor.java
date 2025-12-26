@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -14,6 +15,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class LoggingInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingInterceptor.class);
+
+    @PostConstruct
+    public void init() {
+        logger.info("LoggingInterceptor initialized and ready to intercept requests");
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -25,6 +31,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
         logger.debug("Request Headers: {}", getHeaders(request));
         logger.debug("Request Parameters: {}", request.getQueryString());
         logger.debug("Remote Address: {}", request.getRemoteAddr());
+        logger.debug("Content Type: {}", request.getContentType());
 
         return true;
     }
@@ -33,7 +40,13 @@ public class LoggingInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
             Object handler, Exception ex) {
 
-        long startTime = (Long) request.getAttribute("startTime");
+        Long startTimeAttr = (Long) request.getAttribute("startTime");
+        if (startTimeAttr == null) {
+            logger.warn("startTime attribute not found in request");
+            return;
+        }
+
+        long startTime = startTimeAttr;
         long duration = System.currentTimeMillis() - startTime;
 
         // Log outgoing response
@@ -44,12 +57,23 @@ public class LoggingInterceptor implements HandlerInterceptor {
                 duration);
 
         if (ex != null) {
-            logger.error("Request failed with exception: ", ex);
+            logger.error("Request failed with exception for {} {}: {}",
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    ex.getMessage(), ex);
         }
 
         // Log slow requests (more than 1 second)
         if (duration > 1000) {
-            logger.warn("SLOW REQUEST DETECTED: {} {} took {}ms",
+            logger.warn("⚠️ SLOW REQUEST DETECTED: {} {} took {}ms",
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    duration);
+        }
+
+        // Log very slow requests (more than 3 seconds)
+        if (duration > 3000) {
+            logger.error("🔥 VERY SLOW REQUEST DETECTED: {} {} took {}ms - PERFORMANCE ISSUE!",
                     request.getMethod(),
                     request.getRequestURI(),
                     duration);
@@ -69,6 +93,9 @@ public class LoggingInterceptor implements HandlerInterceptor {
                         .append(": ")
                         .append(request.getHeader(headerName))
                         .append(", ");
+            } else {
+                headers.append(headerName)
+                        .append(": [REDACTED], ");
             }
         }
 

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ import com.example.authenticationservice.exception.InvalidRequestException;
 import com.example.authenticationservice.service.AuthService;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("auth")
@@ -42,71 +44,142 @@ public class AuthController {
 
     @PostConstruct
     public void init() {
-        logger.info("AuthController Initialized!");
+        logger.info("=================================================");
+        logger.info("AuthController Initialized and Ready!");
+        logger.info("Available Endpoints: /register, /login, /validate");
+        logger.info("=================================================");
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest, HttpServletRequest request) {
+        logger.info("===============================================");
+        logger.info("Controller: Registration attempt for user: {}", registerRequest.getEmail());
+        logger.debug("Controller: Registration details - Email: {}, Role: {}, Name: {}",
+                registerRequest.getEmail(), registerRequest.getRole(), registerRequest.getName());
+        logger.debug("Controller: Request from IP: {}", request.getRemoteAddr());
 
-        logger.info("Registration attempt for user: {}", registerRequest.getEmail());
+        try {
+            // Validate role
+            if (!registerRequest.getRole().equals("STUDENT") &&
+                    !registerRequest.getRole().equals("FACULTY")) {
+                logger.warn("Controller: Invalid role provided: {}", registerRequest.getRole());
+                throw new InvalidRequestException("Invalid role. Only STUDENT and FACULTY are allowed.");
+            }
 
-        // Validate role
-        if (!registerRequest.getRole().equals("STUDENT") &&
-                !registerRequest.getRole().equals("FACULTY")) {
-            throw new InvalidRequestException("Invalid role. Only STUDENT and FACULTY are allowed.");
+            logger.debug("Controller: Role validation passed for: {}", registerRequest.getRole());
 
+            // Create user credential
+            UserResponse userResponse = authService.register(registerRequest);
+
+            logger.info("Controller: Registration successful for user: {} with ID: {}",
+                    registerRequest.getEmail(), userResponse.getId());
+            logger.debug("Controller: User response: {}", userResponse);
+            logger.info("===============================================");
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+
+        } catch (InvalidRequestException e) {
+            logger.error("Controller: Registration validation failed for {}: {}",
+                    registerRequest.getEmail(), e.getMessage());
+            logger.info("===============================================");
+            throw e;
+        } catch (Exception e) {
+            logger.error("Controller: Unexpected error during registration for {}: {}",
+                    registerRequest.getEmail(), e.getMessage(), e);
+            logger.info("===============================================");
+            throw e;
         }
-
-        // Create user credential
-        UserResponse userResponse = authService.register(registerRequest);
-
-        logger.info("Registration successful for user: {}", registerRequest.getEmail());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+        logger.info("===============================================");
+        logger.info("Controller: Login attempt for user: {}", loginRequest.getEmail());
+        logger.debug("Controller: Login request from IP: {}", request.getRemoteAddr());
+        logger.debug("Controller: User-Agent: {}", request.getHeader("User-Agent"));
 
-        logger.info("Login attempt for user: {}", loginRequest.getEmail());
+        try {
+            // Authenticate user
+            logger.debug("Controller: Authenticating user credentials for: {}", loginRequest.getEmail());
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()));
 
-        // Authenticate user
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getEmail(),
-                        loginRequest.getPassword()));
+            if (authentication.isAuthenticated()) {
+                logger.info("Controller: Authentication successful for user: {}", loginRequest.getEmail());
+                logger.debug("Controller: Authentication details: {}", authentication);
 
-        if (authentication.isAuthenticated()) {
-            // Generate token
-            String token = authService.generateToken(loginRequest.getEmail());
+                // Generate token
+                logger.debug("Controller: Generating JWT token for: {}", loginRequest.getEmail());
+                String token = authService.generateToken(loginRequest.getEmail());
 
-            // Get user details
-            UserCredential user = authService.getUserByEmail(loginRequest.getEmail());
+                // Get user details
+                logger.debug("Controller: Fetching user details for: {}", loginRequest.getEmail());
+                UserCredential user = authService.getUserByEmail(loginRequest.getEmail());
 
-            // Build user DTO
-            UserResponse userResponse = new UserResponse(
-                    user.getId(),
-                    user.getEmail(),
-                    user.getRole());
+                // Build user DTO
+                UserResponse userResponse = new UserResponse(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getRole());
 
-            // Build response
-            LoginResponse response = LoginResponse.builder()
-                    .accessToken(token)
-                    .expiresIn(3600) // or from config
-                    .user(userResponse)
-                    .build();
+                // Build response
+                LoginResponse response = LoginResponse.builder()
+                        .accessToken(token)
+                        .expiresIn(3600) // 1 hour
+                        .user(userResponse)
+                        .build();
 
-            logger.info("Login successful for user: {}", loginRequest.getEmail());
-            return ResponseEntity.ok(response);
-        } else {
-            throw new AuthenticationException("Invalid credentials");
+                logger.info("Controller: Login successful for user: {}, Role: {}, ID: {}",
+                        loginRequest.getEmail(), user.getRole(), user.getId());
+                logger.debug("Controller: Token length: {} characters", token.length());
+                logger.info("===============================================");
+
+                return ResponseEntity.ok(response);
+            } else {
+                logger.warn("Controller: Authentication failed for user: {} - Not authenticated",
+                        loginRequest.getEmail());
+                logger.info("===============================================");
+                throw new AuthenticationException("Invalid credentials");
+            }
+
+        } catch (BadCredentialsException e) {
+            logger.error("Controller: Login failed for user: {} - Bad credentials", loginRequest.getEmail());
+            logger.info("===============================================");
+            throw new AuthenticationException("Invalid email or password");
+        } catch (AuthenticationException e) {
+            logger.error("Controller: Login failed for user: {} - {}",
+                    loginRequest.getEmail(), e.getMessage());
+            logger.info("===============================================");
+            throw e;
+        } catch (Exception e) {
+            logger.error("Controller: Unexpected error during login for {}: {}",
+                    loginRequest.getEmail(), e.getMessage(), e);
+            logger.info("===============================================");
+            throw e;
         }
-
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<?> validateToken(@RequestParam String token) {
-        authService.validateToken(token);
-        return ResponseEntity.ok(Map.of("valid", true, "message", "Token is valid"));
+    public ResponseEntity<?> validateToken(@RequestParam String token, HttpServletRequest request) {
+        logger.info("===============================================");
+        logger.info("Controller: Token validation request received");
+        logger.debug("Controller: Token preview: {}...", token.substring(0, Math.min(30, token.length())));
+        logger.debug("Controller: Request from IP: {}", request.getRemoteAddr());
+
+        try {
+            authService.validateToken(token);
+
+            logger.info("Controller: Token validation successful");
+            logger.info("===============================================");
+
+            return ResponseEntity.ok(Map.of("valid", true, "message", "Token is valid"));
+
+        } catch (Exception e) {
+            logger.error("Controller: Token validation failed: {}", e.getMessage());
+            logger.info("===============================================");
+            throw e;
+        }
     }
 }
