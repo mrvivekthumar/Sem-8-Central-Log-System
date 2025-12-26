@@ -1,4 +1,4 @@
-package com.example.facultyservice.domain;
+package com.example.facultyservice.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

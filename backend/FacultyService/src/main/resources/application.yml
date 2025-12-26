@@ -1,84 +1,267 @@
+# ===========================================
+# FACULTY SERVICE CONFIGURATION
+# ===========================================
 spring:
   application:
     name: faculty-service
 
+  # ===========================================
+  # DATABASE CONFIGURATION (PostgreSQL)
+  # ===========================================
   datasource:
-    url: ${FACULTY_DB_URL:jdbc:postgresql://${FACULTY_DB_HOST:localhost}:${FACULTY_DB_PORT:5432}/${FACULTY_DB_NAME:facultydb}}
-    username: ${FACULTY_DB_USERNAME:postgres}
-    password: ${FACULTY_DB_PASSWORD:Mr.VivekThumar@2004}
+    url: jdbc:postgresql://${FACULTY_DB_HOST:localhost}:${FACULTY_DB_PORT:5432}/${FACULTY_DB_NAME:facultydb}
+    username: ${FACULTY_DB_USERNAME:faculty_user}
+    password: ${FACULTY_DB_PASSWORD:faculty_password}
+    driver-class-name: org.postgresql.Driver
+    
+    # HikariCP Connection Pool Configuration
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${DB_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DB_MAX_LIFETIME:1800000}
+      pool-name: FacultyServiceHikariPool
+      auto-commit: true
+      connection-test-query: SELECT 1
 
+  # ===========================================
+  # JPA/HIBERNATE CONFIGURATION
+  # ===========================================
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    show-sql: ${HIBERNATE_SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        use_sql_comments: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
 
+  # ===========================================
+  # RABBITMQ CONFIGURATION
+  # ===========================================
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
-
-  cloud:
-    kubernetes:
-      discovery:
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST:/}
+    connection-timeout: 30000
+    requested-heartbeat: 60
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+      retry:
         enabled: true
-        all-namespaces: false
-      reload:
-        enabled: true
+        initial-interval: 1000
+        max-attempts: 3
+        multiplier: 2.0
+    listener:
+      simple:
+        acknowledge-mode: auto
+        prefetch: 10
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
 
+# ===========================================
+# SERVER CONFIGURATION
+# ===========================================
 server:
-  # FIX: match docker-compose (8082)
   port: ${FACULTY_SERVICE_PORT:8082}
+  servlet:
+    context-path: /faculty
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    max-connections: 8192
+    accept-count: 100
 
-jwt:
-  secret: ${JWT_SECRET:default-secret-key-change-in-production}
-
-rabbitmq:
-  exchange: ${RABBITMQ_EXCHANGE:project-exchange}
-  queue: ${RABBITMQ_QUEUE:faculty-project-queue}
-  routing-key: ${RABBITMQ_ROUTING_KEY:project.created}
-
+# ===========================================
+# ACTUATOR & HEALTH CHECKS
+# ===========================================
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
   health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
     db:
       enabled: true
     rabbit:
       enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
-logging:
-  level:
-    com.example.facultyservice: INFO
-    org.springframework.web: DEBUG
+        
 
-auth-service:
-  # FIX: auth-service at 8081
-  url: ${AUTH_SERVICE_URL:http://localhost:8081}
+        # ===========================================
 
-student-service:
-  # FIX: student-service at 8083
-  url: ${STUDENT_SERVICE_URL:http://localhost:8083}
+        # JWT CONFIGURATION
 
+        # ===========================================
+jwt:
+  secret: ${JWT_SECRET:default-secret-key-change-in-production-minimum-256-bits}
+  expiration: 86400000
+
+# ===========================================
+# RABBITMQ CUSTOM CONFIGURATION
+# ===========================================
+rabbitmq:
+  exchange: ${RABBITMQ_EXCHANGE:cls-exchange}
+  queue: ${RABBITMQ_QUEUE:faculty-queue}
+  routing-key: ${RABBITMQ_ROUTING_KEY:faculty.event}
+
+# ===========================================
+# FEIGN CLIENT CONFIGURATION
+# ===========================================
 feign:
   client:
     config:
       default:
-        loggerLevel: full
         connectTimeout: 5000
         readTimeout: 10000
+        loggerLevel: BASIC
+      student-service:
+        url: ${STUDENT_SERVICE_URL:http://student-service:8083}
+        connectTimeout: 5000
+        readTimeout: 10000
+  compression:
+    request:
+      enabled: true
+      mime-types: text/xml,application/xml,application/json
+    response:
+      enabled: true
+  httpclient:
+    enabled: true
+    max-connections: 200
+    max-connections-per-route: 50
+
+# ===========================================
+# LOGGING CONFIGURATION
+# ===========================================
+logging:
+  level:
+    root: INFO
+    com.cls.facultyservice: DEBUG
+    org.springframework.web: INFO
+    org.springframework.cloud.openfeign: DEBUG
+    org.hibernate.SQL: ${SQL_LOGGING:false}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${SQL_LOGGING:false}
+    org.springframework.amqp: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{X-Correlation-Id}] [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{X-Correlation-Id}] [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/faculty-service.log
+    max-size: 10MB
+    max-history: 30
+
+# ===========================================
+# SERVICE URLs (Inter-service Communication)
+# ===========================================
+services:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:8081}
+    base-path: /auth
+  student:
+    url: ${STUDENT_SERVICE_URL:http://student-service:8083}
+    base-path: /student
+
+# ===========================================
+# APPLICATION SPECIFIC CONFIGURATION
+# ===========================================
+app:
+  security:
+    enabled: true
+    public-endpoints:
+      - /actuator/**
+      - /swagger-ui/**
+      - /v3/api-docs/**
+  
+  excel:
+    max-rows: 10000
+    buffer-size: 8192
+  
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+      - https://*.vercel.app
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+    allowed-headers: "*"
+    exposed-headers:
+      - Authorization
+      - Content-Type
+    allow-credentials: true
+    max-age: 3600
+
+# ===========================================
+# SPRING PROFILES
+# ===========================================
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://${FACULTY_DB_HOST:faculty-db}:${FACULTY_DB_PORT:5432}/${FACULTY_DB_NAME:facultydb}
+
+services:
+  auth:
+    url: http://auth-service:8081
+  student:
+    url: http://student-service:8083
+
+logging:
+  level:
+    root: INFO
+    com.cls.facultyservice: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    root: DEBUG
+    com.cls.facultyservice: DEBUG
+    org.hibernate.SQL: DEBUG

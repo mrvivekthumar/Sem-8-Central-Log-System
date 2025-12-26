@@ -4,7 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.facultyservice.domain.Student;
+import com.example.facultyservice.entity.Student;
 
 import java.util.List;
 

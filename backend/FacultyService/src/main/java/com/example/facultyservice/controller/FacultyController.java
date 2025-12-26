@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.facultyservice.domain.Faculty;
+import com.example.facultyservice.entity.Faculty;
 import com.example.facultyservice.service.FacultyService;
 
 import jakarta.annotation.PostConstruct;

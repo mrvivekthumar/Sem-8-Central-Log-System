@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.facultyservice.domain.Faculty;
+import com.example.facultyservice.entity.Faculty;
 import com.example.facultyservice.repository.FacultyRepository;
 
 import jakarta.annotation.PostConstruct;
