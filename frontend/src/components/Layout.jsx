@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 
-const Layout = () => {
+const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -17,7 +16,7 @@ const Layout = () => {
         className="pt-16"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Outlet />
+          {children}
         </div>
       </motion.main>
 

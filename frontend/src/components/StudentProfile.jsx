@@ -29,7 +29,8 @@ import {
   SiGooglecloud,
   SiJavascript,
   SiMongodb,
-  SiNodedotjs, SiPython,
+  SiNodedotjs,
+  SiPython,
   SiReact,
   SiTensorflow,
   SiTypescript
@@ -41,7 +42,6 @@ const StudentProfile = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState('overview');
   const [studentData, setStudentData] = useState({
     name: '',
     email: '',
@@ -82,31 +82,109 @@ const StudentProfile = () => {
   const fetchStudentProfile = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/STUDENT-SERVICE/students/email/${user.username}`);
+
+      let response;
+
+      // Try different endpoints based on role
+      if (user.role === 'FACULTY') {
+        try {
+          // Try: GET /api/faculty/email/{email}
+          response = await axiosInstance.get(`/api/faculty/email/${user.email}`);
+        } catch (error) {
+          if (error.response?.status === 404) {
+            // Fallback: Try GET /api/faculty (get all and filter)
+            const allFaculty = await axiosInstance.get('/api/faculty');
+            const faculty = allFaculty.data.find(f => f.email === user.email);
+
+            if (!faculty) {
+              throw new Error('Faculty profile not found');
+            }
+
+            response = { data: faculty };
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        // Student endpoint
+        try {
+          response = await axiosInstance.get(`/api/students/email/${user.email}`);
+        } catch (error) {
+          if (error.response?.status === 404) {
+            // Fallback: Try GET /api/students and filter
+            const allStudents = await axiosInstance.get('/api/students');
+            const student = allStudents.data.find(s => s.email === user.email);
+
+            if (!student) {
+              throw new Error('Student profile not found');
+            }
+
+            response = { data: student };
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      console.log('✅ Profile loaded:', response.data);
+
+      if (user.role === 'FACULTY' && response.data.fId) {
+        response.data.id = response.data.fId;
+      }
+
+      // Check if ID exists
+      if (!response.data.id) {
+        console.error('⚠️ Profile has no ID!', response.data);
+        toast.error('Profile data incomplete. Please contact support.');
+        return;
+      }
+
       setStudentData(response.data);
       setEditForm(response.data);
+
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      toast.error('Failed to load profile');
+      console.error('❌ Error fetching profile:', error);
+      toast.error(error.message || 'Failed to load profile');
     } finally {
       setLoading(false);
     }
   };
 
+
+
+  // ✅ FIXED - Check ID exists and use correct endpoint
   const handleSave = async () => {
     try {
+      // Validate ID exists
+      if (!studentData.id) {
+        toast.error('Profile ID not found. Please refresh the page.');
+        return;
+      }
+
       setLoading(true);
-      await axiosInstance.put(`/STUDENT-SERVICE/students/${user.id}`, editForm);
+
+      // Determine endpoint based on user role
+      const endpoint = user.role === 'FACULTY'
+        ? `/api/faculty/${studentData.id}`
+        : `/api/students/${studentData.id}`;
+
+      console.log('Saving to:', endpoint, editForm); // Debug
+
+      await axiosInstance.put(endpoint, editForm);
+
       setStudentData(editForm);
       setIsEditing(false);
       toast.success('Profile updated successfully!');
+      await fetchStudentProfile(); // Refresh data
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      const errorMsg = error.response?.data?.message || 'Failed to update profile';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleAddSkill = () => {
     if (newSkill && !editForm.skills?.includes(newSkill)) {
@@ -125,33 +203,42 @@ const StudentProfile = () => {
     });
   };
 
+  // ✅ FIXED: Stats cards with proper colors
   const statsCards = [
     {
       label: 'Rating',
       value: studentData.ratings?.toFixed(1) || '0.0',
       icon: Star,
-      color: 'yellow',
+      gradient: 'from-yellow-400 to-orange-500',
+      bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+      iconColor: 'text-yellow-600 dark:text-yellow-400',
       suffix: '/ 5.0'
     },
     {
       label: 'Completed',
       value: studentData.projectsCompleted || 0,
       icon: Briefcase,
-      color: 'green',
+      gradient: 'from-green-400 to-emerald-500',
+      bg: 'bg-green-50 dark:bg-green-900/20',
+      iconColor: 'text-green-600 dark:text-green-400',
       suffix: 'projects'
     },
     {
       label: 'Active',
       value: studentData.currentProjects || 0,
       icon: Zap,
-      color: 'blue',
+      gradient: 'from-blue-400 to-cyan-500',
+      bg: 'bg-blue-50 dark:bg-blue-900/20',
+      iconColor: 'text-blue-600 dark:text-blue-400',
       suffix: 'ongoing'
     },
     {
       label: 'Skills',
       value: studentData.skills?.length || 0,
       icon: Code,
-      color: 'purple',
+      gradient: 'from-purple-400 to-pink-500',
+      bg: 'bg-purple-50 dark:bg-purple-900/20',
+      iconColor: 'text-purple-600 dark:text-purple-400',
       suffix: 'mastered'
     }
   ];
@@ -220,23 +307,23 @@ const StudentProfile = () => {
       </div>
 
       {/* Profile Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 pb-12">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Profile Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="lg:col-span-1"
+            className="lg:col-span-1 relative z-20"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-xl">
               {/* Avatar Section */}
-              <div className="p-8 text-center">
+              <div className="p-8 text-center -mt-4">
                 <div className="relative inline-block mb-4">
-                  <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold">
-                    {studentData.name?.charAt(0) || 'U'}
+                  <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                    {studentData.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   {isEditing && (
-                    <button className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+                    <button className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg">
                       <Camera className="w-4 h-4" />
                     </button>
                   )}
@@ -265,7 +352,7 @@ const StudentProfile = () => {
                     value={editForm.bio || ''}
                     onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
                     placeholder="Write a short bio about yourself..."
-                    className="w-full text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg px-4 py-3 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
+                    className="w-full text-sm text-gray-900 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 rounded-lg px-4 py-3 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
                     rows={4}
                   />
                 ) : (
@@ -286,7 +373,7 @@ const StudentProfile = () => {
                       value={editForm.phone || ''}
                       onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                       placeholder="Phone number"
-                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
                     />
                   ) : (
                     <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -304,7 +391,7 @@ const StudentProfile = () => {
                       value={editForm.location || ''}
                       onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                       placeholder="Your location"
-                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
                     />
                   ) : (
                     <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -322,7 +409,7 @@ const StudentProfile = () => {
                       value={editForm.githubProfileLink || ''}
                       onChange={(e) => setEditForm({ ...editForm, githubProfileLink: e.target.value })}
                       placeholder="GitHub profile URL"
-                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
                     />
                   ) : studentData.githubProfileLink ? (
                     <a
@@ -348,7 +435,7 @@ const StudentProfile = () => {
                       value={editForm.linkedInProfileLink || ''}
                       onChange={(e) => setEditForm({ ...editForm, linkedInProfileLink: e.target.value })}
                       placeholder="LinkedIn profile URL"
-                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
                     />
                   ) : studentData.linkedInProfileLink ? (
                     <a
@@ -374,7 +461,7 @@ const StudentProfile = () => {
                       value={editForm.portfolioLink || ''}
                       onChange={(e) => setEditForm({ ...editForm, portfolioLink: e.target.value })}
                       placeholder="Portfolio website URL"
-                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
                     />
                   ) : studentData.portfolioLink ? (
                     <a
@@ -395,8 +482,8 @@ const StudentProfile = () => {
           </motion.div>
 
           {/* Right Column - Stats & Skills */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Stats Grid */}
+          <div className="lg:col-span-2 space-y-8 relative z-10">
+            {/* ✅ IMPROVED Stats Grid - Always Visible, Beautiful Cards */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -411,19 +498,22 @@ const StudentProfile = () => {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.2 + index * 0.1 }}
-                      whileHover={{ y: -4 }}
-                      className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all"
+                      whileHover={{
+                        y: -8,
+                        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                      }}
+                      className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-md transition-all cursor-pointer"
                     >
-                      <div className={`w-12 h-12 rounded-xl bg-${stat.color}-100 dark:bg-${stat.color}-900/20 flex items-center justify-center mb-3`}>
-                        <Icon className={`w-6 h-6 text-${stat.color}-600 dark:text-${stat.color}-400`} />
+                      <div className={`w-14 h-14 rounded-xl ${stat.bg} flex items-center justify-center mb-4 shadow-inner`}>
+                        <Icon className={`w-7 h-7 ${stat.iconColor}`} />
                       </div>
-                      <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      <div className={`text-4xl font-extrabold bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent mb-1`}>
                         {stat.value}
                       </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <div className="text-sm text-gray-900 dark:text-white font-semibold mb-1">
                         {stat.label}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         {stat.suffix}
                       </div>
                     </motion.div>
@@ -437,7 +527,7 @@ const StudentProfile = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6"
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-xl"
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -454,7 +544,7 @@ const StudentProfile = () => {
                     onChange={(e) => setNewSkill(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
                     placeholder="Add a skill..."
-                    className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:border-blue-500 focus:outline-none"
+                    className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:border-blue-500 focus:outline-none text-gray-900 dark:text-white"
                   />
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -477,19 +567,22 @@ const StudentProfile = () => {
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.05 }}
-                      className="group relative px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center gap-2 hover:shadow-md transition-all"
+                      whileHover={{ scale: 1.05 }}
+                      className="group relative px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center gap-2 hover:shadow-lg transition-all cursor-pointer"
                     >
                       {SkillIcon && <SkillIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {skill}
                       </span>
                       {isEditing && (
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => handleRemoveSkill(skill)}
                           className="ml-1 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="w-4 h-4" />
-                        </button>
+                        </motion.button>
                       )}
                     </motion.div>
                   );
@@ -500,12 +593,12 @@ const StudentProfile = () => {
               </div>
             </motion.div>
 
-            {/* Achievement Section */}
+            {/* Achievement Banner */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white relative overflow-hidden"
+              className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white relative overflow-hidden shadow-2xl"
             >
               <div className="absolute inset-0 opacity-20">
                 <div className="absolute inset-0" style={{
@@ -516,12 +609,12 @@ const StudentProfile = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Award className="w-6 h-6" />
-                    <span className="font-semibold">Keep Growing!</span>
+                    <span className="font-semibold text-lg">Keep Growing!</span>
                   </div>
                   <h3 className="text-2xl font-bold mb-2">Complete your profile to unlock opportunities</h3>
                   <p className="text-blue-100 mb-4">Add more skills and project details to get better matches</p>
                 </div>
-                <TrendingUp className="w-24 h-24 opacity-20" />
+                <TrendingUp className="w-24 h-24 opacity-30" />
               </div>
             </motion.div>
           </div>

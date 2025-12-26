@@ -16,7 +16,6 @@
         <module>Api-Gateway</module>
         <module>Authentication-Service</module>
         <module>FacultyService</module>
-        <!-- <module>NotificationService</module> -->
         <module>StudentService</module>
     </modules>
 
@@ -24,6 +23,7 @@
         <java.version>17</java.version>
         <spring-boot.version>3.4.4</spring-boot.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
     </properties>
 
     <dependencyManagement>
@@ -41,6 +41,13 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            
+            <!-- Logstash Encoder for JSON Logging -->
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>7.4</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
