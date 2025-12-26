@@ -105,7 +105,7 @@ public class StudentController {
 
         try {
             StudentProject project = studentService.getProjectById(projectId);
-            logger.info("Project fetched: {} (ID: {})", project.getProjectName(), projectId);
+            logger.info("Project fetched: {} (ID: {})", project.getProjectId(), projectId);
             logger.info("===============================================");
             return ResponseEntity.ok(project);
 

@@ -21,11 +21,9 @@
     <properties>
         <java.version>17</java.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
-        <!-- FIXED: Updated POI version to latest secure version -->
-        <poi.version>5.3.0</poi.version>
         <lombok.version>1.18.30</lombok.version>
-        <!-- FIXED: Updated PostgreSQL to latest secure version -->
-        <postgresql.version>42.7.4</postgresql.version>
+        <postgresql.version>42.7.8</postgresql.version>
+        <poi.version>5.5.1</poi.version>
     </properties>
     
     <dependencies>
@@ -52,7 +50,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- PostgreSQL Driver - FIXED VERSION -->
         <dependency>
             <groupId>org.postgresql</groupId>
