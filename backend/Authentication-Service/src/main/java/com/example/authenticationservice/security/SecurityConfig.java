@@ -66,16 +66,16 @@ public class SecurityConfig {
 
                         // Public endpoints
                         .requestMatchers(
-                                "/auth/registerOne",
-                                "/auth/register",
-                                "/auth/login",
-                                "/auth/hello",
-                                "/auth/token",
-                                "/auth/validate",
+                                "/api/auth/registerOne",
+                                "/api/auth/register", // Add /api prefix
+                                "/api/auth/login", // Add /api prefix
+                                "/api/auth/hello",
+                                "/api/auth/token", // Add /api prefix
+                                "/api/auth/validate", // Add /api prefix
                                 "/actuator/**",
-                                "/auth/actuator/**",
-                                "/auth/user",
-                                "/auth/updatePassword")
+                                "/api/auth/actuator/**",
+                                "/api/auth/user",
+                                "/api/auth/updatePassword") // Add /api prefix
                         .permitAll()
 
                         // Everything else requires authentication

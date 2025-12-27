@@ -97,28 +97,34 @@ axiosInstance.interceptors.request.use(
     // Add metadata for tracking
     config.metadata = { startTime: Date.now() };
 
-    // Add auth token if available
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // ✅ FIX: Don't add auth headers for public endpoints
+    const publicEndpoints = ['/api/auth/register', '/api/auth/login'];
+    const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
 
-    // ✅ NEW: Add user ID header for backend identification
-    const user = getUserFromStorage();
-    if (user) {
-      // Add X-User-Id header (backend expects this)
-      if (user.id) {
-        config.headers['X-User-Id'] = user.id;
+    if (!isPublicEndpoint) {
+      // Add auth token if available
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
 
-      // Add X-User-Role header for role-based access
-      if (user.role) {
-        config.headers['X-User-Role'] = user.role;
-      }
+      // Add user ID header for backend identification
+      const user = getUserFromStorage();
+      if (user) {
+        // Add X-User-Id header (backend expects this)
+        if (user.id) {
+          config.headers['X-User-Id'] = user.id;
+        }
 
-      // Add X-User-Email header (optional, for logging)
-      if (user.email) {
-        config.headers['X-User-Email'] = user.email;
+        // Add X-User-Role header for role-based access
+        if (user.role) {
+          config.headers['X-User-Role'] = user.role;
+        }
+
+        // Add X-User-Email header (optional, for logging)
+        if (user.email) {
+          config.headers['X-User-Email'] = user.email;
+        }
       }
     }
 
@@ -134,6 +140,7 @@ axiosInstance.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
 
 // Response Interceptor
 axiosInstance.interceptors.response.use(
