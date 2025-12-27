@@ -72,6 +72,8 @@ public class SecurityConfig {
                                 "/auth/hello",
                                 "/auth/token",
                                 "/auth/validate",
+                                "/actuator/**",
+                                "/auth/actuator/**",
                                 "/auth/user",
                                 "/auth/updatePassword")
                         .permitAll()

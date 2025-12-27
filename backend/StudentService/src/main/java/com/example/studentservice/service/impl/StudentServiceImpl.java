@@ -32,8 +32,8 @@ public class StudentServiceImpl implements StudentService {
         logger.info("Fetching dashboard data for student: {}", studentId);
 
         try {
-            // ✅ FIXED: Use Optional-based repository method
-            Student student = studentRepository.findByStudentId(studentId)
+            Integer studentIdInt = Integer.parseInt(studentId);
+            Student student = studentRepository.findByStudentId(studentIdInt)
                     .orElseThrow(() -> new RuntimeException("Student not found: " + studentId));
 
             // ✅ FIXED: Use correct repository method
@@ -94,7 +94,8 @@ public class StudentServiceImpl implements StudentService {
 
         try {
             // ✅ FIXED: Use Optional-based repository method
-            Student student = studentRepository.findByStudentId(studentId)
+            Integer studentIdInt = Integer.parseInt(studentId);
+            Student student = studentRepository.findByStudentId(studentIdInt)
                     .orElseThrow(() -> new RuntimeException("Student not found: " + studentId));
 
             StudentProfileDTO profile = new StudentProfileDTO();
@@ -119,8 +120,8 @@ public class StudentServiceImpl implements StudentService {
         logger.info("Updating profile for student: {}", studentId);
 
         try {
-            // ✅ FIXED: Use Optional-based repository method
-            Student student = studentRepository.findByStudentId(studentId)
+            Integer studentIdInt = Integer.parseInt(studentId);
+            Student student = studentRepository.findByStudentId(studentIdInt)
                     .orElseThrow(() -> new RuntimeException("Student not found: " + studentId));
 
             student.setName(profileDTO.getName());

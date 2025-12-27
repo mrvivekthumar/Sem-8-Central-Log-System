@@ -13,7 +13,7 @@ import com.example.studentservice.domain.Student;
 public interface StudentRepository extends JpaRepository<Student, Integer> {
 
     // ✅ ADDED: String-based lookup with Optional
-    Optional<Student> findByStudentId(String studentId);
+    Optional<Student> findByStudentId(Integer studentId);
 
     // Keep existing int-based method
     Student findStudentByStudentId(int studentId);
