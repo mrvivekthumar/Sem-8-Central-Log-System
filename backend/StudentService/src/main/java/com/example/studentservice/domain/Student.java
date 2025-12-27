@@ -17,31 +17,51 @@ public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int studentId;
+
     private String name;
+
     @Column(unique = true)
     @Transient
     private String password;
+
     private String email;
     private String githubProfileLink;
-    private List<String>Skills=new ArrayList<>();
+    private List<String> skills = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
-    private StudentAvaibility studentAvaibility=StudentAvaibility.AVAILABLE;
+    private StudentAvaibility studentAvaibility = StudentAvaibility.AVAILABLE;
+
     @Nullable
-    private float ratings=0;
+    private float ratings = 0;
+
     @Nullable
     private String bio;
+
     private Float cgpa;
+
     private String phoneNo;
+
     @Nullable
     private Integer semesterNo;
+
     @Nullable
     private String imageUrl;
+
     @Nullable
     private String linkedInUrl;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "student_id")
     private List<PersonalProject> projects = new ArrayList<>();
-    private Integer totalRatings=0;
 
+    private Integer totalRatings = 0;
 
+    // ✅ ADD: Alias methods for phone field to match service expectations
+    public String getPhone() {
+        return this.phoneNo;
+    }
+
+    public void setPhone(String phone) {
+        this.phoneNo = phone;
+    }
 }

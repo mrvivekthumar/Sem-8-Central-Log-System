@@ -1,40 +1,36 @@
 package com.example.authenticationservice.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class UserResponse {
-    private Long id;
-    private String email;
-    private String role;
-    private String name;
+@AllArgsConstructor
+public class ProfileUpdateRequest {
 
-    // Profile fields
+    private String name;
+    private String email;
+
     private String bio;
+
     private List<String> skills;
+
     private String githubProfileLink;
+
     private String linkedInProfileLink;
+
     private String portfolioLink;
+
     private String phone;
+
     private String location;
 
-    // Stats
     private Double ratings;
-    private Integer projectsCompleted;
-    private Integer currentProjects;
 
-    // Constructor for backward compatibility
-    public UserResponse(Long id, String email, String role) {
-        this.id = id;
-        this.email = email;
-        this.role = role;
-    }
+    private Integer projectsCompleted;
+
+    private Integer currentProjects;
 }

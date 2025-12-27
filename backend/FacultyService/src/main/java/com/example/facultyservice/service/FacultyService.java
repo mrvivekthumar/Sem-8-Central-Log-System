@@ -1,5 +1,6 @@
 package com.example.facultyservice.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,6 @@ public class FacultyService {
         log.info("FacultyService initialized and ready");
     }
 
-
     public List<Faculty> getAllFaculty() {
         log.info("Service: Fetching all faculty");
 
@@ -38,7 +38,6 @@ public class FacultyService {
             throw e;
         }
     }
-
 
     public Optional<Faculty> getFacultyById(Integer id) {
         log.info("Service: Fetching faculty by ID: {}", id);
@@ -56,7 +55,6 @@ public class FacultyService {
             throw e;
         }
     }
-
 
     public Faculty getFacultyByEmail(String email) {
         log.info("Service: Fetching faculty by email: {}", email);
@@ -93,6 +91,20 @@ public class FacultyService {
                 throw new RuntimeException("Faculty already exists with email: " + faculty.getEmail());
             }
 
+            // ✅ Initialize default values
+            if (faculty.getSkills() == null) {
+                faculty.setSkills(new ArrayList<>());
+            }
+            if (faculty.getRatings() == null) {
+                faculty.setRatings(0.0);
+            }
+            if (faculty.getProjectsCompleted() == null) {
+                faculty.setProjectsCompleted(0);
+            }
+            if (faculty.getCurrentProjects() == null) {
+                faculty.setCurrentProjects(0);
+            }
+
             Faculty savedFaculty = facultyRepository.save(faculty);
             log.info("Service: Faculty created successfully - ID: {}, Email: {}",
                     savedFaculty.getFId(), savedFaculty.getEmail());
@@ -106,7 +118,6 @@ public class FacultyService {
             throw e;
         }
     }
-
 
     public Faculty updateFaculty(Integer id, Faculty facultyDetails) {
         log.info("Service: Updating faculty with ID: {}", id);
@@ -123,7 +134,7 @@ public class FacultyService {
             log.debug("Service: Current faculty details - Email: {}, Name: {}, Department: {}",
                     faculty.getEmail(), faculty.getName(), faculty.getDepartment());
 
-            // Update fields (excluding password and email for security)
+            // ✅ Update ALL fields from frontend
             if (facultyDetails.getName() != null) {
                 log.debug("Service: Updating name from '{}' to '{}'",
                         faculty.getName(), facultyDetails.getName());
@@ -133,6 +144,47 @@ public class FacultyService {
                 log.debug("Service: Updating department from '{}' to '{}'",
                         faculty.getDepartment(), facultyDetails.getDepartment());
                 faculty.setDepartment(facultyDetails.getDepartment());
+            }
+            if (facultyDetails.getEmail() != null && !facultyDetails.getEmail().equals(faculty.getEmail())) {
+                if (facultyRepository.existsByEmail(facultyDetails.getEmail())) {
+                    log.warn("Service: Email already in use: {}", facultyDetails.getEmail());
+                    throw new RuntimeException("Email already in use: " + facultyDetails.getEmail());
+                }
+                faculty.setEmail(facultyDetails.getEmail());
+            }
+
+            // ✅ Update profile fields
+            if (facultyDetails.getBio() != null) {
+                faculty.setBio(facultyDetails.getBio());
+            }
+            if (facultyDetails.getSkills() != null) {
+                faculty.setSkills(facultyDetails.getSkills());
+            }
+            if (facultyDetails.getGithubProfileLink() != null) {
+                faculty.setGithubProfileLink(facultyDetails.getGithubProfileLink());
+            }
+            if (facultyDetails.getLinkedInProfileLink() != null) {
+                faculty.setLinkedInProfileLink(facultyDetails.getLinkedInProfileLink());
+            }
+            if (facultyDetails.getPortfolioLink() != null) {
+                faculty.setPortfolioLink(facultyDetails.getPortfolioLink());
+            }
+            if (facultyDetails.getPhone() != null) {
+                faculty.setPhone(facultyDetails.getPhone());
+            }
+            if (facultyDetails.getLocation() != null) {
+                faculty.setLocation(facultyDetails.getLocation());
+            }
+
+            // ✅ Update stats if provided
+            if (facultyDetails.getRatings() != null) {
+                faculty.setRatings(facultyDetails.getRatings());
+            }
+            if (facultyDetails.getProjectsCompleted() != null) {
+                faculty.setProjectsCompleted(facultyDetails.getProjectsCompleted());
+            }
+            if (facultyDetails.getCurrentProjects() != null) {
+                faculty.setCurrentProjects(facultyDetails.getCurrentProjects());
             }
 
             Faculty updatedFaculty = facultyRepository.save(faculty);
@@ -150,9 +202,6 @@ public class FacultyService {
         }
     }
 
-    /**
-     * Delete faculty
-     */
     public void deleteFaculty(Integer id) {
         log.info("Service: Deleting faculty with ID: {}", id);
 
@@ -174,9 +223,6 @@ public class FacultyService {
         }
     }
 
-    /**
-     * Get total faculty count
-     */
     public Integer getTotalFacultyCount() {
         log.info("Service: Getting total faculty count");
 
@@ -190,9 +236,6 @@ public class FacultyService {
         }
     }
 
-    /**
-     * Get all faculty emails
-     */
     public List<String> getAllFacultyEmails() {
         log.info("Service: Getting all faculty emails");
 
@@ -207,9 +250,6 @@ public class FacultyService {
         }
     }
 
-    /**
-     * Check if faculty exists by email
-     */
     public boolean existsByEmail(String email) {
         log.debug("Service: Checking if faculty exists with email: {}", email);
 

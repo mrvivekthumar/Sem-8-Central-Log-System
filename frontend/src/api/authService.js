@@ -5,6 +5,7 @@ import API_ENDPOINTS from './endpoints';
 /**
  * Authentication Service
  * Handles all authentication-related API calls
+ * Updated: December 27, 2025
  */
 class AuthService {
     /**
@@ -16,6 +17,8 @@ class AuthService {
      */
     async login(credentials) {
         try {
+            console.log('🔐 Attempting login for:', credentials.email);
+
             const response = await axiosInstance.post(
                 API_ENDPOINTS.AUTH.LOGIN,
                 credentials
@@ -27,7 +30,7 @@ class AuthService {
             this.setTokens(accessToken, refreshToken);
             this.setUser(user);
 
-            console.log('✅ Login successful:', user.email);
+            console.log('✅ Login successful:', user.email, '| Role:', user.role);
             return response.data;
         } catch (error) {
             console.error('❌ Login failed:', error.response?.data?.message || error.message);
@@ -38,10 +41,16 @@ class AuthService {
     /**
      * User registration
      * @param {Object} userData - New user data
+     * @param {string} userData.email - User email
+     * @param {string} userData.password - User password
+     * @param {string} userData.name - User name
+     * @param {string} userData.role - User role (STUDENT/FACULTY)
      * @returns {Promise<Object>} Registration response
      */
     async register(userData) {
         try {
+            console.log('📝 Attempting registration for:', userData.email);
+
             const response = await axiosInstance.post(
                 API_ENDPOINTS.AUTH.REGISTER,
                 userData
@@ -64,6 +73,7 @@ class AuthService {
             const refreshToken = this.getRefreshToken();
 
             if (refreshToken) {
+                console.log('🚪 Logging out...');
                 await axiosInstance.post(API_ENDPOINTS.AUTH.LOGOUT, { refreshToken });
             }
 
@@ -71,6 +81,7 @@ class AuthService {
             console.log('✅ Logout successful');
         } catch (error) {
             console.error('❌ Logout error:', error.message);
+            // Clear auth even if logout request fails
             this.clearAuth();
         }
     }
@@ -86,6 +97,8 @@ class AuthService {
             if (!refreshToken) {
                 throw new Error('No refresh token available');
             }
+
+            console.log('🔄 Refreshing access token...');
 
             const response = await axiosInstance.post(
                 API_ENDPOINTS.AUTH.REFRESH_TOKEN,
@@ -111,6 +124,7 @@ class AuthService {
     async verifyToken() {
         try {
             const response = await axiosInstance.get(API_ENDPOINTS.AUTH.VERIFY_TOKEN);
+            console.log('✅ Token is valid');
             return response.data.valid;
         } catch (error) {
             console.error('❌ Token verification failed:', error.message);
@@ -124,7 +138,11 @@ class AuthService {
      */
     async getProfile() {
         try {
+            console.log('👤 Fetching user profile...');
+
             const response = await axiosInstance.get(API_ENDPOINTS.AUTH.PROFILE);
+
+            console.log('✅ Profile fetched successfully');
             return response.data;
         } catch (error) {
             console.error('❌ Failed to fetch profile:', error.message);
@@ -134,21 +152,27 @@ class AuthService {
 
     /**
      * Update user profile
+     * ✅ FIXED: Uses PUT method to /api/auth/profile (not /update)
      * @param {Object} profileData - Updated profile data
      * @returns {Promise<Object>} Updated profile
      */
     async updateProfile(profileData) {
         try {
+            console.log('📝 Updating profile...');
+
             const response = await axiosInstance.put(
-                API_ENDPOINTS.AUTH.UPDATE_PROFILE,
+                API_ENDPOINTS.AUTH.UPDATE_PROFILE,  // Uses /api/auth/profile
                 profileData
             );
 
-            this.setUser(response.data);
+            // Update stored user data
+            const updatedUser = response.data;
+            this.setUser(updatedUser);
+
             console.log('✅ Profile updated successfully');
-            return response.data;
+            return updatedUser;
         } catch (error) {
-            console.error('❌ Profile update failed:', error.message);
+            console.error('❌ Profile update failed:', error.response?.data || error.message);
             throw this.handleError(error);
         }
     }
@@ -162,6 +186,8 @@ class AuthService {
      */
     async changePassword(passwordData) {
         try {
+            console.log('🔒 Changing password...');
+
             const response = await axiosInstance.post(
                 API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
                 passwordData
@@ -170,7 +196,7 @@ class AuthService {
             console.log('✅ Password changed successfully');
             return response.data;
         } catch (error) {
-            console.error('❌ Password change failed:', error.message);
+            console.error('❌ Password change failed:', error.response?.data || error.message);
             throw this.handleError(error);
         }
     }
@@ -182,6 +208,8 @@ class AuthService {
      */
     async forgotPassword(email) {
         try {
+            console.log('📧 Requesting password reset for:', email);
+
             const response = await axiosInstance.post(
                 API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
                 { email }
@@ -204,6 +232,8 @@ class AuthService {
      */
     async resetPassword(resetData) {
         try {
+            console.log('🔑 Resetting password with token...');
+
             const response = await axiosInstance.post(
                 API_ENDPOINTS.AUTH.RESET_PASSWORD,
                 resetData
@@ -217,7 +247,9 @@ class AuthService {
         }
     }
 
+    // ========================================
     // Token and Storage Management Methods
+    // ========================================
 
     /**
      * Set access and refresh tokens
@@ -282,11 +314,29 @@ class AuthService {
 
     /**
      * Get user role
-     * @returns {string|null} User role
+     * @returns {string|null} User role (STUDENT, FACULTY, ADMIN)
      */
     getUserRole() {
         const user = this.getUser();
         return user?.role || null;
+    }
+
+    /**
+     * Get user email
+     * @returns {string|null} User email
+     */
+    getUserEmail() {
+        const user = this.getUser();
+        return user?.email || null;
+    }
+
+    /**
+     * Get user ID
+     * @returns {number|null} User ID
+     */
+    getUserId() {
+        const user = this.getUser();
+        return user?.id || null;
     }
 
     /**
@@ -307,8 +357,21 @@ class AuthService {
     handleError(error) {
         if (error.response) {
             // Server responded with error status
-            const message = error.response.data?.message || 'An error occurred';
+            const message = error.response.data?.message ||
+                error.response.data?.error ||
+                'An error occurred';
             const statusCode = error.response.status;
+
+            // Auto-logout on 401 Unauthorized
+            if (statusCode === 401) {
+                console.warn('🔒 Unauthorized - Clearing auth and redirecting to login');
+                this.clearAuth();
+                // Redirect to login if not already there
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
+            }
+
             return new Error(`${message} (Status: ${statusCode})`);
         } else if (error.request) {
             // Request made but no response

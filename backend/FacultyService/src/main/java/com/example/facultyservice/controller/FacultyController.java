@@ -20,10 +20,11 @@ import com.example.facultyservice.service.FacultyService;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/faculty")
+@RequestMapping("/api/faculty")
 @CrossOrigin(origins = "*")
 @Slf4j
 public class FacultyController {
@@ -35,18 +36,23 @@ public class FacultyController {
     public void init() {
         log.info("=================================================");
         log.info("FacultyController initialized and ready!");
-        log.info("Endpoints: GET/POST/PUT/DELETE /faculty");
+        log.info("Available Endpoints:");
+        log.info("  GET    /api/faculty");
+        log.info("  GET    /api/faculty/{id}");
+        log.info("  GET    /api/faculty/email/{email}");
+        log.info("  POST   /api/faculty");
+        log.info("  PUT    /api/faculty/{id}");
+        log.info("  DELETE /api/faculty/{id}");
+        log.info("  GET    /api/faculty/count");
+        log.info("  GET    /api/faculty/emails");
+        log.info("  GET    /api/faculty/exists/{email}");
         log.info("=================================================");
     }
 
-    /**
-     * Get all faculty members
-     * GET /faculty
-     */
     @GetMapping
     public ResponseEntity<List<Faculty>> getAllFaculty(HttpServletRequest request) {
         log.info("===============================================");
-        log.info("Controller: GET /faculty - Fetching all faculty");
+        log.info("Controller: GET /api/faculty - Fetching all faculty");
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
 
         try {
@@ -61,14 +67,10 @@ public class FacultyController {
         }
     }
 
-    /**
-     * Get faculty by ID
-     * GET /faculty/{id}
-     */
     @GetMapping("/{id}")
     public ResponseEntity<Faculty> getFacultyById(@PathVariable Integer id, HttpServletRequest request) {
         log.info("===============================================");
-        log.info("Controller: GET /faculty/{} - Fetching faculty by ID", id);
+        log.info("Controller: GET /api/faculty/{} - Fetching faculty by ID", id);
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
 
         try {
@@ -91,14 +93,10 @@ public class FacultyController {
         }
     }
 
-    /**
-     * Get faculty by email
-     * GET /faculty/email/{email}
-     */
     @GetMapping("/email/{email}")
     public ResponseEntity<Faculty> getFacultyByEmail(@PathVariable String email, HttpServletRequest request) {
         log.info("===============================================");
-        log.info("Controller: GET /faculty/email/{} - Fetching faculty by email", email);
+        log.info("Controller: GET /api/faculty/email/{} - Fetching faculty by email", email);
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
 
         try {
@@ -114,14 +112,10 @@ public class FacultyController {
         }
     }
 
-    /**
-     * Create new faculty
-     * POST /faculty
-     */
     @PostMapping
-    public ResponseEntity<Faculty> createFaculty(@RequestBody Faculty faculty, HttpServletRequest request) {
+    public ResponseEntity<Faculty> createFaculty(@Valid @RequestBody Faculty faculty, HttpServletRequest request) {
         log.info("===============================================");
-        log.info("Controller: POST /faculty - Creating new faculty: {}", faculty.getEmail());
+        log.info("Controller: POST /api/faculty - Creating new faculty: {}", faculty.getEmail());
         log.debug("Controller: Faculty details - Name: {}, Email: {}, Department: {}",
                 faculty.getName(), faculty.getEmail(), faculty.getDepartment());
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
@@ -139,18 +133,14 @@ public class FacultyController {
         }
     }
 
-    /**
-     * Update faculty profile
-     * PUT /faculty/{id}
-     */
     @PutMapping("/{id}")
     public ResponseEntity<Faculty> updateFaculty(
             @PathVariable Integer id,
-            @RequestBody Faculty facultyDetails,
+            @Valid @RequestBody Faculty facultyDetails,
             HttpServletRequest request) {
 
         log.info("===============================================");
-        log.info("Controller: PUT /faculty/{} - Updating faculty", id);
+        log.info("Controller: PUT /api/faculty/{} - Updating faculty", id);
         log.debug("Controller: Update details - Name: {}, Email: {}, Department: {}",
                 facultyDetails.getName(), facultyDetails.getEmail(), facultyDetails.getDepartment());
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
@@ -168,14 +158,10 @@ public class FacultyController {
         }
     }
 
-    /**
-     * Delete faculty
-     * DELETE /faculty/{id}
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFaculty(@PathVariable Integer id, HttpServletRequest request) {
         log.info("===============================================");
-        log.info("Controller: DELETE /faculty/{} - Deleting faculty", id);
+        log.info("Controller: DELETE /api/faculty/{} - Deleting faculty", id);
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
 
         try {
@@ -190,14 +176,10 @@ public class FacultyController {
         }
     }
 
-    /**
-     * Get total faculty count
-     * GET /faculty/count
-     */
     @GetMapping("/count")
     public ResponseEntity<Integer> getTotalFacultyCount(HttpServletRequest request) {
         log.info("===============================================");
-        log.info("Controller: GET /faculty/count - Getting total faculty count");
+        log.info("Controller: GET /api/faculty/count - Getting total faculty count");
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
 
         try {
@@ -212,14 +194,10 @@ public class FacultyController {
         }
     }
 
-    /**
-     * Get all faculty emails
-     * GET /faculty/emails
-     */
     @GetMapping("/emails")
     public ResponseEntity<List<String>> getAllFacultyEmails(HttpServletRequest request) {
         log.info("===============================================");
-        log.info("Controller: GET /faculty/emails - Getting all faculty emails");
+        log.info("Controller: GET /api/faculty/emails - Getting all faculty emails");
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
 
         try {
@@ -235,14 +213,10 @@ public class FacultyController {
         }
     }
 
-    /**
-     * Check if faculty exists by email
-     * GET /faculty/exists/{email}
-     */
     @GetMapping("/exists/{email}")
     public ResponseEntity<Boolean> checkFacultyExists(@PathVariable String email, HttpServletRequest request) {
         log.info("===============================================");
-        log.info("Controller: GET /faculty/exists/{} - Checking if faculty exists", email);
+        log.info("Controller: GET /api/faculty/exists/{} - Checking if faculty exists", email);
         log.debug("Controller: Request from IP: {}", request.getRemoteAddr());
 
         try {
