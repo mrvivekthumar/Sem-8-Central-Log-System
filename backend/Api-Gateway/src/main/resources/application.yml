@@ -55,7 +55,7 @@ spring:
             - Path=/api/auth/login
             - Method=POST
           filters:
-            - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
         
         - id: auth-register
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
@@ -63,15 +63,15 @@ spring:
             - Path=/api/auth/register
             - Method=POST
           filters:
-            - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
         
         - id: auth-token-validation
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
-            - Path=/api/auth/validate,/api/auth/token
+            - Path=/api/auth/validate,/api/auth/verify,/api/auth/token,/api/auth/refresh
             - Method=GET,POST
           filters:
-            - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
         
         # Protected Auth Routes
         - id: auth-service-protected
@@ -79,7 +79,7 @@ spring:
           predicates:
             - Path=/api/auth/**
           filters:
-            - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
             - AuthenticationFilter
         
         # =========================================
@@ -90,7 +90,18 @@ spring:
           predicates:
             - Path=/api/faculty/**
           filters:
-            - RewritePath=/api/faculty/(?<segment>.*), /faculty/$\{segment}
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+            - AuthenticationFilter
+        
+        # =========================================
+        # PROJECT SERVICE ROUTES (via Faculty Service)
+        # =========================================
+        - id: projects-service
+          uri: ${FACULTY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/projects/**
+          filters:
+            - RewritePath=/api/projects/(?<segment>.*), /faculty/projects/$\{segment}
             - AuthenticationFilter
         
         # =========================================
@@ -99,47 +110,51 @@ spring:
         - id: student-service
           uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
           predicates:
-            - Path=/api/students/**  # Changed to plural
+            - Path=/api/students/**
           filters:
-            - RewritePath=/api/students/(?<segment>.*), /students/$\{segment}
+            - RewritePath=/api/students/(?<segment>.*), /student/students/$\{segment}
             - AuthenticationFilter
-
-        # PROJECTS SERVICE ROUTES (via Faculty Service)
-        - id: projects-service
-          uri: ${FACULTY_SERVICE_URL:http://localhost:8082}
-          predicates:
-            - Path=/api/projects/**
-          filters:
-            - RewritePath=/api/projects/(?<segment>.*), /projects/$\{segment}
-            - AuthenticationFilter
-
-        # NOTIFICATIONS SERVICE ROUTES  
-        - id: notifications-service
-          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
-          predicates:
-            - Path=/api/notifications/**
-          filters:
-            - RewritePath=/api/notifications/(?<segment>.*), /notifications/$\{segment}
-            - AuthenticationFilter
-
+        
+        # =========================================
         # STUDENT PROJECT ROUTES (via Student Service)
+        # =========================================
         - id: student-project-service
           uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/studentProject/**
           filters:
-            - RewritePath=/api/studentProject/(?<segment>.*), /studentProject/$\{segment}
+            - RewritePath=/api/(?<segment>.*), /student/$\{segment}
             - AuthenticationFilter
-
-        # DOCUMENTS/APPLICATIONS ROUTES (determine which service handles these)
-        - id: documents-service
-          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}  # Or Faculty Service
+        
+        # =========================================
+        # NOTIFICATIONS SERVICE ROUTES
+        # =========================================
+        - id: notifications-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
           predicates:
-            - Path=/api/documents/**,/api/applications/**
+            - Path=/api/notifications/**
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
             - AuthenticationFilter
-
+        
+        # =========================================
+        # DOCUMENTS/APPLICATIONS ROUTES (via Student Service)
+        # =========================================
+        - id: documents-service
+          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/documents/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /student/$\{segment}
+            - AuthenticationFilter
+        
+        - id: applications-service
+          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/applications/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /student/$\{segment}
+            - AuthenticationFilter
       
       # HTTP Client Configuration
       httpclient:
@@ -184,13 +199,9 @@ management:
       export:
         enabled: true
 
-        
-
-        # ===========================================
-
-        # LOGGING CONFIGURATION
-
-        # ===========================================
+# ===========================================
+# LOGGING CONFIGURATION
+# ===========================================
 logging:
   level:
     root: INFO
@@ -218,10 +229,16 @@ app:
       - /api/auth/login
       - /api/auth/register
       - /api/auth/validate
+      - /api/auth/verify
       - /api/auth/token
+      - /api/auth/refresh
       - /actuator/**
     role-mappings:
       faculty:
         - /api/faculty/**
+        - /api/projects/**
       student:
-        - /api/student/**
+        - /api/students/**
+        - /api/studentProject/**
+        - /api/documents/**
+        - /api/applications/**
