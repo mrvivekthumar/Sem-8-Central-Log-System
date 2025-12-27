@@ -99,10 +99,47 @@ spring:
         - id: student-service
           uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
           predicates:
-            - Path=/api/student/**
+            - Path=/api/students/**  # Changed to plural
           filters:
-            - RewritePath=/api/student/(?<segment>.*), /student/$\{segment}
+            - RewritePath=/api/students/(?<segment>.*), /students/$\{segment}
             - AuthenticationFilter
+
+        # PROJECTS SERVICE ROUTES (via Faculty Service)
+        - id: projects-service
+          uri: ${FACULTY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/projects/**
+          filters:
+            - RewritePath=/api/projects/(?<segment>.*), /projects/$\{segment}
+            - AuthenticationFilter
+
+        # NOTIFICATIONS SERVICE ROUTES  
+        - id: notifications-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - RewritePath=/api/notifications/(?<segment>.*), /notifications/$\{segment}
+            - AuthenticationFilter
+
+        # STUDENT PROJECT ROUTES (via Student Service)
+        - id: student-project-service
+          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/studentProject/**
+          filters:
+            - RewritePath=/api/studentProject/(?<segment>.*), /studentProject/$\{segment}
+            - AuthenticationFilter
+
+        # DOCUMENTS/APPLICATIONS ROUTES (determine which service handles these)
+        - id: documents-service
+          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}  # Or Faculty Service
+          predicates:
+            - Path=/api/documents/**,/api/applications/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+            - AuthenticationFilter
+
       
       # HTTP Client Configuration
       httpclient:
