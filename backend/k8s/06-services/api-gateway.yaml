@@ -6,7 +6,7 @@ metadata:
   labels:
     app: api-gateway
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: api-gateway
@@ -18,14 +18,22 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: api-gateway
-          image: your-registry/api-gateway:latest # ← CHANGE THIS
-          imagePullPolicy: Always
+          image: colabbridge/api-gateway:latest
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8765
+            - containerPort: 8080
               name: http
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "prod"
+              value: "kubernetes"
+            - name: SERVER_PORT
+              value: "8080"
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service:8081"
+            - name: FACULTY_SERVICE_URL
+              value: "http://faculty-service:8082"
+            - name: STUDENT_SERVICE_URL
+              value: "http://student-service:8083"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -41,27 +49,26 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8765
-            initialDelaySeconds: 90
+              port: 8080
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8765
-            initialDelaySeconds: 60
+              port: 8080
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
           volumeMounts:
-            - name: config
-              mountPath: /app/config
-              readOnly: true
+            - name: logs
+              mountPath: /var/log/colabbridge
       volumes:
-        - name: config
-          configMap:
-            name: api-gateway-config
+        - name: logs
+          persistentVolumeClaim:
+            claimName: central-logs-pvc
       restartPolicy: Always
 
 ---
@@ -73,15 +80,12 @@ metadata:
   labels:
     app: api-gateway
 spec:
-  type: LoadBalancer # ← Exposes to external traffic
+  type: LoadBalancer
   selector:
     app: api-gateway
   ports:
     - name: http
       port: 80
-      targetPort: 8765
+      targetPort: 8080
       protocol: TCP
   sessionAffinity: ClientIP
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 3600

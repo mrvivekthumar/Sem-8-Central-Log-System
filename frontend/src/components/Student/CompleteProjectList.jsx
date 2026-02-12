@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import API_ENDPOINTS from '../../api/endpoints';
 import toast from 'react-hot-toast';
 
 const CompleteProjectList = () => {
@@ -28,7 +29,7 @@ const CompleteProjectList = () => {
   const fetchCompletedProjects = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/STUDENT-SERVICE/students/${user.id}/completed-projects`);
+      const response = await axiosInstance.get(API_ENDPOINTS.STUDENT.COMPLETED_PROJECTS(user.id));
       setProjects(response.data || []);
 
       // Calculate stats

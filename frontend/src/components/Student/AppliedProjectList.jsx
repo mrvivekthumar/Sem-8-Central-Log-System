@@ -8,6 +8,7 @@ import {
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosInstance';
+import API_ENDPOINTS from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 import AppliedProjectCard from './AppliedProjectCard';
 
@@ -29,7 +30,7 @@ const AppliedProjectList = () => {
     try {
       // Step 1: Get the applied project IDs with preferences
       const responseIds = await axiosInstance.get(
-        `/STUDENT-SERVICE/api/studentProject/projectIdsByPref/${user.id}`
+        API_ENDPOINTS.STUDENT_PROJECT.PROJECT_IDS_BY_PREF(user.id)
       );
 
       if (!responseIds.data || responseIds.data.length === 0) {
@@ -40,7 +41,7 @@ const AppliedProjectList = () => {
 
       // Step 2: Get project details from faculty service
       const response = await axiosInstance.post(
-        '/FACULTY-SERVICE/api/faculty/projectsbyIds',
+        API_ENDPOINTS.FACULTY.PROJECTS_BY_IDS,
         responseIds.data,
         { headers: { 'Content-Type': 'application/json' } }
       );
@@ -78,7 +79,7 @@ const AppliedProjectList = () => {
     try {
       // Update the moved project's preference
       await axiosInstance.patch(
-        `/STUDENT-SERVICE/api/studentProject/updatePreference/${user.id}/project/${projectId}/${newPreference}`
+        API_ENDPOINTS.STUDENT_PROJECT.UPDATE_PREFERENCE(user.id, projectId, newPreference)
       );
 
       // Update all other affected projects' preferences
@@ -86,7 +87,7 @@ const AppliedProjectList = () => {
         .filter(p => p.projectId !== projectId)
         .map((p, idx) =>
           axiosInstance.patch(
-            `/STUDENT-SERVICE/api/studentProject/updatePreference/${user.id}/project/${p.projectId}/${idx + 1}`
+            API_ENDPOINTS.STUDENT_PROJECT.UPDATE_PREFERENCE(user.id, p.projectId, idx + 1)
           )
         );
 
@@ -125,7 +126,7 @@ const AppliedProjectList = () => {
     try {
       const updatePromises = projects.map((project, index) =>
         axiosInstance.patch(
-          `/STUDENT-SERVICE/api/studentProject/updatePreference/${user.id}/project/${project.projectId}/${index + 1}`
+          API_ENDPOINTS.STUDENT_PROJECT.UPDATE_PREFERENCE(user.id, project.projectId, index + 1)
         )
       );
       await Promise.all(updatePromises);

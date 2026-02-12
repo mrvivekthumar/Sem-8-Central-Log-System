@@ -44,105 +44,108 @@ import jakarta.annotation.PostConstruct;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+        private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+        @Autowired
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @PostConstruct
-    public void init() {
-        logger.info("=================================================");
-        logger.info("Security Configuration Initializing...");
-        logger.info("JWT Authentication: ENABLED");
-        logger.info("Session Management: STATELESS");
-        logger.info("=================================================");
-    }
+        @PostConstruct
+        public void init() {
+                logger.info("=================================================");
+                logger.info("Security Configuration Initializing...");
+                logger.info("JWT Authentication: ENABLED");
+                logger.info("Session Management: STATELESS");
+                logger.info("=================================================");
+        }
 
-    /**
-     * Security Filter Chain
-     * Defines security rules for all endpoints
-     */
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        logger.info("Configuring security filter chain...");
+        /**
+         * Security Filter Chain
+         * Defines security rules for all endpoints
+         */
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                logger.info("Configuring security filter chain...");
 
-        http
-                // Disable CSRF (not needed for stateless JWT authentication)
-                .csrf(csrf -> csrf.disable())
+                http
+                                // Disable CSRF (not needed for stateless JWT authentication)
+                                .csrf(csrf -> csrf.disable())
 
-                // Enable CORS
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                // Enable CORS
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // Configure authorization rules
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints (no authentication required)
-                        .requestMatchers(
-                                "/actuator/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html")
-                        .permitAll()
+                                // Configure authorization rules
+                                .authorizeHttpRequests(auth -> auth
+                                                // Public endpoints (no authentication required)
+                                                .requestMatchers(
+                                                                "/actuator/**",
+                                                                "/swagger-ui/**",
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui.html",
+                                                                "/projects/visible") // Public: students browse
+                                                                                     // available projects
+                                                .permitAll()
 
-                        // OPTIONS requests (CORS preflight)
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                // OPTIONS requests (CORS preflight)
+                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // All other requests require authentication
-                        .anyRequest().authenticated())
+                                                // All other requests require authentication
+                                                .anyRequest().authenticated())
 
-                // Stateless session (no session cookies)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                // Stateless session (no session cookies)
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Add JWT filter before UsernamePasswordAuthenticationFilter
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                                // Add JWT filter before UsernamePasswordAuthenticationFilter
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        logger.info("✓ Security filter chain configured successfully");
-        return http.build();
-    }
+                logger.info("✓ Security filter chain configured successfully");
+                return http.build();
+        }
 
-    /**
-     * CORS Configuration
-     * Allows frontend applications to access the API
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        logger.info("Configuring CORS...");
+        /**
+         * CORS Configuration
+         * Allows frontend applications to access the API
+         */
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                logger.info("Configuring CORS...");
 
-        CorsConfiguration configuration = new CorsConfiguration();
+                CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allowed origins
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*",
-                "https://*.vercel.app"));
+                // Allowed origins
+                configuration.setAllowedOriginPatterns(Arrays.asList(
+                                "http://localhost:*",
+                                "https://*.vercel.app"));
 
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://localhost:5174"));
+                configuration.setAllowedOrigins(Arrays.asList(
+                                "http://localhost:3000",
+                                "http://localhost:5173",
+                                "http://localhost:5174"));
 
-        // Allowed methods
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                // Allowed methods
+                configuration.setAllowedMethods(Arrays.asList(
+                                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-        // Allowed headers
-        configuration.setAllowedHeaders(List.of("*"));
+                // Allowed headers
+                configuration.setAllowedHeaders(List.of("*"));
 
-        // Exposed headers
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Correlation-Id",
-                "X-Total-Count"));
+                // Exposed headers
+                configuration.setExposedHeaders(Arrays.asList(
+                                "Authorization",
+                                "Content-Type",
+                                "X-Correlation-Id",
+                                "X-Total-Count"));
 
-        // Allow credentials
-        configuration.setAllowCredentials(true);
+                // Allow credentials
+                configuration.setAllowCredentials(true);
 
-        // Max age for preflight cache
-        configuration.setMaxAge(3600L);
+                // Max age for preflight cache
+                configuration.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
 
-        logger.info("✓ CORS configured for: localhost:3000, localhost:5173, *.vercel.app");
-        return source;
-    }
+                logger.info("✓ CORS configured for: localhost:3000, localhost:5173, *.vercel.app");
+                return source;
+        }
 }

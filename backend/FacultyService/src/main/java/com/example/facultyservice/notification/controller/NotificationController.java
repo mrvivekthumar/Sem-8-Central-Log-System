@@ -21,7 +21,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications") // Under /faculty context-path, accessible at /faculty/notifications
 public class NotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
@@ -33,6 +33,7 @@ public class NotificationController {
     public void init() {
         logger.info("=================================================");
         logger.info("NotificationController initialized and ready!");
+        logger.info("Context Path: /faculty/notifications");
         logger.info("Endpoints: POST /send, POST /sendToMultiple, GET /{receiverId}");
         logger.info("=================================================");
     }

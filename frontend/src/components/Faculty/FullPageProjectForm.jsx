@@ -12,6 +12,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import { API_ENDPOINTS } from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 
 const FullPageProjectForm = () => {
@@ -47,7 +48,7 @@ const FullPageProjectForm = () => {
     setLoading(true);
 
     try {
-      await axiosInstance.post('/FACULTY-SERVICE/api/project', {
+      await axiosInstance.post(API_ENDPOINTS.PROJECTS.CREATE, {
         ...formData,
         facultyId: user.id
       });

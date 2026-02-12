@@ -31,12 +31,16 @@ public class RouteValidator {
                         "/api/auth/login",
                         "/api/auth/token",
                         "/api/auth/validate",
+                        "/api/auth/verify",
+                        "/api/auth/refresh",
 
                         // Direct service paths (if gateway forwards)
                         "/auth/register",
                         "/auth/login",
                         "/auth/token",
                         "/auth/validate",
+                        "/auth/verify",
+                        "/auth/refresh",
 
                         // Health check and monitoring
                         "/actuator/health",
@@ -48,19 +52,17 @@ public class RouteValidator {
          * Maps route patterns to allowed roles
          * Key: Route prefix
          * Value: List of roles that can access this route
+         * 
+         * NOTE: Currently allowing all authenticated users to access all routes.
+         * Individual services handle their own fine-grained authorization.
          */
         private static final Map<String, List<String>> ROLE_BASED_ROUTES = Map.of(
-                        // Faculty routes - Only FACULTY role
-                        "/api/faculty", List.of("FACULTY"),
-                        "/faculty", List.of("FACULTY"),
-
-                        // Student routes - Only STUDENT role
-                        "/api/student", List.of("STUDENT"),
-                        "/student", List.of("STUDENT"),
-
-                        // Admin routes (if you add admin functionality later)
+                        // Admin routes - Only ADMIN role
                         "/api/admin", List.of("ADMIN"),
                         "/admin", List.of("ADMIN"));
+
+        // Allow FACULTY and STUDENT to access most routes
+        // Fine-grained authorization is handled by individual services
 
         @PostConstruct
         public void init() {

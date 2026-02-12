@@ -39,11 +39,12 @@ server:
 jwt:
   secret: ${JWT_SECRET:default-secret-key-change-in-production-minimum-256-bits}
 
-auth-service:
-  url: ${AUTH_SERVICE_URL:http://localhost:8081}
-
-faculty-service:
-  url: ${FACULTY_SERVICE_URL:http://localhost:8082}
+# Service URLs for inter-service communication
+services:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://auth-service:8081}
+  faculty:
+    url: ${FACULTY_SERVICE_URL:http://faculty-service:8082}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:your-cloud-name}

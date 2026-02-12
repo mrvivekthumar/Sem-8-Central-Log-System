@@ -34,6 +34,7 @@ import {
 } from 'react-icons/si';
 import { useParams } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import { API_ENDPOINTS } from '../../api/endpoints';
 
 // Skill icons mapping
 const skillIcons = {
@@ -97,7 +98,7 @@ function StudentFacultyProfile() {
     const fetchStudent = async () => {
       try {
         setIsLoading(true);
-        const response = await axiosInstance.get(`/STUDENT-SERVICE/students/${studentId}`);
+        const response = await axiosInstance.get(API_ENDPOINTS.STUDENT.GET_BY_ID(studentId));
         const data = response.data;
         setStudentData(data);
         setFormData({
@@ -123,7 +124,7 @@ function StudentFacultyProfile() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axiosInstance.get(`/STUDENT-SERVICE/api/personalProject/${studentId}`);
+        const response = await axiosInstance.get(API_ENDPOINTS.STUDENT.PERSONAL_PROJECTS(studentId));
         setStudentData(prev => ({ ...prev, personalProjects: response.data }));
       } catch (error) {
         console.error('Error fetching projects:', error);
@@ -143,7 +144,7 @@ function StudentFacultyProfile() {
 
     try {
       const response = await axiosInstance.post(
-        `/STUDENT-SERVICE/students/student/${studentData.studentId}/upload-image`,
+        API_ENDPOINTS.STUDENT.UPLOAD_IMAGE(studentData.studentId),
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
@@ -175,7 +176,7 @@ function StudentFacultyProfile() {
     setIsSaving(true);
     try {
       const response = await axiosInstance.put(
-        `/STUDENT-SERVICE/students/${studentData.studentId}`,
+        API_ENDPOINTS.STUDENT.UPDATE(studentData.studentId),
         {
           ...formData,
           name: studentData.name,
@@ -210,7 +211,7 @@ function StudentFacultyProfile() {
   const handleAddProject = async (projectData) => {
     try {
       const response = await axiosInstance.post(
-        `/STUDENT-SERVICE/api/personalProject/${studentId}`,
+        API_ENDPOINTS.STUDENT.CREATE_PERSONAL_PROJECT(studentId),
         projectData
       );
       setStudentData(prev => ({
@@ -229,7 +230,7 @@ function StudentFacultyProfile() {
   const handleUpdateProject = async (projectId, projectData) => {
     try {
       const response = await axiosInstance.put(
-        `/STUDENT-SERVICE/api/personalProject/${projectId}`,
+        API_ENDPOINTS.STUDENT.UPDATE_PERSONAL_PROJECT(projectId),
         projectData
       );
       setStudentData(prev => ({
@@ -251,7 +252,7 @@ function StudentFacultyProfile() {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
 
     try {
-      await axiosInstance.delete(`/STUDENT-SERVICE/api/personalProject/${projectId}`);
+      await axiosInstance.delete(API_ENDPOINTS.STUDENT.DELETE_PERSONAL_PROJECT(projectId));
       setStudentData(prev => ({
         ...prev,
         personalProjects: prev.personalProjects.filter(p => p.personalProjectId !== projectId)

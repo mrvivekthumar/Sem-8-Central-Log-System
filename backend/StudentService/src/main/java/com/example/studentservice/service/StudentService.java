@@ -48,4 +48,12 @@ public interface StudentService {
      * @return Updated profile
      */
     StudentProfileDTO updateProfile(String studentId, StudentProfileDTO profileDTO);
+
+    /**
+     * Get completed projects for a student
+     * 
+     * @param studentId Student ID
+     * @return List of completed student projects
+     */
+    List<StudentProject> getCompletedProjects(int studentId);
 }

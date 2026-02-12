@@ -9,17 +9,19 @@
 **Want to run the project immediately?**
 
 ### Windows Users
+
 ```batch
 start-dev.bat
 ```
 
 ### Linux/Mac Users
+
 ```bash
 chmod +x start-dev.sh
 ./start-dev.sh
 ```
 
-**Then open:** http://localhost:5173
+**Then open:** <http://localhost:5173>
 
 📚 **Need help?** Check [QUICK_START.md](./QUICK_START.md)
 
@@ -103,6 +105,7 @@ CollabBridge uses a **microservices architecture** where each service handles a 
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **Java 17**
 - **Spring Boot 3.x**
 - **Spring Cloud Gateway**
@@ -114,6 +117,7 @@ CollabBridge uses a **microservices architecture** where each service handles a 
 - **Lombok**
 
 ### Frontend
+
 - **React.js 18**
 - **Vite**
 - **Axios**
@@ -122,9 +126,67 @@ CollabBridge uses a **microservices architecture** where each service handles a 
 - **Shadcn/UI**
 
 ### DevOps
+
 - **Docker**
 - **Docker Compose**
+- **Kubernetes (K8s)**
 - **GitHub Actions** (planned)
+
+---
+
+## ☸️ Kubernetes Deployment
+
+### Prerequisites
+
+- Kubernetes cluster (Minikube, Docker Desktop, or cloud K8s)
+- kubectl CLI configured
+- Docker images built and pushed (or use local images)
+
+### Quick Deploy (Windows)
+
+```powershell
+cd backend/k8s
+.\deploy.ps1
+```
+
+### Quick Deploy (Linux/Mac)
+
+```bash
+cd backend/k8s
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Access the Application
+
+```bash
+# Option 1: Port forwarding
+kubectl port-forward svc/api-gateway 8080:8080 -n microservices
+
+# Option 2: Minikube service
+minikube service api-gateway -n microservices
+```
+
+### View Logs
+
+```bash
+kubectl logs -f -l app=api-gateway -n microservices
+kubectl logs -f -l app=auth-service -n microservices
+```
+
+### Cleanup
+
+```powershell
+# Windows
+cd backend/k8s
+.\cleanup.ps1
+```
+
+```bash
+# Linux/Mac
+cd backend/k8s
+./cleanup.sh
+```
 
 ---
 
@@ -140,28 +202,31 @@ CollabBridge uses a **microservices architecture** where each service handles a 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/mrvivekthumar/Sem-8-Central-Log-System.git
    cd Sem-8-Central-Log-System
    ```
 
 2. **Run the project**
-   
+
    **Windows:**
+
    ```batch
    start-dev.bat
    ```
-   
+
    **Linux/Mac:**
+
    ```bash
    chmod +x start-dev.sh
    ./start-dev.sh
    ```
 
 3. **Access the application**
-   - Frontend: http://localhost:5173
-   - API Gateway: http://localhost:8080
-   - RabbitMQ UI: http://localhost:15672 (guest/guest)
+   - Frontend: <http://localhost:5173>
+   - API Gateway: <http://localhost:8080>
+   - RabbitMQ UI: <http://localhost:15672> (guest/guest)
 
 ---
 
@@ -169,12 +234,12 @@ CollabBridge uses a **microservices architecture** where each service handles a 
 
 | Service | Port | Health Check |
 |---------|------|-------------|
-| Frontend | 5173 | http://localhost:5173 |
-| API Gateway | 8080 | http://localhost:8080/actuator/health |
-| Auth Service | 8081 | http://localhost:8081/actuator/health |
-| Faculty Service | 8082 | http://localhost:8082/actuator/health |
-| Student Service | 8083 | http://localhost:8083/actuator/health |
-| RabbitMQ | 5672 | http://localhost:15672 |
+| Frontend | 5173 | <http://localhost:5173> |
+| API Gateway | 8080 | <http://localhost:8080/actuator/health> |
+| Auth Service | 8081 | <http://localhost:8081/actuator/health> |
+| Faculty Service | 8082 | <http://localhost:8082/actuator/health> |
+| Student Service | 8083 | <http://localhost:8083/actuator/health> |
+| RabbitMQ | 5672 | <http://localhost:15672> |
 
 ---
 
@@ -228,12 +293,14 @@ curl -X GET http://localhost:8080/api/students \
 ### Port Conflicts
 
 **Windows:**
+
 ```batch
 netstat -ano | findstr :8080
 taskkill /PID <PID> /F
 ```
 
 **Linux/Mac:**
+
 ```bash
 lsof -i :8080
 kill -9 <PID>
@@ -307,7 +374,7 @@ This project is developed for educational purposes as part of Semester 8 project
 ## 📧 Contact
 
 **Developer:** Vivek Thumar  
-**Email:** mrvivekthumar@gmail.com  
+**Email:** <mrvivekthumar@gmail.com>  
 **GitHub:** [@mrvivekthumar](https://github.com/mrvivekthumar)  
 **University:** DDU University, Gujarat
 

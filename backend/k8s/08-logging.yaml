@@ -1,0 +1,40 @@
+# ==========================================
+# CENTRAL LOGGING PERSISTENT VOLUME CLAIM
+# ==========================================
+# All services write to this shared volume for centralized logging
+# In production, use a ReadWriteMany storage class (NFS, EFS, etc.)
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: central-logs-pvc
+  namespace: microservices
+  labels:
+    app: central-logs
+spec:
+  accessModes:
+    - ReadWriteMany # Required for multiple pods
+  resources:
+    requests:
+      storage: 5Gi
+  # For local development with minikube/docker-desktop, use hostPath
+  # For production, specify a proper storageClassName
+  # storageClassName: nfs-client  # Uncomment for production
+
+---
+# For local development: HostPath PersistentVolume
+# This is NOT recommended for production
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: central-logs-pv
+  namespace: microservices
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /var/log/colabbridge
+    type: DirectoryOrCreate
+  persistentVolumeReclaimPolicy: Retain

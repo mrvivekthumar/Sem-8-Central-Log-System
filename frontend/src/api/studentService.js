@@ -45,6 +45,36 @@ class StudentService {
     }
 
     /**
+     * Get student profile
+     * @returns {Promise}
+     */
+    async getProfile() {
+        try {
+            const response = await axiosInstance.get(API_ENDPOINTS.STUDENT.PROFILE);
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Update student profile
+     * @param {Object} profileData
+     * @returns {Promise}
+     */
+    async updateProfile(profileData) {
+        try {
+            const response = await axiosInstance.put(
+                API_ENDPOINTS.STUDENT.UPDATE_PROFILE,
+                profileData
+            );
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
+
+    /**
      * Upload document
      * @param {FormData} formData - File upload data
      * @returns {Promise}
@@ -52,7 +82,7 @@ class StudentService {
     async uploadDocument(formData) {
         try {
             const response = await axiosInstance.post(
-                API_ENDPOINTS.STUDENT.UPLOAD_DOCUMENT,
+                API_ENDPOINTS.DOCUMENTS.UPLOAD,
                 formData,
                 {
                     headers: {
@@ -67,29 +97,14 @@ class StudentService {
     }
 
     /**
-     * Get all documents
-     * @returns {Promise}
-     */
-    async getDocuments() {
-        try {
-            const response = await axiosInstance.get(API_ENDPOINTS.STUDENT.DOCUMENTS);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    }
-
-    /**
-     * Update student profile
+     * Get all documents for current student
      * @param {string|number} studentId
-     * @param {Object} profileData
      * @returns {Promise}
      */
-    async updateProfile(studentId, profileData) {
+    async getDocuments(studentId) {
         try {
-            const response = await axiosInstance.put(
-                API_ENDPOINTS.STUDENT.UPDATE(studentId),
-                profileData
+            const response = await axiosInstance.get(
+                API_ENDPOINTS.DOCUMENTS.BY_STUDENT(studentId)
             );
             return response.data;
         } catch (error) {

@@ -28,6 +28,7 @@ import {
 } from 'react-icons/si';
 import Select from 'react-select';
 import axiosInstance from '../../api/axiosInstance';
+import API_ENDPOINTS from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 
 const skillOptions = [
@@ -144,7 +145,7 @@ const AddProjectForm = ({ onClose }) => {
 
     try {
       setLoading(true);
-      await axiosInstance.post(`/FACULTY-SERVICE/api/project/${user.id}`, formData);
+      await axiosInstance.post(API_ENDPOINTS.FACULTY.CREATE_PROJECT_BY_FACULTY(user.id), formData);
       toast.success('Project created successfully!');
       onClose();
     } catch (error) {

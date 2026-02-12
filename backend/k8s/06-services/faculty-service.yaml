@@ -18,26 +18,41 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: faculty-service
-          image: your-registry/faculty-service:latest # ← CHANGE THIS
-          imagePullPolicy: Always
+          image: colabbridge/faculty-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 8082
               name: http
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "prod"
-            - name: DB_URL
-              value: "jdbc:postgresql://faculty-db-service:5432/facultydb"
-            - name: DB_USERNAME
+              value: "kubernetes"
+            - name: FACULTY_SERVICE_PORT
+              value: "8082"
+            - name: FACULTY_DB_HOST
+              value: "faculty-db-service"
+            - name: FACULTY_DB_PORT
+              value: "5432"
+            - name: FACULTY_DB_NAME
+              value: "facultydb"
+            - name: FACULTY_DB_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: database-secrets
                   key: FACULTY_DB_USERNAME
-            - name: DB_PASSWORD
+            - name: FACULTY_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: database-secrets
                   key: FACULTY_DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: JWT_SECRET
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service:8081"
+            - name: STUDENT_SERVICE_URL
+              value: "http://student-service:8083"
             - name: RABBITMQ_HOST
               value: "rabbitmq-service"
             - name: RABBITMQ_PORT
@@ -61,28 +76,27 @@ spec:
               cpu: "1000m"
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
-              port: 8080
-            initialDelaySeconds: 90
+              path: /faculty/actuator/health/liveness
+              port: 8082
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /actuator/health/readiness
-              port: 8080
-            initialDelaySeconds: 60
+              path: /faculty/actuator/health/readiness
+              port: 8082
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
           volumeMounts:
-            - name: config
-              mountPath: /app/config
-              readOnly: true
+            - name: logs
+              mountPath: /var/log/colabbridge
       volumes:
-        - name: config
-          configMap:
-            name: faculty-service-config
+        - name: logs
+          persistentVolumeClaim:
+            claimName: central-logs-pvc
       restartPolicy: Always
 
 ---
@@ -99,6 +113,6 @@ spec:
     app: faculty-service
   ports:
     - name: http
-      port: 8080
-      targetPort: 8080
+      port: 8082
+      targetPort: 8082
       protocol: TCP

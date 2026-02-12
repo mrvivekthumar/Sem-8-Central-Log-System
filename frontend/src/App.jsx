@@ -143,7 +143,7 @@ function App() {
           }
         />
         <Route
-          path="/faculty/projects"
+          path="/faculty/project/:projectId/review"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
               <Layout><FacultyProjectReview /></Layout>
@@ -151,7 +151,7 @@ function App() {
           }
         />
         <Route
-          path="/faculty/assign-projects"
+          path="/faculty/project/:projectId/assign"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
               <Layout><AssignProjects /></Layout>

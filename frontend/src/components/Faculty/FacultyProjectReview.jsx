@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import { API_ENDPOINTS } from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 
 const FacultyProjectReview = () => {
@@ -39,12 +40,12 @@ const FacultyProjectReview = () => {
       setLoading(true);
 
       // Fetch project details
-      const projectResponse = await axiosInstance.get(`/FACULTY-SERVICE/api/project/${projectId}`);
+      const projectResponse = await axiosInstance.get(API_ENDPOINTS.PROJECTS.GET_BY_ID(projectId));
       setProject(projectResponse.data);
 
       // Fetch applications
       const applicationsResponse = await axiosInstance.get(
-        `/FACULTY-SERVICE/api/project/${projectId}/applications`
+        API_ENDPOINTS.PROJECTS.APPLICATIONS(projectId)
       );
       setApplications(applicationsResponse.data || []);
     } catch (error) {
@@ -59,7 +60,7 @@ const FacultyProjectReview = () => {
     try {
       setActionLoading(true);
       await axiosInstance.post(
-        `/FACULTY-SERVICE/api/project/${projectId}/accept/${studentId}`
+        API_ENDPOINTS.PROJECTS.ACCEPT_STUDENT(projectId, studentId)
       );
       toast.success('Application accepted successfully!');
       fetchProjectAndApplications();
@@ -80,7 +81,7 @@ const FacultyProjectReview = () => {
     try {
       setActionLoading(true);
       await axiosInstance.post(
-        `/FACULTY-SERVICE/api/project/${projectId}/reject/${studentId}`,
+        API_ENDPOINTS.PROJECTS.REJECT_STUDENT(projectId, studentId),
         { reason: rejectionReason }
       );
       toast.success('Application rejected');

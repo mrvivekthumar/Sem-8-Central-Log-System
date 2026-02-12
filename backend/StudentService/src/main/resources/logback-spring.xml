@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- Properties from Spring application.yml -->
+    <springProperty scope="context" name="APPLICATION_NAME" source="spring.application.name" defaultValue="student-service"/>
+    <springProperty scope="context" name="LOG_LEVEL" source="logging.level.root" defaultValue="INFO"/>
+
+    <!-- Console Appender with Correlation ID -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>X-Correlation-Id</includeMdcKeyName>
+            <includeMdcKeyName>X-User-Id</includeMdcKeyName>
+            <includeMdcKeyName>X-User-Role</includeMdcKeyName>
+            <customFields>{"service":"${APPLICATION_NAME}","environment":"${SPRING_PROFILES_ACTIVE:-default}"}</customFields>
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+        </encoder>
+    </appender>
+
+    <!-- File Appender for local development -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/${APPLICATION_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/${APPLICATION_NAME}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>X-Correlation-Id</includeMdcKeyName>
+            <includeMdcKeyName>X-User-Id</includeMdcKeyName>
+            <includeMdcKeyName>X-User-Role</includeMdcKeyName>
+            <customFields>{"service":"${APPLICATION_NAME}","environment":"${SPRING_PROFILES_ACTIVE:-default}"}</customFields>
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+        </encoder>
+    </appender>
+
+    <!-- Development Profile -->
+    <springProfile name="default,dev">
+        <root level="${LOG_LEVEL}">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+        
+        <logger name="com.example.studentservice" level="DEBUG"/>
+        <logger name="org.springframework.cloud.openfeign" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.springframework.amqp" level="DEBUG"/>
+    </springProfile>
+
+    <!-- Docker/Production Profile -->
+    <springProfile name="docker,prod,kubernetes">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        
+        <logger name="com.example.studentservice" level="INFO"/>
+        <logger name="org.springframework.cloud.openfeign" level="WARN"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.springframework.amqp" level="INFO"/>
+    </springProfile>
+
+</configuration>

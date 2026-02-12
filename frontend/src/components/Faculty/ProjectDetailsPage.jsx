@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import { API_ENDPOINTS } from '../../api/endpoints';
 
 const ProjectDetailsPage = () => {
   const { projectId } = useParams();
@@ -28,7 +29,7 @@ const ProjectDetailsPage = () => {
   const fetchProjectDetails = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/FACULTY-SERVICE/api/project/${projectId}`);
+      const response = await axiosInstance.get(API_ENDPOINTS.PROJECTS.GET_BY_ID(projectId));
       setProject(response.data);
     } catch (error) {
       console.error('Error fetching project:', error);

@@ -66,8 +66,7 @@ const Navbar = () => {
     if (user.role === 'FACULTY') {
       return [
         { name: 'Dashboard', path: '/faculty/dashboard', icon: Home },
-        { name: 'Projects', path: '/faculty/projects', icon: Briefcase },
-        { name: 'Assign', path: '/faculty/assign-projects', icon: Settings },
+        { name: 'Confirmed', path: '/faculty/confirmed-projects', icon: Briefcase },
         { name: 'Profile', path: '/profile', icon: User }
       ];
     }

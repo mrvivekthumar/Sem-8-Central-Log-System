@@ -15,6 +15,7 @@ import {
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../api/axiosInstance';
+import API_ENDPOINTS from '../api/endpoints';
 import AdminHeader from '../components/admin/AdminHeader';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import RegisterModal from '../components/admin/RegisterModal';
@@ -49,8 +50,8 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const [studentsRes, facultyRes] = await Promise.all([
-        axiosInstance.get('/STUDENT-SERVICE/students/all'),
-        axiosInstance.get('/FACULTY-SERVICE/api/faculty/all')
+        axiosInstance.get(API_ENDPOINTS.STUDENT.ALL),
+        axiosInstance.get(API_ENDPOINTS.FACULTY.ALL)
       ]);
 
       setStats({

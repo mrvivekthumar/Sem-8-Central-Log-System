@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
+import API_ENDPOINTS from '../api/endpoints';
 import { useAuth } from '../contexts/AuthContext';
 
 const CurrentProject = () => {
@@ -30,7 +31,7 @@ const CurrentProject = () => {
         try {
             setLoading(true);
             const response = await axiosInstance.get(
-                `/STUDENT-SERVICE/api/studentProject/appliedProjects`
+                API_ENDPOINTS.STUDENT_PROJECT.APPLIED_PROJECTS
             );
 
             // Find the first IN_PROGRESS project
@@ -41,7 +42,7 @@ const CurrentProject = () => {
             if (inProgressProjects.length > 0) {
                 // Get full project details
                 const projectResponse = await axiosInstance.get(
-                    `/FACULTY-SERVICE/api/project/${inProgressProjects[0].projectId}`
+                    API_ENDPOINTS.PROJECTS.GET_BY_ID(inProgressProjects[0].projectId)
                 );
                 setCurrentProject(projectResponse.data);
 

@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,7 +38,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("") // Context-path /auth already provides the prefix
 @Validated
 public class AuthController {
 
@@ -53,6 +54,7 @@ public class AuthController {
     public void init() {
         logger.info("=================================================");
         logger.info("AuthController Initialized and Ready!");
+        logger.info("Context Path: /auth");
         logger.info("Available Endpoints:");
         logger.info("  POST   /auth/register");
         logger.info("  POST   /auth/login");
@@ -385,6 +387,53 @@ public class AuthController {
                     .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Controller: Failed to change password for user {}: {}", userId, e.getMessage());
+            logger.info("===============================================");
+            throw e;
+        }
+    }
+
+    /**
+     * Get user by ID (for inter-service communication)
+     * GET /auth/user/{id}
+     * Internal endpoint for other services to fetch user details
+     */
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id, HttpServletRequest request) {
+        logger.info("===============================================");
+        logger.info("Controller: Get user by ID request for: {}", id);
+        logger.debug("Controller: Request from IP: {}", request.getRemoteAddr());
+
+        try {
+            UserCredential user = authService.getUserById(id);
+
+            UserResponse userResponse = UserResponse.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .role(user.getRole())
+                    .name(user.getName())
+                    .bio(user.getBio())
+                    .skills(user.getSkills())
+                    .githubProfileLink(user.getGithubProfileLink())
+                    .linkedInProfileLink(user.getLinkedInProfileLink())
+                    .portfolioLink(user.getPortfolioLink())
+                    .phone(user.getPhone())
+                    .location(user.getLocation())
+                    .ratings(user.getRatings())
+                    .projectsCompleted(user.getProjectsCompleted())
+                    .currentProjects(user.getCurrentProjects())
+                    .build();
+
+            logger.info("Controller: User fetched successfully for ID: {}", id);
+            logger.info("===============================================");
+            return ResponseEntity.ok(userResponse);
+
+        } catch (AuthenticationException e) {
+            logger.warn("Controller: User not found with ID: {}", id);
+            logger.info("===============================================");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Controller: Failed to fetch user {}: {}", id, e.getMessage());
             logger.info("===============================================");
             throw e;
         }

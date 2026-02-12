@@ -85,51 +85,22 @@ const StudentProfile = () => {
 
       let response;
 
-      // Try different endpoints based on role
+      // Use profile endpoints which auto-create records if they don't exist
       if (user.role === 'FACULTY') {
-        try {
-          // Try: GET /api/faculty/email/{email}
-          response = await axiosInstance.get(`/api/faculty/email/${user.email}`);
-        } catch (error) {
-          if (error.response?.status === 404) {
-            // Fallback: Try GET /api/faculty (get all and filter)
-            const allFaculty = await axiosInstance.get('/api/faculty');
-            const faculty = allFaculty.data.find(f => f.email === user.email);
-
-            if (!faculty) {
-              throw new Error('Faculty profile not found');
-            }
-
-            response = { data: faculty };
-          } else {
-            throw error;
-          }
-        }
+        // GET /api/faculty/profile - auto-creates faculty record from Auth Service
+        response = await axiosInstance.get('/api/faculty/profile');
       } else {
-        // Student endpoint
-        try {
-          response = await axiosInstance.get(`/api/students/email/${user.email}`);
-        } catch (error) {
-          if (error.response?.status === 404) {
-            // Fallback: Try GET /api/students and filter
-            const allStudents = await axiosInstance.get('/api/students');
-            const student = allStudents.data.find(s => s.email === user.email);
-
-            if (!student) {
-              throw new Error('Student profile not found');
-            }
-
-            response = { data: student };
-          } else {
-            throw error;
-          }
-        }
+        // GET /api/students/profile - auto-creates student record from Auth Service
+        response = await axiosInstance.get('/api/students/profile');
       }
 
       console.log('✅ Profile loaded:', response.data);
 
+      // Map service-specific ID fields to generic 'id'
       if (user.role === 'FACULTY' && response.data.fId) {
         response.data.id = response.data.fId;
+      } else if (user.role === 'STUDENT' && response.data.studentId) {
+        response.data.id = response.data.studentId;
       }
 
       // Check if ID exists

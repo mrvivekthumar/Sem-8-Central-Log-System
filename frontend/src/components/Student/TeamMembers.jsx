@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosInstance';
+import API_ENDPOINTS from '../../api/endpoints';
 
 const TeamMembers = ({ projectId }) => {
     const [members, setMembers] = useState([]);
@@ -25,7 +26,7 @@ const TeamMembers = ({ projectId }) => {
         try {
             setLoading(true);
             const response = await axiosInstance.get(
-                `/STUDENT-SERVICE/api/project/${projectId}/team-members`
+                API_ENDPOINTS.STUDENT_PROJECT.STUDENTS_BY_PROJECT(projectId)
             );
             setMembers(response.data || []);
         } catch (error) {

@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import axiosInstance from '../../api/axiosInstance';
+import { facultyService } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import AddProjectForm from './AddProjectForm';
 import FacultyProjectList from './FacultyProjectList';
@@ -43,14 +43,21 @@ const FacultyDashboard = () => {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/FACULTY-SERVICE/api/faculty/${user.id}`);
-      const projects = response.data;
+      // Use facultyService with correct endpoint
+      const response = await facultyService.getDashboard();
+      const projects = response.data || response || [];
 
       setStats({
-        totalProjects: projects.length,
-        activeProjects: projects.filter(p => p.status === 'IN_PROGRESS').length,
-        completedProjects: projects.filter(p => p.status === 'COMPLETED').length,
-        pendingApplications: projects.filter(p => p.status === 'OPEN_FOR_APPLICATIONS').length
+        totalProjects: Array.isArray(projects) ? projects.length : (projects.totalProjects || 0),
+        activeProjects: Array.isArray(projects)
+          ? projects.filter(p => p.status === 'IN_PROGRESS').length
+          : (projects.activeProjects || 0),
+        completedProjects: Array.isArray(projects)
+          ? projects.filter(p => p.status === 'COMPLETED').length
+          : (projects.completedProjects || 0),
+        pendingApplications: Array.isArray(projects)
+          ? projects.filter(p => p.status === 'OPEN_FOR_APPLICATIONS').length
+          : (projects.pendingApplications || 0)
       });
     } catch (error) {
       console.error('Error fetching stats:', error);

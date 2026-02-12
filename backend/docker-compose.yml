@@ -94,6 +94,8 @@ services:
       AUTH_SERVICE_PORT: 8081
     ports:
       - "8081:8081"
+    volumes:
+      - central-logs:/var/log/colabbridge
     depends_on:
       auth-db:
         condition: service_healthy
@@ -101,7 +103,7 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/auth/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -121,6 +123,8 @@ services:
       FACULTY_DB_USERNAME: faculty_user
       FACULTY_DB_PASSWORD: faculty_password
       JWT_SECRET: ${JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      STUDENT_SERVICE_URL: http://student-service:8083
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
@@ -131,6 +135,8 @@ services:
       FACULTY_SERVICE_PORT: 8082
     ports:
       - "8082:8082"
+    volumes:
+      - central-logs:/var/log/colabbridge
     depends_on:
       faculty-db:
         condition: service_healthy
@@ -140,7 +146,8 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      test:
+        ["CMD", "curl", "-f", "http://localhost:8082/faculty/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -160,6 +167,8 @@ services:
       STUDENT_DB_USERNAME: student_user
       STUDENT_DB_PASSWORD: student_password
       JWT_SECRET: ${JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      FACULTY_SERVICE_URL: http://faculty-service:8082
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
@@ -173,6 +182,8 @@ services:
       STUDENT_SERVICE_PORT: 8083
     ports:
       - "8083:8083"
+    volumes:
+      - central-logs:/var/log/colabbridge
     depends_on:
       student-db:
         condition: service_healthy
@@ -182,7 +193,8 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      test:
+        ["CMD", "curl", "-f", "http://localhost:8083/student/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -203,6 +215,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8080:8080"
+    volumes:
+      - central-logs:/var/log/colabbridge
     depends_on:
       - auth-service
       - faculty-service
@@ -226,3 +240,4 @@ volumes:
   faculty-db-data:
   student-db-data:
   rabbitmq-data:
+  central-logs:

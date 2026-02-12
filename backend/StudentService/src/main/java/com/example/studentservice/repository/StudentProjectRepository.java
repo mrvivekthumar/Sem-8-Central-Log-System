@@ -69,4 +69,7 @@ public interface StudentProjectRepository extends JpaRepository<StudentProject, 
 
     @Query("SELECT sp FROM StudentProject sp WHERE sp.projectId = :projectId AND sp.status = :status")
     List<StudentProject> findByProjectIdAndStatus(@Param("projectId") int projectId, @Param("status") Status status);
+
+    @Query("SELECT sp FROM StudentProject sp WHERE sp.student.studentId = :studentId AND sp.status = 'COMPLETED'")
+    List<StudentProject> findCompletedProjectsByStudentId(@Param("studentId") int studentId);
 }

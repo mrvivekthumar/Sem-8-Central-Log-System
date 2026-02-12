@@ -18,22 +18,28 @@ spec:
       serviceAccountName: microservices-sa
       containers:
         - name: auth-service
-          image: your-registry/auth-service:latest # ← CHANGE THIS
-          imagePullPolicy: Always
+          image: colabbridge/auth-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8070
+            - containerPort: 8081
               name: http
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "prod"
-            - name: DB_URL
-              value: "jdbc:postgresql://auth-db-service:5432/authdb"
-            - name: DB_USERNAME
+              value: "kubernetes"
+            - name: AUTH_SERVICE_PORT
+              value: "8081"
+            - name: AUTH_DB_HOST
+              value: "auth-db-service"
+            - name: AUTH_DB_PORT
+              value: "5432"
+            - name: AUTH_DB_NAME
+              value: "authdb"
+            - name: AUTH_DB_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: database-secrets
                   key: AUTH_DB_USERNAME
-            - name: DB_PASSWORD
+            - name: AUTH_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: database-secrets
@@ -52,28 +58,27 @@ spec:
               cpu: "500m"
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
-              port: 8070
-            initialDelaySeconds: 90
+              path: /auth/actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /actuator/health/readiness
-              port: 8070
-            initialDelaySeconds: 60
+              path: /auth/actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
           volumeMounts:
-            - name: config
-              mountPath: /app/config
-              readOnly: true
+            - name: logs
+              mountPath: /var/log/colabbridge
       volumes:
-        - name: config
-          configMap:
-            name: auth-service-config
+        - name: logs
+          persistentVolumeClaim:
+            claimName: central-logs-pvc
       restartPolicy: Always
 
 ---
@@ -90,6 +95,6 @@ spec:
     app: auth-service
   ports:
     - name: http
-      port: 8070
-      targetPort: 8070
+      port: 8081
+      targetPort: 8081
       protocol: TCP

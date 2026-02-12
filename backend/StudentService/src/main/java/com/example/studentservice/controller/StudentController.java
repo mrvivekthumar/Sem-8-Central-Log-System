@@ -1,5 +1,7 @@
 package com.example.studentservice.controller;
 
+import com.example.studentservice.client.FacultyInterface;
+import com.example.studentservice.client.dto.Project;
 import com.example.studentservice.domain.StudentProject;
 import com.example.studentservice.dto.StudentDashboardDTO;
 import com.example.studentservice.dto.StudentProfileDTO;
@@ -15,7 +17,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.List;
 
 @RestController
-@RequestMapping("/student")
+@RequestMapping("/students") // Under /student context-path, accessible at /student/students
 public class StudentController {
 
     private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
@@ -23,11 +25,14 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private FacultyInterface facultyInterface;
+
     @PostConstruct
     public void init() {
         logger.info("=================================================");
         logger.info("StudentController initialized and ready!");
-        logger.info("Base path: /student");
+        logger.info("Context Path: /student/students");
         logger.info("Endpoints: GET /dashboard, GET /projects, GET /profile");
         logger.info("=================================================");
     }
@@ -61,11 +66,11 @@ public class StudentController {
     }
 
     /**
-     * Get all student projects
+     * Get all visible projects from Faculty Service (for browsing)
      * GET /student/projects
      */
     @GetMapping("/projects")
-    public ResponseEntity<List<StudentProject>> getProjects(
+    public ResponseEntity<List<Project>> getProjects(
             @RequestHeader("X-User-Id") String studentId,
             HttpServletRequest request) {
 
@@ -75,14 +80,16 @@ public class StudentController {
         logger.debug("Request from IP: {}", request.getRemoteAddr());
 
         try {
-            List<StudentProject> projects = studentService.getProjects(studentId);
-            logger.info("Fetched {} projects for student: {}", projects.size(), studentId);
+            // Fetch visible projects from Faculty Service (not student's applied projects)
+            ResponseEntity<List<Project>> response = facultyInterface.getVisibleProjects();
+            List<Project> projects = response.getBody();
+            logger.info("Fetched {} visible projects from Faculty Service",
+                    projects != null ? projects.size() : 0);
             logger.info("===============================================");
-            return ResponseEntity.ok(projects);
+            return ResponseEntity.ok(projects != null ? projects : List.of());
 
         } catch (Exception e) {
-            logger.error("Failed to fetch projects for student {}: {}",
-                    studentId, e.getMessage(), e);
+            logger.error("Failed to fetch visible projects: {}", e.getMessage(), e);
             logger.info("===============================================");
             throw e;
         }
@@ -139,6 +146,34 @@ public class StudentController {
 
         } catch (Exception e) {
             logger.error("Failed to fetch profile for student {}: {}",
+                    studentId, e.getMessage(), e);
+            logger.info("===============================================");
+            throw e;
+        }
+    }
+
+    /**
+     * Get completed projects for a student
+     * GET /student/students/{studentId}/completed-projects
+     */
+    @GetMapping("/{studentId}/completed-projects")
+    public ResponseEntity<List<StudentProject>> getCompletedProjects(
+            @PathVariable int studentId,
+            @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
+            HttpServletRequest request) {
+
+        logger.info("===============================================");
+        logger.info("Controller: GET /students/{}/completed-projects", studentId);
+        logger.debug("Request from IP: {}", request.getRemoteAddr());
+
+        try {
+            List<StudentProject> completedProjects = studentService.getCompletedProjects(studentId);
+            logger.info("Found {} completed projects for student: {}", completedProjects.size(), studentId);
+            logger.info("===============================================");
+            return ResponseEntity.ok(completedProjects);
+
+        } catch (Exception e) {
+            logger.error("Failed to fetch completed projects for student {}: {}",
                     studentId, e.getMessage(), e);
             logger.info("===============================================");
             throw e;

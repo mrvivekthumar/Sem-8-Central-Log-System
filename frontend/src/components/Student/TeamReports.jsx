@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosInstance';
+import API_ENDPOINTS from '../../api/endpoints';
 
 const TeamReports = ({ projectId }) => {
   const [reports, setReports] = useState([]);
@@ -23,9 +24,7 @@ const TeamReports = ({ projectId }) => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(
-        `/STUDENT-SERVICE/api/project/${projectId}/reports`
-      );
+      const response = await axiosInstance.get(API_ENDPOINTS.REPORTS.PROJECT_REPORTS(projectId));
       setReports(response.data || []);
     } catch (error) {
       console.error('Error fetching reports:', error);

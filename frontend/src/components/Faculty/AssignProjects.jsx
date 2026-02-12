@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import API_ENDPOINTS from '../../api/endpoints';
 
 const AssignProjects = () => {
   const { projectId } = useParams();
@@ -26,8 +27,8 @@ const AssignProjects = () => {
     try {
       setLoading(true);
       const [projectRes, studentsRes] = await Promise.all([
-        axiosInstance.get(`/FACULTY-SERVICE/api/project/${projectId}`),
-        axiosInstance.get(`/FACULTY-SERVICE/api/project/${projectId}/accepted-students`)
+        axiosInstance.get(API_ENDPOINTS.PROJECTS.GET_BY_ID(projectId)),
+        axiosInstance.get(API_ENDPOINTS.PROJECTS.ACCEPTED_STUDENTS(projectId))
       ]);
       setProject(projectRes.data);
       setStudents(studentsRes.data || []);
@@ -54,7 +55,7 @@ const AssignProjects = () => {
     }
 
     try {
-      await axiosInstance.post(`/FACULTY-SERVICE/api/project/${projectId}/assign`, {
+      await axiosInstance.post(API_ENDPOINTS.PROJECTS.ASSIGN(projectId), {
         studentIds: selectedStudents
       });
       toast.success('Students assigned successfully!');

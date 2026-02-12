@@ -6,6 +6,7 @@ import { ChevronDown, Star, User, Mail, Bookmark, Award, Clock, Check, AlertTria
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosInstance';
+import { API_ENDPOINTS } from '../../api/endpoints';
 const StudentDetail = () => {
   const { user } = useAuth();
   const { projectId } = useParams();
@@ -26,8 +27,8 @@ const StudentDetail = () => {
       setIsLoading(true);
       try {
         const [projectResponse, studentsResponse] = await Promise.all([
-          axiosInstance.get(`/FACULTY-SERVICE/api/project/${projectId}`),
-          axiosInstance.get(`/FACULTY-SERVICE/api/faculty/studentproject/${projectId}`)
+          axiosInstance.get(API_ENDPOINTS.PROJECTS.GET_BY_ID(projectId)),
+          axiosInstance.get(API_ENDPOINTS.FACULTY.STUDENT_PROJECT(projectId))
         ]);
 
         setProject(projectResponse.data);
@@ -41,7 +42,7 @@ const StudentDetail = () => {
 
         // Fetch preferences in a single request
         const preferencesResponse = await axiosInstance.post(
-          `/STUDENT-SERVICE/api/studentProject/${projectId}/student`, // Ensure correct API path
+          API_ENDPOINTS.STUDENT_PROJECT.BY_PROJECT(projectId), // Ensure correct API path
           studentIds,
           {
             headers: {
@@ -90,7 +91,7 @@ const StudentDetail = () => {
       try {
         // Get other project IDs for this student
         const otherProjectsResponse = await axiosInstance.get(
-          `/STUDENT-SERVICE/api/studentProject/${student.studentId}/getProjectFaculties/project/${projectId}`
+          API_ENDPOINTS.STUDENT_PROJECT.GET_FACULTIES(student.studentId, projectId)
         );
 
         const otherProjectIds = otherProjectsResponse.data;
@@ -99,7 +100,7 @@ const StudentDetail = () => {
         if (otherProjectIds && otherProjectIds.length > 0) {
           // Fetch details for those projects
           const otherProjectsDetailsResponse = await axiosInstance.post(
-            `/FACULTY-SERVICE/api/faculty/projectsbyIds`,
+            API_ENDPOINTS.FACULTY.PROJECTS_BY_IDS,
             otherProjectIds,
             {
               headers: {
@@ -200,7 +201,7 @@ const StudentDetail = () => {
 
     try {
       await axiosInstance.post(
-        `/FACULTY-SERVICE/api/faculty/${user.id}/studentproject/${projectId}/approved`,
+        API_ENDPOINTS.FACULTY.APPROVE_STUDENT(user.id, projectId),
         selectedStudentIds,
         { headers: { 'Content-Type': 'application/json' } }
       );

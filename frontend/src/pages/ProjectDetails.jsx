@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
+import API_ENDPOINTS from '../api/endpoints';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProjectDetails = () => {
@@ -40,7 +41,7 @@ const ProjectDetails = () => {
   const fetchProjectDetails = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/FACULTY-SERVICE/api/project/${projectId}`);
+      const response = await axiosInstance.get(API_ENDPOINTS.PROJECTS.GET_BY_ID(projectId));
       setProject(response.data);
     } catch (error) {
       console.error('Error fetching project:', error);
@@ -52,9 +53,7 @@ const ProjectDetails = () => {
 
   const checkApplicationStatus = async () => {
     try {
-      const response = await axiosInstance.get(
-        `/STUDENT-SERVICE/api/studentProject/appliedProjects`
-      );
+      const response = await axiosInstance.get(API_ENDPOINTS.STUDENT_PROJECT.APPLIED_PROJECTS);
       const applied = response.data.some(p => p.projectId === parseInt(projectId));
       setHasApplied(applied);
     } catch (error) {
@@ -65,9 +64,7 @@ const ProjectDetails = () => {
   const handleApply = async () => {
     try {
       setApplying(true);
-      await axiosInstance.post(
-        `/STUDENT-SERVICE/api/studentProject/student/${user.id}/project/${projectId}`
-      );
+      await axiosInstance.post(API_ENDPOINTS.STUDENT_PROJECT.STATUS(user.id, projectId));
       toast.success('Application submitted successfully!');
       setHasApplied(true);
       setShowApplicationModal(false);

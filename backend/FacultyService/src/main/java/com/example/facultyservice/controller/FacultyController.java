@@ -1,11 +1,12 @@
 package com.example.facultyservice.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.facultyservice.client.AuthInterface;
 import com.example.facultyservice.entity.Faculty;
+import com.example.facultyservice.entity.Project;
 import com.example.facultyservice.service.FacultyService;
+import com.example.facultyservice.service.ProjectService;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,29 +28,178 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/faculty")
-@CrossOrigin(origins = "*")
+@RequestMapping("") // Context-path /faculty already provides the prefix
 @Slf4j
 public class FacultyController {
 
     @Autowired
     private FacultyService facultyService;
 
+    @Autowired
+    private ProjectService projectService;
+
+    @Autowired
+    private AuthInterface authInterface;
+
     @PostConstruct
     public void init() {
         log.info("=================================================");
         log.info("FacultyController initialized and ready!");
+        log.info("Context Path: /faculty");
         log.info("Available Endpoints:");
-        log.info("  GET    /api/faculty");
-        log.info("  GET    /api/faculty/{id}");
-        log.info("  GET    /api/faculty/email/{email}");
-        log.info("  POST   /api/faculty");
-        log.info("  PUT    /api/faculty/{id}");
-        log.info("  DELETE /api/faculty/{id}");
-        log.info("  GET    /api/faculty/count");
-        log.info("  GET    /api/faculty/emails");
-        log.info("  GET    /api/faculty/exists/{email}");
+        log.info("  GET    /faculty/dashboard");
+        log.info("  GET    /faculty/profile");
+        log.info("  GET    /faculty");
+        log.info("  GET    /faculty/{id}");
+        log.info("  GET    /faculty/email/{email}");
+        log.info("  POST   /faculty");
+        log.info("  PUT    /faculty/{id}");
+        log.info("  DELETE /faculty/{id}");
+        log.info("  GET    /faculty/count");
+        log.info("  GET    /faculty/emails");
+        log.info("  GET    /faculty/exists/{email}");
         log.info("=================================================");
+    }
+
+    /**
+     * Get faculty dashboard data
+     * GET /api/faculty/dashboard
+     * Returns projects created by the authenticated faculty
+     */
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard(HttpServletRequest request) {
+        log.info("===============================================");
+        log.info("Controller: GET /faculty/dashboard - Fetching dashboard data");
+
+        String userIdHeader = request.getHeader("X-User-Id");
+        String userRole = request.getHeader("X-User-Role");
+        log.info("Controller: User ID: {}, Role: {}", userIdHeader, userRole);
+
+        if (userIdHeader == null) {
+            log.error("Controller: X-User-Id header not found");
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "User ID not found in request");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        try {
+            Long facultyId = Long.parseLong(userIdHeader);
+            List<Project> projects = projectService.getProjectsByFacultyId(facultyId);
+
+            // Build dashboard response
+            Map<String, Object> dashboard = new HashMap<>();
+            dashboard.put("projects", projects);
+            dashboard.put("totalProjects", projects.size());
+            dashboard.put("activeProjects", projects.stream()
+                    .filter(p -> "IN_PROGRESS".equals(p.getStatus().name()))
+                    .count());
+            dashboard.put("completedProjects", projects.stream()
+                    .filter(p -> "COMPLETED".equals(p.getStatus().name()))
+                    .count());
+            dashboard.put("pendingApplications", projects.stream()
+                    .filter(p -> "OPEN_FOR_APPLICATIONS".equals(p.getStatus().name()))
+                    .count());
+
+            log.info("Controller: Dashboard loaded - {} projects", projects.size());
+            log.info("===============================================");
+            return ResponseEntity.ok(dashboard);
+        } catch (NumberFormatException e) {
+            log.error("Controller: Invalid user ID format: {}", userIdHeader);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Invalid user ID format");
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            log.error("Controller: Error fetching dashboard: {}", e.getMessage(), e);
+            log.info("===============================================");
+            throw e;
+        }
+    }
+
+    /**
+     * Get faculty profile
+     * GET /api/faculty/profile
+     * Returns the authenticated faculty's profile based on X-User-Id header
+     * Auto-creates faculty record if not exists by fetching from Auth Service
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(HttpServletRequest request) {
+        log.info("===============================================");
+        log.info("Controller: GET /faculty/profile - Fetching profile");
+
+        String userIdHeader = request.getHeader("X-User-Id");
+        log.info("Controller: User ID from header: {}", userIdHeader);
+
+        if (userIdHeader == null) {
+            log.error("Controller: X-User-Id header not found");
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "User ID not found in request");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        try {
+            Integer facultyId = Integer.parseInt(userIdHeader);
+
+            // First try to find existing faculty
+            var existingFaculty = facultyService.getFacultyById(facultyId);
+            if (existingFaculty.isPresent()) {
+                log.info("Controller: Profile found - ID: {}, Email: {}", facultyId, existingFaculty.get().getEmail());
+                log.info("===============================================");
+                return ResponseEntity.ok(existingFaculty.get());
+            }
+
+            // Faculty not found locally - try to fetch from Auth Service and auto-create
+            log.info("Controller: Faculty not found locally, fetching from Auth Service...");
+            try {
+                ResponseEntity<Map<String, Object>> authResponse = authInterface.getUserById(Long.valueOf(facultyId));
+
+                if (authResponse.getStatusCode().is2xxSuccessful() && authResponse.getBody() != null) {
+                    Map<String, Object> userData = authResponse.getBody();
+
+                    // Create new faculty from auth user data
+                    Faculty newFaculty = new Faculty();
+                    newFaculty.setFId(facultyId);
+                    newFaculty.setEmail((String) userData.get("email"));
+                    newFaculty.setName((String) userData.get("name"));
+                    newFaculty.setBio((String) userData.get("bio"));
+                    newFaculty.setGithubProfileLink((String) userData.get("githubProfileLink"));
+                    newFaculty.setLinkedInProfileLink((String) userData.get("linkedInProfileLink"));
+                    newFaculty.setPortfolioLink((String) userData.get("portfolioLink"));
+                    newFaculty.setPhone((String) userData.get("phone"));
+                    newFaculty.setLocation((String) userData.get("location"));
+
+                    // Handle numeric fields with null checks
+                    Object ratings = userData.get("ratings");
+                    newFaculty.setRatings(ratings != null ? ((Number) ratings).doubleValue() : 0.0);
+
+                    Object projectsCompleted = userData.get("projectsCompleted");
+                    newFaculty.setProjectsCompleted(
+                            projectsCompleted != null ? ((Number) projectsCompleted).intValue() : 0);
+
+                    Object currentProjects = userData.get("currentProjects");
+                    newFaculty.setCurrentProjects(currentProjects != null ? ((Number) currentProjects).intValue() : 0);
+
+                    // Save the new faculty
+                    Faculty savedFaculty = facultyService.createFaculty(newFaculty);
+                    log.info("Controller: Auto-created faculty profile - ID: {}, Email: {}", savedFaculty.getFId(),
+                            savedFaculty.getEmail());
+                    log.info("===============================================");
+                    return ResponseEntity.ok(savedFaculty);
+                } else {
+                    log.warn("Controller: User not found in Auth Service for ID: {}", facultyId);
+                    log.info("===============================================");
+                    return ResponseEntity.notFound().build();
+                }
+            } catch (Exception authEx) {
+                log.error("Controller: Failed to fetch user from Auth Service: {}", authEx.getMessage());
+                log.info("===============================================");
+                return ResponseEntity.notFound().build();
+            }
+        } catch (NumberFormatException e) {
+            log.error("Controller: Invalid user ID format: {}", userIdHeader);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Invalid user ID format");
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @GetMapping

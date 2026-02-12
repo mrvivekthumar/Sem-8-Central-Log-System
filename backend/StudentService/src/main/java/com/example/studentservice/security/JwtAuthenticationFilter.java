@@ -1,4 +1,4 @@
-package com.example.facultyservice.security;
+package com.example.studentservice.security;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.facultyservice.util.JwtUtil;
+import com.example.studentservice.util.JwtUtil;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,16 +21,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * JWT Authentication Filter
+ * JWT Authentication Filter for Student Service
  * 
  * Purpose:
  * - Intercept all requests
  * - Extract JWT token from Authorization header
- * - Validate token
- * - Set authentication in SecurityContext
+ * - Validate token and set authentication in SecurityContext
  * 
  * Note: API Gateway already validates JWT
- * This filter extracts user info from pre-validated headers
+ * This filter provides defense-in-depth by re-validating
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -95,6 +94,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             logger.error("❌ JWT authentication failed: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
             response.getWriter().write("{\"error\":\"Invalid or expired token\"}");
             return;
         }
@@ -122,7 +122,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return path.startsWith("/actuator/") ||
                 path.startsWith("/swagger-ui/") ||
                 path.startsWith("/v3/api-docs/") ||
-                path.equals("/projects/visible") ||
-                path.startsWith("/projects/visible");
+                path.contains("/health");
     }
 }

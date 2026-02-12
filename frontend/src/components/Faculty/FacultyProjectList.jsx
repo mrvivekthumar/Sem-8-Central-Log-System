@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import { API_ENDPOINTS } from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 
 const FacultyProjectList = ({ viewMode = 'grid' }) => {
@@ -32,7 +33,7 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/FACULTY-SERVICE/api/faculty/${user.id}`);
+      const response = await axiosInstance.get(API_ENDPOINTS.PROJECTS.BY_FACULTY(user.id));
       setProjects(response.data || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -44,7 +45,7 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
 
   const handleDelete = async (projectId) => {
     try {
-      await axiosInstance.delete(`/FACULTY-SERVICE/api/project/${projectId}`);
+      await axiosInstance.delete(API_ENDPOINTS.PROJECTS.DELETE(projectId));
       toast.success('Project deleted successfully');
       fetchProjects();
       setDeleteConfirm(null);

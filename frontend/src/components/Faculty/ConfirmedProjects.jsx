@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import API_ENDPOINTS from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 
 const ConfirmedProjects = () => {
@@ -24,7 +25,7 @@ const ConfirmedProjects = () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(
-        `/FACULTY-SERVICE/api/faculty/${user.id}/confirmed-projects`
+        API_ENDPOINTS.FACULTY.CONFIRMED_PROJECTS(user.id)
       );
       setProjects(response.data || []);
     } catch (error) {

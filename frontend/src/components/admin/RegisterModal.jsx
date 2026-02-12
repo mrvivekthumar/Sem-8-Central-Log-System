@@ -15,6 +15,7 @@ import {
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosInstance';
+import API_ENDPOINTS from '../../api/endpoints';
 
 const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
   const [step, setStep] = useState(1);
@@ -94,8 +95,8 @@ const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     try {
       const endpoint = formData.role === 'STUDENT'
-        ? '/STUDENT-SERVICE/students'
-        : '/FACULTY-SERVICE/api/faculty';
+        ? API_ENDPOINTS.STUDENT.CREATE
+        : API_ENDPOINTS.FACULTY.CREATE;
 
       await axiosInstance.post(endpoint, formData);
 

@@ -16,7 +16,6 @@ import java.util.List;
 public class Faculty {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "f_id")
     private Integer fId;
 
@@ -26,14 +25,14 @@ public class Faculty {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String department;
 
     // ✅ Profile fields matching frontend StudentProfile.jsx
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "faculty_skills", joinColumns = @JoinColumn(name = "faculty_id"))
     @Column(name = "skill")
     private List<String> skills = new ArrayList<>();

@@ -40,6 +40,7 @@ docker-compose up -d --build
 ```
 
 **What this starts:**
+
 - 🗄️ PostgreSQL Databases (3 instances)
   - Auth DB: `localhost:55320`
   - Faculty DB: `localhost:55321`
@@ -69,7 +70,7 @@ npm run dev
 
 ## 🔍 Service Health Checks
 
-### Check if all services are running:
+### Check if all services are running
 
 ```bash
 # View running containers
@@ -86,7 +87,7 @@ docker-compose logs -f student-service
 docker-compose logs -f api-gateway
 ```
 
-### Health Check Endpoints:
+### Health Check Endpoints
 
 ```bash
 # API Gateway Health
@@ -114,10 +115,12 @@ open http://localhost:15672
 ### Issue 1: Docker containers won't start
 
 **Symptoms:**
+
 - Containers exit immediately
 - Database connection errors
 
 **Solutions:**
+
 ```bash
 # Stop all containers
 docker-compose down
@@ -134,6 +137,7 @@ docker-compose up --build
 **Error:** `Bind for 0.0.0.0:8080 failed: port is already allocated`
 
 **Solutions:**
+
 ```bash
 # Find process using the port (Windows)
 netstat -ano | findstr :8080
@@ -149,6 +153,7 @@ kill -9 <PID>
 ### Issue 3: Frontend can't connect to backend
 
 **Symptoms:**
+
 - 404 errors on API calls
 - CORS errors
 - Network errors
@@ -156,19 +161,22 @@ kill -9 <PID>
 **Solutions:**
 
 1. **Verify .env file exists in frontend folder:**
+
 ```bash
 cd frontend
 cat .env  # Should show VITE_API_BASE_URL=http://localhost:8080
 ```
 
-2. **Check API Gateway is running:**
+1. **Check API Gateway is running:**
+
 ```bash
 curl http://localhost:8080/actuator/health
 ```
 
-3. **Check browser console for specific errors**
+1. **Check browser console for specific errors**
 
-4. **Restart frontend dev server:**
+2. **Restart frontend dev server:**
+
 ```bash
 # Stop with Ctrl+C
 npm run dev
@@ -179,6 +187,7 @@ npm run dev
 **Error:** `Connection refused` or `Could not connect to database`
 
 **Solutions:**
+
 ```bash
 # Check if PostgreSQL containers are healthy
 docker ps
@@ -195,6 +204,7 @@ docker-compose restart auth-db faculty-db student-db
 ### Issue 5: JWT Token errors
 
 **Symptoms:**
+
 - 401 Unauthorized
 - Token validation failed
 
@@ -209,6 +219,7 @@ docker-compose restart auth-db faculty-db student-db
 ### Issue 6: RabbitMQ connection errors
 
 **Solutions:**
+
 ```bash
 # Check RabbitMQ is running
 docker-compose logs rabbitmq
@@ -468,6 +479,186 @@ docker system prune -a --volumes
 
 ---
 
+## ☸️ Kubernetes Deployment
+
+### Prerequisites
+
+- Kubernetes cluster (Minikube, Docker Desktop K8s, or cloud K8s)
+- kubectl CLI installed and configured
+- Docker images built and pushed to registry
+
+### K8s Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                 Kubernetes Namespace                    │
+│                    (microservices)                      │
+│                                                         │
+│   ┌─────────────────────────────────────────────┐      │
+│   │               Ingress Controller             │      │
+│   └─────────────────────┬───────────────────────┘      │
+│                         │                               │
+│   ┌─────────────────────▼───────────────────────┐      │
+│   │               API Gateway                    │      │
+│   │        (LoadBalancer / ClusterIP)           │      │
+│   └─────────────────────┬───────────────────────┘      │
+│           ┌─────────────┼─────────────┐                │
+│           ▼             ▼             ▼                │
+│   ┌───────────┐ ┌───────────┐ ┌───────────┐           │
+│   │   Auth    │ │  Faculty  │ │  Student  │           │
+│   │  Service  │ │  Service  │ │  Service  │           │
+│   └─────┬─────┘ └─────┬─────┘ └─────┬─────┘           │
+│         │             │             │                  │
+│   ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐           │
+│   │  Auth DB  │ │Faculty DB │ │Student DB │           │
+│   │  (PVC)    │ │  (PVC)    │ │  (PVC)    │           │
+│   └───────────┘ └───────────┘ └───────────┘           │
+│                                                        │
+│         ┌─────────────────────────────────┐           │
+│         │           RabbitMQ              │           │
+│         │        (ClusterIP)              │           │
+│         └─────────────────────────────────┘           │
+│                                                        │
+│         ┌─────────────────────────────────┐           │
+│         │      Central Logging PVC        │           │
+│         │   (/var/log/colabbridge/)       │           │
+│         └─────────────────────────────────┘           │
+└────────────────────────────────────────────────────────┘
+```
+
+### Quick Deploy
+
+**Windows:**
+
+```powershell
+cd backend/k8s
+.\deploy.ps1
+```
+
+**Linux/Mac:**
+
+```bash
+cd backend/k8s
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Manual Deployment Steps
+
+```bash
+# 1. Create namespace
+kubectl apply -f 00-namespace.yaml
+
+# 2. Create secrets
+kubectl apply -f 01-secrets.yaml
+
+# 3. Create ConfigMaps
+kubectl apply -f 02-configmaps/
+
+# 4. Deploy databases
+kubectl apply -f 03-databases/
+
+# 5. Wait for databases
+kubectl wait --for=condition=ready pod -l app=auth-db -n microservices --timeout=60s
+kubectl wait --for=condition=ready pod -l app=faculty-db -n microservices --timeout=60s
+kubectl wait --for=condition=ready pod -l app=student-db -n microservices --timeout=60s
+
+# 6. Deploy RabbitMQ
+kubectl apply -f 04-rabbitmq.yaml
+kubectl wait --for=condition=ready pod -l app=rabbitmq -n microservices --timeout=120s
+
+# 7. Create RBAC
+kubectl apply -f 05-rbac.yaml
+
+# 8. Deploy services
+kubectl apply -f 06-services/
+
+# 9. Deploy Ingress (optional)
+kubectl apply -f 07-ingress.yaml
+```
+
+### Access the Application
+
+```bash
+# Option 1: Port forwarding (Recommended for development)
+kubectl port-forward svc/api-gateway 8080:8080 -n microservices
+
+# Option 2: Minikube service
+minikube service api-gateway -n microservices
+
+# Option 3: Get NodePort
+kubectl get svc api-gateway -n microservices
+```
+
+### View Logs
+
+```bash
+# All pods
+kubectl logs -f -l app=api-gateway -n microservices
+kubectl logs -f -l app=auth-service -n microservices
+kubectl logs -f -l app=faculty-service -n microservices
+kubectl logs -f -l app=student-service -n microservices
+
+# Central log file (if PVC is mounted)
+kubectl exec -it <pod-name> -n microservices -- tail -f /var/log/colabbridge/central.log
+```
+
+### Scale Services
+
+```bash
+# Scale up
+kubectl scale deployment auth-service --replicas=3 -n microservices
+
+# Scale down
+kubectl scale deployment auth-service --replicas=1 -n microservices
+```
+
+### K8s Troubleshooting
+
+```bash
+# Check pod status
+kubectl get pods -n microservices
+
+# Describe failing pod
+kubectl describe pod <pod-name> -n microservices
+
+# Check events
+kubectl get events -n microservices --sort-by='.lastTimestamp'
+
+# Check service endpoints
+kubectl get endpoints -n microservices
+
+# Check ConfigMap
+kubectl describe configmap auth-service-config -n microservices
+
+# Check secrets
+kubectl get secrets -n microservices
+```
+
+### Cleanup K8s
+
+**Windows:**
+
+```powershell
+cd backend/k8s
+.\cleanup.ps1
+```
+
+**Linux/Mac:**
+
+```bash
+cd backend/k8s
+./cleanup.sh
+```
+
+**Manual:**
+
+```bash
+kubectl delete namespace microservices
+```
+
+---
+
 ## ✅ Verification Checklist
 
 Before running the project, verify:
@@ -494,7 +685,7 @@ Before running the project, verify:
 ## 📞 Contact
 
 **Developer:** Vivek Thumar  
-**Email:** mrvivekthumar@gmail.com  
+**Email:** <mrvivekthumar@gmail.com>  
 **GitHub:** [@mrvivekthumar](https://github.com/mrvivekthumar)
 
 ---

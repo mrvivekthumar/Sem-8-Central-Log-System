@@ -64,18 +64,19 @@ public class SecurityConfig {
                         // Allow preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public endpoints
+                        // Public endpoints (without /api prefix - Gateway rewrites /api/auth/* to
+                        // /auth/*)
                         .requestMatchers(
-                                "/api/auth/registerOne",
-                                "/api/auth/register", // Add /api prefix
-                                "/api/auth/login", // Add /api prefix
-                                "/api/auth/hello",
-                                "/api/auth/token", // Add /api prefix
-                                "/api/auth/validate", // Add /api prefix
+                                "/registerOne",
+                                "/register",
+                                "/login",
+                                "/hello",
+                                "/token",
+                                "/validate",
                                 "/actuator/**",
-                                "/api/auth/actuator/**",
-                                "/api/auth/user",
-                                "/api/auth/updatePassword") // Add /api prefix
+                                "/user",
+                                "/user/**",
+                                "/updatePassword")
                         .permitAll()
 
                         // Everything else requires authentication

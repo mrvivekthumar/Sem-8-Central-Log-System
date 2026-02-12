@@ -1,8 +1,148 @@
 # Central Log System - Fixes Applied
 
 **Date:** December 27, 2025  
-**Updated by:** AI Assistant (via Perplexity)  
+**Updated by:** AI Assistant  
 **Requested by:** Vivek Thumar
+
+---
+
+## 🆕 Latest Session Fixes (December 2025)
+
+### Backend Microservices Communication ✅
+
+#### Feign Client URL Fixes
+
+**Problem:**
+
+- Feign clients were using hardcoded Eureka-style service names (`STUDENT-SERVICE`, `FACULTY-SERVICE`)
+- This doesn't work with Spring Cloud Gateway routing
+
+**Solution Applied:**
+
+- Updated all Feign clients to use configurable URLs via `${services.*.url}` properties
+- Added service URL configurations in `application.yml` for each service
+
+**Files Modified:**
+
+- `Authentication-Service/src/main/java/com/clg/clients/StudentClient.java`
+- `Authentication-Service/src/main/java/com/clg/clients/FacultyClient.java`
+- `FacultyService/src/main/java/clg/clients/StudentClient.java`
+- `StudentService/src/main/java/clg/clients/FacultyClient.java`
+
+**Example Fix:**
+
+```java
+// Before
+@FeignClient(name = "STUDENT-SERVICE", path = "/student")
+// After
+@FeignClient(name = "student-service", url = "${services.student.url}", path = "/student")
+```
+
+---
+
+### Controller Mapping Fixes ✅
+
+**Problem:**
+
+- Controllers had mapping conflicts with context paths
+- Example: `/faculty/faculty` double path issue
+
+**Solution Applied:**
+
+- Removed conflicting `/faculty` prefix from FacultyController
+- Applied similar fixes to other controllers where context-path + mapping caused issues
+
+---
+
+### Centralized Logging Configuration ✅
+
+**Problem:**
+
+- No centralized logging across microservices
+- JSON logging not configured
+
+**Solution Applied:**
+
+- Created `logback-spring.xml` for all 4 services
+- Configured JSON logging using logstash-logback-encoder
+- Added central log file: `/var/log/colabbridge/central.log`
+- Added logstash-logback-encoder dependency to all POMs
+
+**Files Created:**
+
+- `Api-Gateway/src/main/resources/logback-spring.xml`
+- `Authentication-Service/src/main/resources/logback-spring.xml`
+- `FacultyService/src/main/resources/logback-spring.xml`
+- `StudentService/src/main/resources/logback-spring.xml`
+
+---
+
+### Kubernetes Configuration Fixes ✅
+
+**Problem:**
+
+- K8s service files had incorrect ports and configurations
+- Missing environment variables for service URLs
+
+**Solution Applied:**
+
+- Fixed all K8s service YAML files with correct port configurations
+- Added proper environment variables for inter-service communication
+- Created `08-logging.yaml` for central logging PVC
+- Created Windows deployment scripts (`deploy.ps1`, `cleanup.ps1`)
+
+**Files Modified/Created:**
+
+- `k8s/06-services/*.yaml` - All service deployments
+- `k8s/08-logging.yaml` - Logging PVC
+- `k8s/deploy.ps1` - Windows deployment script
+- `k8s/cleanup.ps1` - Windows cleanup script
+
+---
+
+### Frontend API Endpoint Overhaul ✅
+
+**Problem:**
+
+- Frontend components used hardcoded service discovery URLs (`/FACULTY-SERVICE/api/...`, `/STUDENT-SERVICE/api/...`)
+- These don't work with API Gateway routing
+- Inconsistent endpoint usage across components
+
+**Solution Applied:**
+
+- Expanded `endpoints.js` with comprehensive endpoint definitions
+- Updated 20+ React components to use centralized API_ENDPOINTS
+- Removed ALL hardcoded service paths from frontend
+
+**Files Modified:**
+
+- `frontend/src/api/endpoints.js` - Expanded from ~155 to ~263 lines
+- `frontend/src/api/studentService.js` - Complete rewrite
+- `frontend/src/api/facultyService.js` - Complete rewrite
+- `frontend/src/components/**/*.jsx` - 20+ components updated
+
+**Components Fixed:**
+
+- FacultyDashboard.jsx
+- ProjectDetails.jsx
+- AdminDashboard.jsx
+- AppliedProjectList.jsx
+- ProjectSubmissionManager.jsx
+- TeamMembers.jsx
+- TeamReports.jsx
+- CompleteProjectList.jsx
+- AssignProjects.jsx
+- ConfirmedProjects.jsx
+- ApprovedProjectList.jsx
+- AddProjectForm.jsx
+- CurrentProject.jsx
+- RegisterModal.jsx
+- StudentFacultyProfile.jsx
+- StudentDetail.jsx
+- ProjectDetailsPage.jsx
+- FullPageProjectForm.jsx
+- FacultyProjectReview.jsx
+- FacultyProjectList.jsx
 
 ---
 
@@ -11,12 +151,14 @@
 ### 1. API Gateway Route Configuration ✅
 
 **Problem:**
+
 - Frontend was sending requests to `/api/students/**` (plural)
 - API Gateway was expecting `/api/student/**` (singular)
 - Missing routes for `/api/projects/**`, `/api/notifications/**`, `/api/documents/**`, `/api/applications/**`, `/api/studentProject/**`
 - Result: All API calls would return **404 Not Found**
 
 **Solution Applied:**
+
 - **Updated:** `backend/Api-Gateway/src/main/resources/application.yml`
 - Added complete route mappings for all frontend endpoints
 - Fixed student endpoints to use plural (`/api/students/**`)
@@ -24,6 +166,7 @@
 - Proper path rewriting to match backend context paths
 
 **Routes Added:**
+
 ```yaml
 /api/auth/**         → Auth Service (:8081)
 /api/faculty/**      → Faculty Service (:8082)
@@ -40,17 +183,20 @@
 ### 2. Frontend Environment Configuration ✅
 
 **Problem:**
+
 - No `.env` file in frontend directory
 - Frontend didn't know which API URL to use
 - Could cause connection failures or CORS issues
 
 **Solution Applied:**
+
 - **Created:** `frontend/.env`
 - Set API base URL to API Gateway: `http://localhost:8080`
 - Set request timeout to 30 seconds
 - Added WebSocket URL for future real-time features
 
 **File Content:**
+
 ```env
 VITE_API_BASE_URL=http://localhost:8080
 VITE_API_TIMEOUT=30000
@@ -63,12 +209,14 @@ VITE_ENV=development
 ### 3. Backend Service Context Paths ✅
 
 **Verified:**
+
 - Auth Service: No context path (direct `/auth`)
 - Faculty Service: Context path `/faculty`
 - Student Service: Context path `/student`
 - API Gateway properly rewrites paths to match these
 
 **Example Path Flow:**
+
 ```
 Frontend Request:    /api/students/123
     ↓
@@ -84,6 +232,7 @@ Controller:          @GetMapping("/students/{id}")
 ### 4. CORS Configuration ✅
 
 **Verified:**
+
 - API Gateway allows `http://localhost:5173` (Vite dev server)
 - API Gateway allows `http://localhost:3000` (alternative)
 - Allows all necessary HTTP methods (GET, POST, PUT, DELETE, PATCH)
@@ -99,6 +248,7 @@ Controller:          @GetMapping("/students/{id}")
 **File:** `DEPLOYMENT_GUIDE.md`
 
 **Contents:**
+
 - Quick start instructions
 - Service health check commands
 - Common issues and solutions
@@ -116,6 +266,7 @@ Controller:          @GetMapping("/students/{id}")
 ### 2. Startup Scripts ✅
 
 **Linux/Mac Script:** `start-dev.sh`
+
 - Checks Docker is running
 - Verifies .env files exist
 - Starts backend with docker-compose
@@ -125,12 +276,14 @@ Controller:          @GetMapping("/students/{id}")
 - Starts frontend dev server
 
 **Windows Script:** `start-dev.bat`
+
 - Same functionality as Linux script
 - Windows-compatible commands
 - Color-coded output
 - Proper error handling
 
 **Usage:**
+
 ```bash
 # Linux/Mac
 chmod +x start-dev.sh
@@ -147,29 +300,34 @@ start-dev.bat
 ### Service Communication
 
 **1. API Gateway → Microservices**
+
 - ✅ Routes correctly configured
 - ✅ Service URLs from environment variables
 - ✅ Authentication filter applied to protected routes
 - ✅ Retry logic for failed requests
 
 **2. Inter-Service Communication**
+
 - ✅ RabbitMQ for async messaging
 - ✅ Feign clients for synchronous calls
 - ✅ Service URLs configurable via environment
 
 **3. Database Isolation**
+
 - ✅ Auth Service → authdb (port 55320)
 - ✅ Faculty Service → facultydb (port 55321)
 - ✅ Student Service → studentdb (port 55322)
 - ✅ Each service has independent database
 
 **4. JWT Authentication**
+
 - ✅ Same JWT secret across all services
 - ✅ Token validation in API Gateway
 - ✅ Token passed to microservices
 - ✅ User headers (X-User-Id, X-User-Role, X-User-Email)
 
 **5. RabbitMQ Event-Driven Architecture**
+
 - ✅ Exchange: `cls-exchange`
 - ✅ Faculty queue: `faculty-queue`
 - ✅ Student queue: `student-queue`
@@ -219,11 +377,13 @@ sequenceDiagram
 ### Option 1: Using Startup Scripts (Recommended)
 
 **Windows:**
+
 ```batch
 start-dev.bat
 ```
 
 **Linux/Mac:**
+
 ```bash
 chmod +x start-dev.sh
 ./start-dev.sh
@@ -232,12 +392,14 @@ chmod +x start-dev.sh
 ### Option 2: Manual Steps
 
 **Backend:**
+
 ```bash
 cd backend
 docker-compose up --build
 ```
 
 **Frontend (new terminal):**
+
 ```bash
 cd frontend
 npm install
@@ -256,6 +418,7 @@ docker ps
 ```
 
 Expected output: 7 containers running
+
 - api-gateway
 - auth-service
 - faculty-service
@@ -313,12 +476,14 @@ curl -X POST http://localhost:8080/api/auth/login \
 ### Issue: Port Already in Use
 
 **Windows:**
+
 ```batch
 netstat -ano | findstr :8080
 taskkill /PID <PID> /F
 ```
 
 **Linux/Mac:**
+
 ```bash
 lsof -i :8080
 kill -9 <PID>
@@ -370,11 +535,13 @@ docker-compose up --build
 ## 📌 Next Steps
 
 1. **Pull the latest changes:**
+
    ```bash
    git pull origin main
    ```
 
 2. **Run the startup script:**
+
    ```bash
    # Windows
    start-dev.bat
@@ -384,9 +551,9 @@ docker-compose up --build
    ```
 
 3. **Access the application:**
-   - Frontend: http://localhost:5173
-   - API Gateway: http://localhost:8080
-   - RabbitMQ UI: http://localhost:15672 (guest/guest)
+   - Frontend: <http://localhost:5173>
+   - API Gateway: <http://localhost:8080>
+   - RabbitMQ UI: <http://localhost:15672> (guest/guest)
 
 4. **Test the functionality:**
    - Register a new user
@@ -406,6 +573,7 @@ Your Central Log System is now **fully functional** and ready for development an
 ---
 
 **For any issues, refer to `DEPLOYMENT_GUIDE.md` or check service logs:**
+
 ```bash
 cd backend
 docker-compose logs -f

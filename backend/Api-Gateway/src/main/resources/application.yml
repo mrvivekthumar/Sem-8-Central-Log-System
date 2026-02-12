@@ -50,7 +50,7 @@ spring:
         # =========================================
         # Public Authentication Endpoints
         - id: auth-login
-          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
           predicates:
             - Path=/api/auth/login
             - Method=POST
@@ -58,7 +58,7 @@ spring:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
         
         - id: auth-register
-          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
           predicates:
             - Path=/api/auth/register
             - Method=POST
@@ -66,7 +66,7 @@ spring:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
         
         - id: auth-token-validation
-          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
           predicates:
             - Path=/api/auth/validate,/api/auth/verify,/api/auth/token,/api/auth/refresh
             - Method=GET,POST
@@ -75,7 +75,7 @@ spring:
         
         # Protected Auth Routes
         - id: auth-service-protected
-          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
           predicates:
             - Path=/api/auth/**
           filters:
@@ -86,7 +86,7 @@ spring:
         # FACULTY SERVICE ROUTES (Protected)
         # =========================================
         - id: faculty-service
-          uri: ${FACULTY_SERVICE_URL:http://localhost:8082}
+          uri: ${FACULTY_SERVICE_URL:http://faculty-service:8082}
           predicates:
             - Path=/api/faculty/**
           filters:
@@ -97,7 +97,7 @@ spring:
         # PROJECT SERVICE ROUTES (via Faculty Service)
         # =========================================
         - id: projects-service
-          uri: ${FACULTY_SERVICE_URL:http://localhost:8082}
+          uri: ${FACULTY_SERVICE_URL:http://faculty-service:8082}
           predicates:
             - Path=/api/projects/**
           filters:
@@ -108,7 +108,7 @@ spring:
         # STUDENT SERVICE ROUTES (Protected)
         # =========================================
         - id: student-service
-          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
+          uri: ${STUDENT_SERVICE_URL:http://student-service:8083}
           predicates:
             - Path=/api/students/**
           filters:
@@ -119,7 +119,7 @@ spring:
         # STUDENT PROJECT ROUTES (via Student Service)
         # =========================================
         - id: student-project-service
-          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
+          uri: ${STUDENT_SERVICE_URL:http://student-service:8083}
           predicates:
             - Path=/api/studentProject/**
           filters:
@@ -127,21 +127,21 @@ spring:
             - AuthenticationFilter
         
         # =========================================
-        # NOTIFICATIONS SERVICE ROUTES
+        # NOTIFICATIONS SERVICE ROUTES (via Faculty Service)
         # =========================================
         - id: notifications-service
-          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+          uri: ${FACULTY_SERVICE_URL:http://faculty-service:8082}
           predicates:
             - Path=/api/notifications/**
           filters:
-            - RewritePath=/api/(?<segment>.*), /$\{segment}
+            - RewritePath=/api/(?<segment>.*), /faculty/$\{segment}
             - AuthenticationFilter
         
         # =========================================
         # DOCUMENTS/APPLICATIONS ROUTES (via Student Service)
         # =========================================
         - id: documents-service
-          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
+          uri: ${STUDENT_SERVICE_URL:http://student-service:8083}
           predicates:
             - Path=/api/documents/**
           filters:
@@ -149,7 +149,7 @@ spring:
             - AuthenticationFilter
         
         - id: applications-service
-          uri: ${STUDENT_SERVICE_URL:http://localhost:8083}
+          uri: ${STUDENT_SERVICE_URL:http://student-service:8083}
           predicates:
             - Path=/api/applications/**
           filters:
@@ -205,7 +205,7 @@ management:
 logging:
   level:
     root: INFO
-    com.cls.apigateway: DEBUG
+    com.example.apigateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web.server: DEBUG
     reactor.netty: INFO
