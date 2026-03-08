@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       // ✅ FIX: Backend returns 'accessToken', not 'token'
-      const { accessToken, user: userData } = response.data;
+      const { accessToken, refreshToken, user: userData } = response.data;
 
       // Verify user role matches selected role
       if (userData.role !== role) {
@@ -61,8 +61,9 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Role mismatch');
       }
 
-      // ✅ FIX: Store accessToken as 'token'
+      // Store tokens and user data
       localStorage.setItem('token', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(userData));
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
@@ -104,6 +105,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     delete axiosInstance.defaults.headers.common['Authorization'];
     setUser(null);
