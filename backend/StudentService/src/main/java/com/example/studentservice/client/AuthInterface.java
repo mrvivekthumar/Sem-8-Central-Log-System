@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "auth-service", url = "${auth-service.url:http://localhost:8070}")
+@FeignClient(name = "auth-service", url = "${auth-service.url:http://localhost:8081}")
 public interface AuthInterface {
 
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     ResponseEntity<String> addNewUser(@RequestBody Map<String, Object> user);
 
-    @GetMapping("/validate")
+    @GetMapping("/auth/validate")
     String validateToken(@RequestParam String token);
 }

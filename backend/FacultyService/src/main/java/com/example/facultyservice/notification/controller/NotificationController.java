@@ -21,7 +21,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 public class NotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
@@ -66,31 +66,19 @@ public class NotificationController {
     }
 
     @PostMapping("/sendToMultiple")
-    public Notification sendToMultiple(@RequestBody NotificationRequest notificationRequest,
+    public List<Notification> sendToMultiple(@RequestBody NotificationRequest notificationRequest,
             @RequestParam List<String> receiverIds,
             HttpServletRequest request) {
-        logger.info("===============================================");
-        logger.info("Controller: POST /api/notifications/sendToMultiple - Sending to multiple receivers");
-        logger.info("Sender: {} (Type: {}), Number of Receivers: {}",
-                notificationRequest.getSenderId(),
-                notificationRequest.getSenderType(),
+        logger.info("Controller: POST /notifications/sendToMultiple - Sending to {} receivers",
                 receiverIds.size());
-        logger.debug("Receiver IDs: {}", receiverIds);
-        logger.debug("Title: {}, Type: {}",
-                notificationRequest.getTitle(),
-                notificationRequest.getNotificationType());
-        logger.debug("Message: {}", notificationRequest.getMessage());
-        logger.debug("Request from IP: {}", request.getRemoteAddr());
 
         try {
-            Notification notification = notificationService.sendNotificationToMultipleReceivers(
+            List<Notification> notifications = notificationService.sendNotificationToMultipleReceivers(
                     notificationRequest, receiverIds);
             logger.info("Controller: Batch notification sent to {} receivers", receiverIds.size());
-            logger.info("===============================================");
-            return notification;
+            return notifications;
         } catch (Exception e) {
             logger.error("Controller: Failed to send batch notifications: {}", e.getMessage(), e);
-            logger.info("===============================================");
             throw e;
         }
     }
