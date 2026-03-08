@@ -1,6 +1,7 @@
 package com.example.facultyservice.notification.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -90,7 +91,7 @@ public class NotificationService {
         try {
             int successCount = 0;
             int failCount = 0;
-            List<Notification> savedNotifications = new java.util.ArrayList<>();
+            List<Notification> savedNotifications = new ArrayList<>();
 
             for (String receiverId : receiverIds) {
                 try {

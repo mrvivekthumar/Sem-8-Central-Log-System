@@ -45,6 +45,8 @@ public class AuthController {
 
     private static final long TOKEN_EXPIRY_SECONDS = 1800L; // 30 minutes
 
+    private static final String BEARER_PREFIX = "Bearer ";
+
     @Autowired
     private AuthService authService;
 
@@ -187,10 +189,10 @@ public class AuthController {
         logger.info("Controller: Token verification request received");
 
         try {
-            if (authHeader == null || !authHeader.startsWith("Bearer ") || authHeader.length() <= 7) {
+            if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX) || authHeader.length() <= BEARER_PREFIX.length()) {
                 throw new AuthenticationException("Invalid Authorization header");
             }
-            String token = authHeader.substring(7);
+            String token = authHeader.substring(BEARER_PREFIX.length());
             authService.validateToken(token);
 
             logger.info("Controller: Token verification successful");
