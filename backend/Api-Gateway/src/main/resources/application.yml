@@ -112,7 +112,7 @@ spring:
           predicates:
             - Path=/api/students/**
           filters:
-            - RewritePath=/api/students/(?<segment>.*), /student/students/$\{segment}
+            - RewritePath=/api/students/(?<segment>.*), /student/$\{segment}
             - AuthenticationFilter
         
         # =========================================
@@ -127,10 +127,10 @@ spring:
             - AuthenticationFilter
         
         # =========================================
-        # NOTIFICATIONS SERVICE ROUTES
+        # NOTIFICATIONS SERVICE ROUTES (via Faculty Service)
         # =========================================
         - id: notifications-service
-          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+          uri: ${FACULTY_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/notifications/**
           filters:
@@ -205,7 +205,7 @@ management:
 logging:
   level:
     root: INFO
-    com.cls.apigateway: DEBUG
+    com.example.apigateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web.server: DEBUG
     reactor.netty: INFO

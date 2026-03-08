@@ -33,8 +33,6 @@ spring:
 
 server:
   port: ${STUDENT_SERVICE_PORT:8083}
-  servlet:
-    context-path: /student
 
 jwt:
   secret: ${JWT_SECRET:default-secret-key-change-in-production-minimum-256-bits}

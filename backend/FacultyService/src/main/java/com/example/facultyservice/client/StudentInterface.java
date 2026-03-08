@@ -8,7 +8,7 @@ import com.example.facultyservice.entity.Student;
 
 import java.util.List;
 
-@FeignClient(name = "student-service", url = "${student-service.url:http://localhost:8084}")
+@FeignClient(name = "student-service", url = "${student-service.url:http://localhost:8083}")
 public interface StudentInterface {
 
     @PutMapping("students/available/{projectId}")

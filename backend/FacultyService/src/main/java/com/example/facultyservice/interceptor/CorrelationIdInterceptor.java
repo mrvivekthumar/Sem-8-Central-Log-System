@@ -19,6 +19,7 @@ public class CorrelationIdInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(CorrelationIdInterceptor.class);
     private static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
+    private static final String CORRELATION_ID_KEY = "correlationId";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -28,7 +29,7 @@ public class CorrelationIdInterceptor implements HandlerInterceptor {
             correlationId = UUID.randomUUID().toString();
         }
 
-        MDC.put(CORRELATION_ID_HEADER, correlationId);
+        MDC.put(CORRELATION_ID_KEY, correlationId);
         response.setHeader(CORRELATION_ID_HEADER, correlationId);
 
         return true;
@@ -37,6 +38,6 @@ public class CorrelationIdInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
             Object handler, Exception ex) {
-        MDC.remove(CORRELATION_ID_HEADER);
+        MDC.remove(CORRELATION_ID_KEY);
     }
 }

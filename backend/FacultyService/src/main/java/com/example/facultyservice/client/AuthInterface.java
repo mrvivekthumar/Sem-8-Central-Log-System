@@ -9,14 +9,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
-@FeignClient(name = "auth-service", url = "${auth-service.url:http://localhost:8070}")
+@FeignClient(name = "auth-service", url = "${auth-service.url:http://localhost:8081}")
 public interface AuthInterface {
 
-    // Changed: Now accepts single user Map instead of List
-    // Path changed from /auth/register to /register to match Auth Service
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     ResponseEntity<String> addNewUser(@RequestBody Map<String, Object> user);
 
-    @GetMapping("/validate")
+    @GetMapping("/auth/validate")
     String validateToken(@RequestParam String token);
 }

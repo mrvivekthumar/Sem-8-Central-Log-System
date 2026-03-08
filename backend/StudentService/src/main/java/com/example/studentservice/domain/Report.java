@@ -8,8 +8,6 @@ import java.time.LocalDate;
 
 @Entity
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Report {

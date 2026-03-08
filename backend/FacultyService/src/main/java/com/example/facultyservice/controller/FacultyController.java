@@ -24,7 +24,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/faculty")
+@RequestMapping("/faculty")
 @CrossOrigin(origins = "*")
 @Slf4j
 public class FacultyController {

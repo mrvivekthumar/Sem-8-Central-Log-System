@@ -1,7 +1,6 @@
 package com.example.authenticationservice.service;
 
 import java.util.Date;
-import java.util.Map;
 
 import javax.crypto.SecretKey;
 
@@ -31,12 +30,16 @@ public class JwtService {
     private UserCredentialRepository userCredentialRepository;
 
     @Value("${security.jwt.secret}")
-    public String SECRET;
+    private String secret;
 
     private static final long TOKEN_VALIDITY = 1000 * 60 * 30; // 30 minutes
 
+    private SecretKey signingKey;
+
     @PostConstruct
     public void init() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
         logger.info("JwtService initialized with token validity: {} minutes", TOKEN_VALIDITY / 1000 / 60);
     }
 
@@ -96,50 +99,6 @@ public class JwtService {
         }
     }
 
-    private String createToken(Map<String, Object> claims, String userName) {
-        logger.debug("Creating JWT token with custom claims for user: {}", userName);
-        try {
-            String token = Jwts.builder()
-                    .claims(claims)
-                    .subject(userName)
-                    .issuedAt(new Date(System.currentTimeMillis()))
-                    .expiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
-                    .signWith(getSignKey())
-                    .compact();
-            logger.debug("Token created successfully for user: {}", userName);
-            return token;
-        } catch (Exception e) {
-            logger.error("Failed to create token for user {}: {}", userName, e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    public Long extractUserId(String token) {
-        logger.debug("Extracting userId from JWT token");
-        try {
-            Claims claims = extractAllClaims(token);
-            Long userId = claims.get("userId", Long.class);
-            logger.debug("Extracted userId: {}", userId);
-            return userId;
-        } catch (Exception e) {
-            logger.error("Failed to extract userId from token: {}", e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    public String extractRole(String token) {
-        logger.debug("Extracting role from JWT token");
-        try {
-            Claims claims = extractAllClaims(token);
-            String role = claims.get("role", String.class);
-            logger.debug("Extracted role: {}", role);
-            return role;
-        } catch (Exception e) {
-            logger.error("Failed to extract role from token: {}", e.getMessage(), e);
-            throw e;
-        }
-    }
-
     private Claims extractAllClaims(String token) {
         logger.trace("Extracting all claims from JWT token");
         try {
@@ -157,9 +116,7 @@ public class JwtService {
     }
 
     private SecretKey getSignKey() {
-        logger.trace("Generating signing key from secret");
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signingKey;
     }
 
     public UserCredential getUserByUsername(String username) {
