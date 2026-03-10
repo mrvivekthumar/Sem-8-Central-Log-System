@@ -26,6 +26,9 @@ public class Project {
     @JoinColumn(name = "facultyId")
     private Faculty faculty;
     private LocalDateTime deadline;
-
-
+    private LocalDateTime applicationDeadline;
+    private Integer maxStudents;
+    private Integer teamSize;
+    private String domain;
+    private String duration;
 }

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
   Award,
@@ -6,9 +6,11 @@ import {
   Clock,
   Edit,
   FileText,
+  Save,
   Target,
   Trash2,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -21,6 +23,22 @@ const ProjectDetailsPage = () => {
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    domain: '',
+    deadline: '',
+    applicationDeadline: '',
+    skills: [],
+    maxStudents: 5,
+    teamSize: 3,
+    duration: '',
+    prerequisites: ''
+  });
 
   useEffect(() => {
     fetchProjectDetails();
@@ -36,6 +54,64 @@ const ProjectDetailsPage = () => {
       toast.error('Failed to load project details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenEdit = () => {
+    setEditForm({
+      title: project.title || '',
+      description: project.description || '',
+      domain: project.domain || '',
+      deadline: project.deadline ? project.deadline.substring(0, 10) : '',
+      applicationDeadline: project.applicationDeadline ? project.applicationDeadline.substring(0, 10) : '',
+      skills: project.skills || [],
+      maxStudents: project.maxStudents || 5,
+      teamSize: project.teamSize || 3,
+      duration: project.duration || '',
+      prerequisites: project.prerequisites || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editForm.title.trim() || !editForm.description.trim()) {
+      toast.error('Title and description are required');
+      return;
+    }
+    try {
+      setEditLoading(true);
+      const payload = {
+        ...editForm,
+        deadline: editForm.deadline ? editForm.deadline + 'T00:00:00' : null,
+        applicationDeadline: editForm.applicationDeadline ? editForm.applicationDeadline + 'T00:00:00' : null,
+      };
+      const response = await axiosInstance.put(
+        API_ENDPOINTS.PROJECTS.UPDATE(projectId),
+        payload
+      );
+      setProject(response.data);
+      setShowEditModal(false);
+      toast.success('Project updated successfully!');
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast.error(error.response?.data?.error || 'Failed to update project');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setDeleteLoading(true);
+      await axiosInstance.delete(API_ENDPOINTS.PROJECTS.DELETE(projectId));
+      toast.success('Project deleted successfully!');
+      navigate('/faculty/dashboard');
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast.error(error.response?.data?.error || 'Failed to delete project');
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -95,6 +171,7 @@ const ProjectDetailsPage = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={handleOpenEdit}
                 className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
@@ -103,6 +180,7 @@ const ProjectDetailsPage = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => setShowDeleteConfirm(true)}
                 className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
@@ -253,6 +331,206 @@ const ProjectDetailsPage = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full border border-gray-200 dark:border-gray-700"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8 text-red-600 dark:text-red-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Delete Project</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Are you sure you want to delete <strong>{project?.title}</strong>? This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {deleteLoading ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Project Modal */}
+      <AnimatePresence>
+        {showEditModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowEditModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700 shadow-2xl"
+            >
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-t-2xl z-10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Edit className="w-6 h-6 text-white" />
+                  <h2 className="text-xl font-bold text-white">Edit Project</h2>
+                </div>
+                <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                  <X className="w-5 h-5 text-white" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                  <input
+                    type="text"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors resize-none"
+                  />
+                </div>
+
+                {/* Domain & Duration */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Domain</label>
+                    <input
+                      type="text"
+                      value={editForm.domain}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, domain: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Duration</label>
+                    <input
+                      type="text"
+                      value={editForm.duration}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, duration: e.target.value }))}
+                      placeholder="e.g. 3 months"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Team Size & Max Students */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Team Size</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editForm.teamSize}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, teamSize: parseInt(e.target.value) || 1 }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Max Students</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editForm.maxStudents}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, maxStudents: parseInt(e.target.value) || 1 }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Deadlines */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Project Deadline</label>
+                    <input
+                      type="date"
+                      value={editForm.deadline}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, deadline: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Application Deadline</label>
+                    <input
+                      type="date"
+                      value={editForm.applicationDeadline}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, applicationDeadline: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Prerequisites */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Prerequisites</label>
+                  <textarea
+                    value={editForm.prerequisites}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, prerequisites: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors resize-none"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setShowEditModal(false)}
+                    className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleEditSubmit}
+                    disabled={editLoading}
+                    className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    {editLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

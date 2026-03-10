@@ -181,7 +181,7 @@ const ProjectCard = ({ project, showApplyButton = true, hasApplied = false, onAp
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Team Size</div>
                 <div className="font-semibold text-gray-900 dark:text-white">
-                  {project.maxStudents || 'N/A'}
+                  {project.teamSize || project.maxStudents || 'N/A'}
                 </div>
               </div>
             </div>

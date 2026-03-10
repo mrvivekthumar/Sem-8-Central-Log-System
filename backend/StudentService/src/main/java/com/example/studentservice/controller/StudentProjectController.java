@@ -251,8 +251,8 @@ public class StudentProjectController {
         StudentProject updated = studentProjectRepository.save(sp);
         log.info("Controller: Updated status to {} for student {} project {}", statusStr, studentId, projectId);
 
-        // Send notification when student is rejected
-        if ("REJECTED".equals(statusStr)) {
+        // Send notification when student application status changes
+        if ("REJECTED".equals(statusStr) || "APPROVED".equals(statusStr)) {
             try {
                 String projectName = sp.getProjectName() != null ? sp.getProjectName() : "Project " + projectId;
                 Map<String, Object> notifRequest = new HashMap<>();
@@ -261,16 +261,23 @@ public class StudentProjectController {
                 notifRequest.put("receiverId", String.valueOf(studentId));
                 notifRequest.put("receiverType", "STUDENT");
                 notifRequest.put("notificationType", "PROJECT_ASSIGNMENT");
-                notifRequest.put("title", "Application Update");
-                notifRequest.put("message", "Your application for \"" + projectName
-                        + "\" was not selected. Don't worry, keep exploring other projects!");
                 notifRequest.put("seen", false);
 
+                if ("APPROVED".equals(statusStr)) {
+                    notifRequest.put("title", "Application Accepted!");
+                    notifRequest.put("message", "Congratulations! Your application for \"" + projectName
+                            + "\" has been accepted. Get ready to start working on the project!");
+                } else {
+                    notifRequest.put("title", "Application Update");
+                    notifRequest.put("message", "Your application for \"" + projectName
+                            + "\" was not selected. Don't worry, keep exploring other projects!");
+                }
+
                 facultyInterface.sendNotification(notifRequest);
-                log.info("Controller: Rejection notification sent to student {}", studentId);
+                log.info("Controller: {} notification sent to student {}", statusStr, studentId);
             } catch (Exception e) {
-                log.error("Controller: Failed to send rejection notification to student {}: {}",
-                        studentId, e.getMessage());
+                log.error("Controller: Failed to send {} notification to student {}: {}",
+                        statusStr, studentId, e.getMessage());
             }
         }
 

@@ -39,16 +39,33 @@ const AppliedProjectList = () => {
         return;
       }
 
-      // Step 2: Get project details from faculty service
-      const response = await axiosInstance.post(
-        API_ENDPOINTS.FACULTY.PROJECTS_BY_IDS,
-        responseIds.data,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      // Step 2: Get project details and application statuses in parallel
+      const [projectsResponse, applicationsResponse] = await Promise.all([
+        axiosInstance.post(
+          API_ENDPOINTS.FACULTY.PROJECTS_BY_IDS,
+          responseIds.data,
+          { headers: { 'Content-Type': 'application/json' } }
+        ),
+        axiosInstance.get(API_ENDPOINTS.STUDENT_PROJECT.APPLIED_PROJECTS)
+      ]);
 
-      // Step 3: Reorder projects to match responseIds.data order
+      // Step 3: Build a map of projectId -> application status
+      const statusMap = {};
+      if (applicationsResponse.data) {
+        applicationsResponse.data.forEach(app => {
+          statusMap[app.projectId] = app.status;
+        });
+      }
+
+      // Step 4: Reorder projects and merge application status
       const orderedProjects = responseIds.data
-        .map(id => response.data.find(project => project.projectId === id))
+        .map(id => {
+          const project = projectsResponse.data.find(p => p.projectId === id);
+          if (project && statusMap[id]) {
+            return { ...project, applicationStatus: statusMap[id] };
+          }
+          return project;
+        })
         .filter(project => project !== undefined);
 
       setProjects(orderedProjects);
@@ -78,7 +95,7 @@ const AppliedProjectList = () => {
 
     try {
       // Update the moved project's preference
-      await axiosInstance.patch(
+      await axiosInstance.put(
         API_ENDPOINTS.STUDENT_PROJECT.UPDATE_PREFERENCE(user.id, projectId, newPreference)
       );
 
@@ -86,7 +103,7 @@ const AppliedProjectList = () => {
       const updatePromises = newProjects
         .filter(p => p.projectId !== projectId)
         .map((p, idx) =>
-          axiosInstance.patch(
+          axiosInstance.put(
             API_ENDPOINTS.STUDENT_PROJECT.UPDATE_PREFERENCE(user.id, p.projectId, idx + 1)
           )
         );
@@ -125,7 +142,7 @@ const AppliedProjectList = () => {
     setIsReordering(true);
     try {
       const updatePromises = projects.map((project, index) =>
-        axiosInstance.patch(
+        axiosInstance.put(
           API_ENDPOINTS.STUDENT_PROJECT.UPDATE_PREFERENCE(user.id, project.projectId, index + 1)
         )
       );
@@ -241,7 +258,14 @@ const AppliedProjectList = () => {
           {[
             { label: 'Total Applications', value: projects.length, color: 'blue' },
             { label: 'Top 3 Preferences', value: Math.min(3, projects.length), color: 'purple' },
-            { label: 'Pending Review', value: projects.filter(p => p.status === 'OPEN_FOR_APPLICATIONS').length, color: 'amber' }
+            {
+              label: 'Pending Review',
+              value: projects.filter(p => {
+                const appStatus = p.applicationStatus || p.status;
+                return appStatus === 'OPEN_FOR_APPLICATIONS' || appStatus === 'PENDING';
+              }).length,
+              color: 'amber'
+            }
           ].map((stat, index) => (
             <motion.div
               key={stat.label}

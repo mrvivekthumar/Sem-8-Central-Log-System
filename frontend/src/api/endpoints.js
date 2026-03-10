@@ -113,6 +113,9 @@ const API_ENDPOINTS = {
         ACCEPT_STUDENT: (projectId, studentId) => `/api/projects/${projectId}/accept/${studentId}`, // POST
         REJECT_STUDENT: (projectId, studentId) => `/api/projects/${projectId}/reject/${studentId}`, // POST
 
+        // Project completion
+        COMPLETE: (projectId) => `/api/projects/${projectId}/complete`, // PUT - Mark project as completed
+
         // Student assignment
         ACCEPTED_STUDENTS: (projectId) => `/api/projects/${projectId}/accepted-students`, // GET
         ASSIGN: (projectId) => `/api/projects/${projectId}/assign`, // POST - Assign students to project

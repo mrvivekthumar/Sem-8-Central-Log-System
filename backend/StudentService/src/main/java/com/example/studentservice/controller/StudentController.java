@@ -157,7 +157,7 @@ public class StudentController {
      * GET /student/students/{studentId}/completed-projects
      */
     @GetMapping("/{studentId}/completed-projects")
-    public ResponseEntity<List<StudentProject>> getCompletedProjects(
+    public ResponseEntity<List<com.example.studentservice.dto.CompletedProjectDTO>> getCompletedProjects(
             @PathVariable int studentId,
             @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
             HttpServletRequest request) {
@@ -167,7 +167,8 @@ public class StudentController {
         logger.debug("Request from IP: {}", request.getRemoteAddr());
 
         try {
-            List<StudentProject> completedProjects = studentService.getCompletedProjects(studentId);
+            List<com.example.studentservice.dto.CompletedProjectDTO> completedProjects = studentService
+                    .getCompletedProjects(studentId);
             logger.info("Found {} completed projects for student: {}", completedProjects.size(), studentId);
             logger.info("===============================================");
             return ResponseEntity.ok(completedProjects);

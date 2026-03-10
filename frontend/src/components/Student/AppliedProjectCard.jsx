@@ -35,8 +35,24 @@ const AppliedProjectCard = ({
         textColor: 'text-blue-700 dark:text-blue-300',
         borderColor: 'border-blue-200 dark:border-blue-800'
       },
-      'IN_PROGRESS': {
+      'PENDING': {
+        label: 'Under Review',
+        color: 'blue',
+        icon: Clock,
+        bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+        textColor: 'text-blue-700 dark:text-blue-300',
+        borderColor: 'border-blue-200 dark:border-blue-800'
+      },
+      'APPROVED': {
         label: 'Accepted',
+        color: 'green',
+        icon: CheckCircle,
+        bgColor: 'bg-green-100 dark:bg-green-900/20',
+        textColor: 'text-green-700 dark:text-green-300',
+        borderColor: 'border-green-200 dark:border-green-800'
+      },
+      'IN_PROGRESS': {
+        label: 'In Progress',
         color: 'green',
         icon: CheckCircle,
         bgColor: 'bg-green-100 dark:bg-green-900/20',
@@ -63,7 +79,9 @@ const AppliedProjectCard = ({
     return configs[status] || configs['OPEN_FOR_APPLICATIONS'];
   };
 
-  const statusConfig = getStatusConfig(project.status);
+  // Use applicationStatus (from StudentProject) if available, fall back to project.status
+  const displayStatus = project.applicationStatus || project.status;
+  const statusConfig = getStatusConfig(displayStatus);
   const StatusIcon = statusConfig.icon;
 
   const getPriorityLabel = (pref) => {

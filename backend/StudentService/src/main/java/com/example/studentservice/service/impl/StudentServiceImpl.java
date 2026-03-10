@@ -1,8 +1,11 @@
 package com.example.studentservice.service.impl;
 
 import com.example.studentservice.client.AuthInterface;
+import com.example.studentservice.client.FacultyInterface;
+import com.example.studentservice.client.dto.Project;
 import com.example.studentservice.domain.Student;
 import com.example.studentservice.domain.StudentProject;
+import com.example.studentservice.dto.CompletedProjectDTO;
 import com.example.studentservice.dto.StudentDashboardDTO;
 import com.example.studentservice.dto.StudentProfileDTO;
 import com.example.studentservice.repository.StudentProjectRepository;
@@ -33,6 +36,9 @@ public class StudentServiceImpl implements StudentService {
 
     @Autowired
     private AuthInterface authInterface;
+
+    @Autowired
+    private FacultyInterface facultyInterface;
 
     @Override
     public StudentDashboardDTO getDashboard(String studentId) {
@@ -217,13 +223,59 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public List<StudentProject> getCompletedProjects(int studentId) {
+    public List<CompletedProjectDTO> getCompletedProjects(int studentId) {
         logger.info("Service: Fetching completed projects for student {}", studentId);
         try {
             List<StudentProject> completedProjects = studentProjectRepository
                     .findCompletedProjectsByStudentId(studentId);
             logger.info("Service: Found {} completed projects for student {}", completedProjects.size(), studentId);
-            return completedProjects;
+
+            // Fetch full project details from FacultyService
+            List<Integer> projectIds = completedProjects.stream()
+                    .map(StudentProject::getProjectId)
+                    .toList();
+
+            java.util.Map<Integer, Project> projectMap = new java.util.HashMap<>();
+            if (!projectIds.isEmpty()) {
+                try {
+                    ResponseEntity<List<Project>> response = facultyInterface.getProjectsByIds(projectIds);
+                    if (response.getBody() != null) {
+                        for (Project p : response.getBody()) {
+                            projectMap.put(p.getProjectId(), p);
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.warn("Could not fetch project details from FacultyService: {}", e.getMessage());
+                }
+            }
+
+            // Merge StudentProject with Project data
+            return completedProjects.stream().map(sp -> {
+                Project project = projectMap.get(sp.getProjectId());
+                CompletedProjectDTO dto = CompletedProjectDTO.builder()
+                        .applicationId(sp.getApplicationId())
+                        .projectId(sp.getProjectId())
+                        .projectName(sp.getProjectName())
+                        .status(sp.getStatus() != null ? sp.getStatus().name() : "COMPLETED")
+                        .applicationDate(sp.getApplicationDate())
+                        .build();
+
+                if (project != null) {
+                    dto.setTitle(project.getTitle());
+                    dto.setDescription(project.getDescription());
+                    dto.setDomain(project.getDomain());
+                    dto.setTeamSize(project.getTeamSize());
+                    dto.setDuration(project.getDuration());
+                    dto.setSkills(project.getSkills());
+                    dto.setDeadline(project.getDeadline());
+                    if (project.getFaculty() != null) {
+                        dto.setFacultyName(project.getFaculty().getName());
+                    }
+                } else {
+                    dto.setTitle(sp.getProjectName());
+                }
+                return dto;
+            }).toList();
         } catch (Exception e) {
             logger.error("Error fetching completed projects for student {}: {}", studentId, e.getMessage(), e);
             throw e;

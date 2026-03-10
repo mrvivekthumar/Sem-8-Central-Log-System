@@ -32,6 +32,7 @@ const ProjectDetails = () => {
   const [applying, setApplying] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState(null);
 
   useEffect(() => {
     fetchProjectDetails();
@@ -54,8 +55,9 @@ const ProjectDetails = () => {
   const checkApplicationStatus = async () => {
     try {
       const response = await axiosInstance.get(API_ENDPOINTS.STUDENT_PROJECT.APPLIED_PROJECTS);
-      const applied = response.data.some(p => p.projectId === parseInt(projectId));
-      setHasApplied(applied);
+      const app = response.data.find(p => p.projectId === parseInt(projectId));
+      setHasApplied(!!app);
+      if (app) setApplicationStatus(app.status);
     } catch (error) {
       console.error('Error checking application:', error);
     }
@@ -377,10 +379,29 @@ const ProjectDetails = () => {
               </p>
 
               {hasApplied ? (
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
-                  <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                  <p className="font-semibold">Already Applied</p>
-                  <p className="text-sm text-blue-100 mt-1">Your application is being reviewed</p>
+                <div className={`backdrop-blur-sm rounded-xl p-4 text-center ${applicationStatus === 'APPROVED' ? 'bg-green-500/30' :
+                    applicationStatus === 'REJECTED' ? 'bg-red-500/30' :
+                      'bg-white/20'
+                  }`}>
+                  {applicationStatus === 'APPROVED' ? (
+                    <>
+                      <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-200" />
+                      <p className="font-semibold">Application Accepted!</p>
+                      <p className="text-sm text-green-100 mt-1">Congratulations! You've been selected for this project</p>
+                    </>
+                  ) : applicationStatus === 'REJECTED' ? (
+                    <>
+                      <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-200" />
+                      <p className="font-semibold">Not Selected</p>
+                      <p className="text-sm text-red-100 mt-1">Your application was not selected. Keep exploring other projects!</p>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-8 h-8 mx-auto mb-2" />
+                      <p className="font-semibold">Already Applied</p>
+                      <p className="text-sm text-blue-100 mt-1">Your application is being reviewed</p>
+                    </>
+                  )}
                 </div>
               ) : project.status === 'OPEN_FOR_APPLICATIONS' ? (
                 <motion.button

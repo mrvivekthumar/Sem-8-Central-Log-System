@@ -4,6 +4,7 @@ import {
   Briefcase,
   Calendar,
   CheckCircle,
+  CheckCircle2,
   Clock,
   Edit,
   Eye,
@@ -35,7 +36,22 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(API_ENDPOINTS.PROJECTS.BY_FACULTY(user.id));
-      setProjects(response.data || []);
+      const projectList = response.data || [];
+
+      // Fetch applied student counts for each project
+      if (projectList.length > 0) {
+        const countResponses = await Promise.all(
+          projectList.map(p =>
+            axiosInstance.get(API_ENDPOINTS.STUDENT_PROJECT.STUDENT_COUNT(p.projectId))
+              .catch(() => ({ data: 0 }))
+          )
+        );
+        projectList.forEach((p, i) => {
+          p.appliedCount = countResponses[i].data || 0;
+        });
+      }
+
+      setProjects(projectList);
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast.error('Failed to load projects');
@@ -53,6 +69,17 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
     } catch (error) {
       console.error('Error deleting project:', error);
       toast.error('Failed to delete project');
+    }
+  };
+
+  const handleCompleteProject = async (projectId) => {
+    try {
+      await axiosInstance.put(API_ENDPOINTS.PROJECTS.COMPLETE(projectId));
+      toast.success('Project marked as completed!');
+      fetchProjects();
+    } catch (error) {
+      console.error('Error completing project:', error);
+      toast.error('Failed to complete project');
     }
   };
 
@@ -201,6 +228,22 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
                             <Edit className="w-4 h-4" />
                             Edit Project
                           </button>
+                          {(project.status === 'IN_PROGRESS' || project.status === 'OPEN_FOR_APPLICATIONS') && (
+                            <>
+                              <div className="h-px bg-gray-200 dark:bg-gray-700 my-2" />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCompleteProject(project.projectId);
+                                  setActiveDropdown(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2 transition-colors"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                Mark as Completed
+                              </button>
+                            </>
+                          )}
                           <div className="h-px bg-gray-200 dark:bg-gray-700 my-2" />
                           <button
                             onClick={(e) => {
@@ -262,7 +305,7 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-gray-900 dark:text-white">
-                      {project.appliedStudents?.length || 0}
+                      {project.appliedCount || 0}
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">Applied</div>
                   </div>

@@ -3,6 +3,7 @@ package com.example.facultyservice.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.facultyservice.client.StudentInterface;
 import com.example.facultyservice.entity.Project;
 import com.example.facultyservice.entity.Status;
+import com.example.facultyservice.repository.ProjectRepository;
 import com.example.facultyservice.service.ProjectService;
 
 import jakarta.annotation.PostConstruct;
@@ -40,6 +42,9 @@ public class ProjectController {
 
     @Autowired
     private ProjectService projectService;
+
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Autowired
     private StudentInterface studentInterface;
@@ -323,6 +328,66 @@ public class ProjectController {
     }
 
     /**
+     * Mark a project as completed
+     * PUT /api/projects/{projectId}/complete
+     * Also updates all APPROVED student applications to COMPLETED
+     */
+    @PutMapping("/{projectId}/complete")
+    public ResponseEntity<?> completeProject(
+            @PathVariable Integer projectId,
+            HttpServletRequest request) {
+        log.info("===============================================");
+        log.info("Controller: PUT /projects/{}/complete - Marking project as completed", projectId);
+
+        try {
+            Optional<Project> projectOpt = projectService.getProjectById(projectId);
+            if (projectOpt.isEmpty()) {
+                log.warn("Controller: Project not found: {}", projectId);
+                return ResponseEntity.notFound().build();
+            }
+
+            Project project = projectOpt.get();
+            project.setStatus(Status.COMPLETED);
+            projectRepository.save(project);
+            log.info("Controller: Project {} marked as COMPLETED", projectId);
+
+            // Update all APPROVED student applications to COMPLETED
+            try {
+                ResponseEntity<List<Map<String, Object>>> applicationsResp = studentInterface
+                        .getApplicationsByProject(projectId);
+                List<Map<String, Object>> applications = applicationsResp.getBody();
+                if (applications != null) {
+                    for (Map<String, Object> app : applications) {
+                        String status = String.valueOf(app.get("status"));
+                        if ("APPROVED".equals(status) || "IN_PROGRESS".equals(status)) {
+                            Object studentObj = app.get("student");
+                            if (studentObj instanceof Map) {
+                                Object studentIdObj = ((Map<?, ?>) studentObj).get("studentId");
+                                if (studentIdObj != null) {
+                                    int studentId = Integer.parseInt(String.valueOf(studentIdObj));
+                                    Map<String, String> body = new java.util.HashMap<>();
+                                    body.put("status", "COMPLETED");
+                                    studentInterface.updateApplicationStatus(studentId, projectId, body);
+                                    log.info("Controller: Updated student {} application to COMPLETED", studentId);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Controller: Error updating student application statuses: {}", e.getMessage(), e);
+            }
+
+            log.info("===============================================");
+            return ResponseEntity.ok(project);
+        } catch (Exception e) {
+            log.error("Controller: Error completing project {}: {}", projectId, e.getMessage(), e);
+            log.info("===============================================");
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * Get all applications for a project
      * GET /api/projects/{projectId}/applications
      * Proxies to StudentService: GET /student/studentProject/students/{projectId}
@@ -354,7 +419,7 @@ public class ProjectController {
         log.info("Controller: POST /projects/{}/accept/{} - Accepting student", projectId, studentId);
         try {
             Map<String, String> body = new HashMap<>();
-            body.put("status", "ACCEPTED");
+            body.put("status", "APPROVED");
             ResponseEntity<Object> response = studentInterface.updateApplicationStatus(studentId, projectId, body);
             log.info("Controller: Student {} accepted for project {}", studentId, projectId);
             return ResponseEntity.ok(response.getBody());

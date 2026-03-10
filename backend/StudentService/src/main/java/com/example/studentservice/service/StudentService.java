@@ -55,7 +55,7 @@ public interface StudentService {
      * @param studentId Student ID
      * @return List of completed student projects
      */
-    List<StudentProject> getCompletedProjects(int studentId);
+    List<com.example.studentservice.dto.CompletedProjectDTO> getCompletedProjects(int studentId);
 
     /**
      * Update students availability after project assignment

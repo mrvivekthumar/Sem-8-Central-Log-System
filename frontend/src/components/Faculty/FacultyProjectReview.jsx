@@ -5,10 +5,15 @@ import {
   CheckCircle,
   Clock, Eye,
   FileText,
+  Github,
+  Globe,
   GraduationCap,
-  Mail, Phone,
+  Linkedin,
+  Mail, MapPin, Phone,
+  Star,
   ThumbsDown,
   ThumbsUp,
+  X,
   XCircle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -104,7 +109,8 @@ const FacultyProjectReview = () => {
         icon: Clock,
         gradient: 'from-amber-500 to-orange-600',
         bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-        textColor: 'text-amber-700 dark:text-amber-300'
+        textColor: 'text-amber-700 dark:text-amber-300',
+        borderColor: 'border-amber-200 dark:border-amber-800'
       },
       ACCEPTED: {
         label: 'Accepted',
@@ -112,7 +118,17 @@ const FacultyProjectReview = () => {
         icon: CheckCircle,
         gradient: 'from-green-500 to-emerald-600',
         bgColor: 'bg-green-50 dark:bg-green-900/20',
-        textColor: 'text-green-700 dark:text-green-300'
+        textColor: 'text-green-700 dark:text-green-300',
+        borderColor: 'border-green-200 dark:border-green-800'
+      },
+      APPROVED: {
+        label: 'Accepted',
+        color: 'green',
+        icon: CheckCircle,
+        gradient: 'from-green-500 to-emerald-600',
+        bgColor: 'bg-green-50 dark:bg-green-900/20',
+        textColor: 'text-green-700 dark:text-green-300',
+        borderColor: 'border-green-200 dark:border-green-800'
       },
       REJECTED: {
         label: 'Rejected',
@@ -120,7 +136,8 @@ const FacultyProjectReview = () => {
         icon: XCircle,
         gradient: 'from-red-500 to-rose-600',
         bgColor: 'bg-red-50 dark:bg-red-900/20',
-        textColor: 'text-red-700 dark:text-red-300'
+        textColor: 'text-red-700 dark:text-red-300',
+        borderColor: 'border-red-200 dark:border-red-800'
       }
     };
     return configs[status] || configs.PENDING;
@@ -128,11 +145,12 @@ const FacultyProjectReview = () => {
 
   const filteredApplications = applications.filter(app => {
     if (filter === 'all') return true;
+    if (filter === 'accepted') return app.status === 'ACCEPTED' || app.status === 'APPROVED';
     return app.status?.toLowerCase() === filter.toLowerCase();
   });
 
   const pendingCount = applications.filter(a => a.status === 'PENDING').length;
-  const acceptedCount = applications.filter(a => a.status === 'ACCEPTED').length;
+  const acceptedCount = applications.filter(a => a.status === 'ACCEPTED' || a.status === 'APPROVED').length;
 
   if (loading) {
     return (
@@ -245,7 +263,7 @@ const FacultyProjectReview = () => {
 
               return (
                 <motion.div
-                  key={application.id}
+                  key={application.applicationId}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
@@ -267,7 +285,7 @@ const FacultyProjectReview = () => {
                             {application.student?.name || 'Unknown Student'}
                           </h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {application.student?.department || 'N/A'}
+                            {application.student?.bio || 'Student'}
                           </p>
                         </div>
                       </div>
@@ -287,15 +305,15 @@ const FacultyProjectReview = () => {
                         <Mail className="w-4 h-4" />
                         {application.student?.email || 'N/A'}
                       </div>
-                      {application.student?.phone && (
+                      {application.student?.phoneNo && (
                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                           <Phone className="w-4 h-4" />
-                          {application.student.phone}
+                          {application.student.phoneNo}
                         </div>
                       )}
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <GraduationCap className="w-4 h-4" />
-                        Year: {application.student?.year || 'N/A'}
+                        Semester: {application.student?.semesterNo || 'N/A'}
                       </div>
                     </div>
 
@@ -326,11 +344,11 @@ const FacultyProjectReview = () => {
                     {/* Application Date */}
                     <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-4">
                       <Clock className="w-3.5 h-3.5" />
-                      Applied on {new Date(application.appliedDate || Date.now()).toLocaleDateString()}
+                      Applied on {new Date(application.applicationDate || Date.now()).toLocaleDateString()}
                     </div>
 
                     {/* Actions */}
-                    {application.status === 'PENDING' && (
+                    {(application.status === 'PENDING' || application.status === 'OPEN_FOR_APPLICATIONS') && (
                       <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <motion.button
                           whileHover={{ scale: 1.02 }}
@@ -344,7 +362,7 @@ const FacultyProjectReview = () => {
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => handleAccept(application.student.id)}
+                          onClick={() => handleAccept(application.student.studentId)}
                           disabled={actionLoading}
                           className="flex-1 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         >
@@ -354,7 +372,7 @@ const FacultyProjectReview = () => {
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => setShowRejectModal(application.student.id)}
+                          onClick={() => setShowRejectModal(application.student.studentId)}
                           disabled={actionLoading}
                           className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         >
@@ -364,7 +382,7 @@ const FacultyProjectReview = () => {
                       </div>
                     )}
 
-                    {application.status !== 'PENDING' && (
+                    {application.status !== 'PENDING' && application.status !== 'OPEN_FOR_APPLICATIONS' && (
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -436,6 +454,150 @@ const FacultyProjectReview = () => {
                   className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Reject Application
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Student Profile Modal */}
+      <AnimatePresence>
+        {selectedStudent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedStudent(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto border border-gray-200 dark:border-gray-700 shadow-2xl"
+            >
+              {/* Profile Header */}
+              <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-6 rounded-t-2xl relative">
+                <button
+                  onClick={() => setSelectedStudent(null)}
+                  className="absolute top-4 right-4 p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-white text-3xl font-bold">
+                    {selectedStudent.name?.charAt(0) || 'S'}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white">{selectedStudent.name || 'Unknown'}</h3>
+                    <p className="text-blue-100">{selectedStudent.email}</p>
+                    {selectedStudent.ratings > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
+                        <span className="text-white text-sm font-medium">{selectedStudent.ratings}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {/* Bio */}
+                {selectedStudent.bio && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">About</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{selectedStudent.bio}</p>
+                  </div>
+                )}
+
+                {/* Contact & Academic Info */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Details</h4>
+                  {selectedStudent.phoneNo && (
+                    <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                      <Phone className="w-4 h-4" />
+                      <span>{selectedStudent.phoneNo}</span>
+                    </div>
+                  )}
+                  {selectedStudent.semesterNo && (
+                    <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                      <GraduationCap className="w-4 h-4" />
+                      <span>Semester {selectedStudent.semesterNo}</span>
+                    </div>
+                  )}
+                  {selectedStudent.cgpa > 0 && (
+                    <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                      <Star className="w-4 h-4" />
+                      <span>CGPA: {selectedStudent.cgpa}</span>
+                    </div>
+                  )}
+                  {selectedStudent.location && (
+                    <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                      <MapPin className="w-4 h-4" />
+                      <span>{selectedStudent.location}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Links */}
+                {(selectedStudent.githubProfileLink || selectedStudent.linkedInUrl || selectedStudent.portfolioLink) && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Links</h4>
+                    {selectedStudent.githubProfileLink && (
+                      <a href={selectedStudent.githubProfileLink} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-blue-600 dark:text-blue-400 hover:underline">
+                        <Github className="w-4 h-4" />
+                        <span>GitHub Profile</span>
+                      </a>
+                    )}
+                    {selectedStudent.linkedInUrl && (
+                      <a href={selectedStudent.linkedInUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-blue-600 dark:text-blue-400 hover:underline">
+                        <Linkedin className="w-4 h-4" />
+                        <span>LinkedIn Profile</span>
+                      </a>
+                    )}
+                    {selectedStudent.portfolioLink && (
+                      <a href={selectedStudent.portfolioLink} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-blue-600 dark:text-blue-400 hover:underline">
+                        <Globe className="w-4 h-4" />
+                        <span>Portfolio</span>
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Skills */}
+                {selectedStudent.skills && selectedStudent.skills.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Skills</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedStudent.skills.map((skill, idx) => (
+                        <span key={idx} className="px-3 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Availability */}
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${selectedStudent.studentAvaibility === 'AVAILABLE' ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {selectedStudent.studentAvaibility === 'AVAILABLE' ? 'Available for projects' : 'Not available'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6 pt-0">
+                <button
+                  onClick={() => setSelectedStudent(null)}
+                  className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Close
                 </button>
               </div>
             </motion.div>

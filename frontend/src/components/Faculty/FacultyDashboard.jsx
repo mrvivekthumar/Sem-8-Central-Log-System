@@ -18,6 +18,8 @@ import {
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { facultyService } from '../../api';
+import axiosInstance from '../../api/axiosInstance';
+import { API_ENDPOINTS } from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 import AddProjectForm from './AddProjectForm';
 import FacultyProjectList from './FacultyProjectList';
@@ -45,20 +47,32 @@ const FacultyDashboard = () => {
       setLoading(true);
       // Use facultyService with correct endpoint
       const response = await facultyService.getDashboard();
-      const projects = response.data || response || [];
+      const data = response.data || response || {};
 
-      setStats({
-        totalProjects: Array.isArray(projects) ? projects.length : (projects.totalProjects || 0),
-        activeProjects: Array.isArray(projects)
-          ? projects.filter(p => p.status === 'IN_PROGRESS').length
-          : (projects.activeProjects || 0),
-        completedProjects: Array.isArray(projects)
-          ? projects.filter(p => p.status === 'COMPLETED').length
-          : (projects.completedProjects || 0),
-        pendingApplications: Array.isArray(projects)
-          ? projects.filter(p => p.status === 'OPEN_FOR_APPLICATIONS').length
-          : (projects.pendingApplications || 0)
-      });
+      const projectList = Array.isArray(data) ? data : (data.projects || []);
+      const projects = data;
+      const totalProjects = projectList.length || (projects.totalProjects || 0);
+      const activeProjects = projectList.filter(p => p.status === 'IN_PROGRESS').length || (projects.activeProjects || 0);
+      const completedProjects = projectList.filter(p => p.status === 'COMPLETED').length || (projects.completedProjects || 0);
+
+      // Fetch actual pending application count from all open projects
+      let pendingApplications = 0;
+      if (projectList.length > 0) {
+        const openProjects = projectList.filter(p => p.status === 'OPEN_FOR_APPLICATIONS');
+        try {
+          const appResponses = await Promise.all(
+            openProjects.map(p => axiosInstance.get(API_ENDPOINTS.PROJECTS.APPLICATIONS(p.projectId)).catch(() => ({ data: [] })))
+          );
+          pendingApplications = appResponses.reduce((total, res) => {
+            const apps = res.data || [];
+            return total + apps.filter(a => a.status === 'PENDING' || a.status === 'OPEN_FOR_APPLICATIONS').length;
+          }, 0);
+        } catch (e) {
+          console.error('Error fetching application counts:', e);
+        }
+      }
+
+      setStats({ totalProjects, activeProjects, completedProjects, pendingApplications });
     } catch (error) {
       console.error('Error fetching stats:', error);
       toast.error('Failed to load dashboard data');
