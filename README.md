@@ -1,104 +1,113 @@
-# 🤝 CollabBridge - Central Log System
+# 🤝 ColabBridge
 
-**CollabBridge** is a microservices-based collaborative platform developed using **Spring Boot**, designed to connect faculty and students for academic project collaborations. It includes secure authentication, user management, project idea sharing, and a modern **React + Vite** frontend interface.
+**ColabBridge** is a microservices-based collaborative platform built with **Spring Boot** and **React**, connecting faculty and students for academic project collaborations. It includes secure JWT authentication, role-based access, project management, report uploads, and event-driven notifications via RabbitMQ.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (One Command)
 
-**Want to run the project immediately?**
+### Prerequisites
 
-### Windows Users
+| Tool | Version | Download |
+|------|---------|----------|
+| **Docker Desktop** | v20.10+ | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop) |
+| **Node.js** | v18+ | [nodejs.org](https://nodejs.org) |
+| **Git** | any | [git-scm.com](https://git-scm.com) |
 
-```batch
-start-dev.bat
-```
-
-### Linux/Mac Users
+### Run the project
 
 ```bash
-chmod +x start-dev.sh
-./start-dev.sh
+git clone https://github.com/mrvivekthumar/ColabBridge.git
+cd ColabBridge
 ```
 
-**Then open:** <http://localhost:5173>
+**Windows — double-click or run:**
 
-📚 **Need help?** Check [QUICK_START.md](./QUICK_START.md)
+```batch
+start.bat
+```
+
+That's it. The script will:
+
+1. Verify Docker, Node.js, and npm are installed
+2. Create a persistent data folder at `C:\Users\<you>\Documents\ColabBridge\`
+3. Build and start all backend services via Docker Compose
+4. Wait for databases and services to become healthy
+5. Install frontend dependencies (first run only)
+6. Launch the frontend dev server
+
+**Then open:** [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 📚 Documentation
+## 📂 Where is my data stored?
 
-| Document | Description |
-|----------|-------------|
-| [**QUICK_START.md**](./QUICK_START.md) | 5-minute guide to get started |
-| [**DEPLOYMENT_GUIDE.md**](./DEPLOYMENT_GUIDE.md) | Complete deployment & troubleshooting |
-| [**FIXES_APPLIED.md**](./FIXES_APPLIED.md) | Recent fixes and improvements |
+All database data and logs are persisted on your **physical machine** (not inside Docker volumes), so nothing is lost when containers are removed.
+
+```
+C:\Users\<you>\Documents\ColabBridge\
+├── databases\
+│   ├── auth-db\           ← Auth PostgreSQL data
+│   ├── faculty-db\        ← Faculty PostgreSQL data
+│   └── student-db\        ← Student PostgreSQL data
+├── logs\
+│   └── combined.log       ← Central log file (all services write here)
+└── rabbitmq\              ← RabbitMQ persistent data
+```
+
+**View central logs:**
+
+```powershell
+Get-Content "$HOME\Documents\ColabBridge\logs\combined.log" -Tail 50 -Wait
+```
 
 ---
 
 ## 🎯 Features
 
-- 🔐 **Auth Service**  
-  Handles user authentication and role-based authorization using **Spring Security** and **JWT**.
-
-- 👨‍🏫 **Faculty Service**  
-  Faculty can post project ideas, view their own projects, and manage them.
-
-- 👨‍🎓 **Student Service**  
-  Students can browse and join projects shared by faculty.
-
-- 🔀 **API Gateway**  
-  Routes incoming requests to the appropriate microservices with authentication.
-
-- 🐰 **RabbitMQ Integration**  
-  Event-driven communication between microservices.
-
-- 🌐 **Frontend (Vite + React)**  
-  Modern and fast UI built with React and styled for user-friendly navigation.
+- 🔐 **Auth Service** — User authentication and role-based authorization using Spring Security + JWT
+- 👨‍🏫 **Faculty Service** — Faculty can post project ideas, review applications, and manage teams
+- 👨‍🎓 **Student Service** — Students browse, apply for, and submit reports for projects
+- 🔀 **API Gateway** — Single entry point routing requests to microservices with JWT validation
+- 🐰 **RabbitMQ** — Event-driven communication between services
+- 🌐 **React Frontend** — Modern UI built with Vite, Tailwind CSS, and Shadcn/UI
 
 ---
 
-## 🧩 Architecture Overview
+## 🧩 Architecture
 
+```mermaid
+graph TD
+    Browser["🌐 Browser<br/>(React App)<br/>:5173"]
+    Gateway["🔀 API Gateway<br/>(Spring Cloud)<br/>:8080"]
+    Auth["🔐 Auth Service<br/>:8081"]
+    Faculty["👨‍🏫 Faculty Service<br/>:8082"]
+    Student["👨‍🎓 Student Service<br/>:8083"]
+    AuthDB[("🗄️ Auth DB<br/>:5433")]
+    FacultyDB[("🗄️ Faculty DB<br/>:5434")]
+    StudentDB[("🗄️ Student DB<br/>:5435")]
+    RabbitMQ["🐰 RabbitMQ<br/>:5672 / :15672"]
+
+    Browser -->|HTTP| Gateway
+    Gateway --> Auth
+    Gateway --> Faculty
+    Gateway --> Student
+    Auth --> AuthDB
+    Faculty --> FacultyDB
+    Student --> StudentDB
+    Faculty <-.->|Events| RabbitMQ
+    Student <-.->|Events| RabbitMQ
+
+    style Browser fill:#e1f5fe,stroke:#0288d1
+    style Gateway fill:#fff3e0,stroke:#f57c00
+    style Auth fill:#e8f5e9,stroke:#388e3c
+    style Faculty fill:#e8f5e9,stroke:#388e3c
+    style Student fill:#e8f5e9,stroke:#388e3c
+    style AuthDB fill:#fce4ec,stroke:#c62828
+    style FacultyDB fill:#fce4ec,stroke:#c62828
+    style StudentDB fill:#fce4ec,stroke:#c62828
+    style RabbitMQ fill:#f3e5f5,stroke:#7b1fa2
 ```
-┌─────────────┐
-│   Browser   │
-│ (React App) │
-└──────┬──────┘
-       │ :5173
-       ↓
-┌─────────────────┐
-│   API Gateway   │ :8080
-│  (Spring Cloud) │
-└────────┬────────┘
-         │
-    ┌────┼────┬─────────┐
-    ↓    ↓    ↓         ↓
-┌────────┐ ┌──────────┐ ┌──────────┐
-│  Auth  │ │ Faculty  │ │ Student  │
-│:8081   │ │  :8082   │ │  :8083   │
-└───┬────┘ └────┬─────┘ └────┬─────┘
-    │           │             │
-┌────────┐ ┌──────────┐ ┌──────────┐
-│Auth DB │ │Faculty DB│ │Student DB│
-│:55320  │ │  :55321  │ │  :55322  │
-└────────┘ └──────────┘ └──────────┘
-
-         ┌────────────┐
-         │  RabbitMQ  │
-         │   :5672    │
-         └────────────┘
-```
-
-CollabBridge uses a **microservices architecture** where each service handles a specific domain:
-
-- **API Gateway** - Single entry point for all client requests
-- **Auth Service** - User authentication and JWT token management
-- **Faculty Service** - Faculty profiles and project management
-- **Student Service** - Student profiles and project enrollment
-- **PostgreSQL Databases** - Separate database per service (database-per-service pattern)
-- **RabbitMQ** - Asynchronous messaging between services
 
 ---
 
@@ -106,235 +115,52 @@ CollabBridge uses a **microservices architecture** where each service handles a 
 
 ### Backend
 
-- **Java 17**
-- **Spring Boot 3.x**
-- **Spring Cloud Gateway**
-- **Spring Security + JWT**
-- **Spring Data JPA**
-- **PostgreSQL**
-- **RabbitMQ**
-- **Docker & Docker Compose**
-- **Lombok**
+- Java 17 / Spring Boot 3.x / Spring Cloud Gateway
+- Spring Security + JWT / Spring Data JPA
+- PostgreSQL / RabbitMQ
+- Docker & Docker Compose
 
 ### Frontend
 
-- **React.js 18**
-- **Vite**
-- **Axios**
-- **React Router**
-- **Tailwind CSS**
-- **Shadcn/UI**
-
-### DevOps
-
-- **Docker**
-- **Docker Compose**
-- **Kubernetes (K8s)**
-- **GitHub Actions** (planned)
-
----
-
-## ☸️ Kubernetes Deployment
-
-### Prerequisites
-
-- Kubernetes cluster (Minikube, Docker Desktop, or cloud K8s)
-- kubectl CLI configured
-- Docker images built and pushed (or use local images)
-
-### Quick Deploy (Windows)
-
-```powershell
-cd backend/k8s
-.\deploy.ps1
-```
-
-### Quick Deploy (Linux/Mac)
-
-```bash
-cd backend/k8s
-chmod +x deploy.sh
-./deploy.sh
-```
-
-### Access the Application
-
-```bash
-# Option 1: Port forwarding
-kubectl port-forward svc/api-gateway 8080:8080 -n microservices
-
-# Option 2: Minikube service
-minikube service api-gateway -n microservices
-```
-
-### View Logs
-
-```bash
-kubectl logs -f -l app=api-gateway -n microservices
-kubectl logs -f -l app=auth-service -n microservices
-```
-
-### Cleanup
-
-```powershell
-# Windows
-cd backend/k8s
-.\cleanup.ps1
-```
-
-```bash
-# Linux/Mac
-cd backend/k8s
-./cleanup.sh
-```
-
----
-
-## 💻 Development Setup
-
-### Prerequisites
-
-- Docker Desktop (v20.10+)
-- Node.js (v18+)
-- Java 17+ (optional, for local development)
-- Git
-
-### Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/mrvivekthumar/Sem-8-Central-Log-System.git
-   cd Sem-8-Central-Log-System
-   ```
-
-2. **Run the project**
-
-   **Windows:**
-
-   ```batch
-   start-dev.bat
-   ```
-
-   **Linux/Mac:**
-
-   ```bash
-   chmod +x start-dev.sh
-   ./start-dev.sh
-   ```
-
-3. **Access the application**
-   - Frontend: <http://localhost:5173>
-   - API Gateway: <http://localhost:8080>
-   - RabbitMQ UI: <http://localhost:15672> (guest/guest)
+- React 18 / Vite / Tailwind CSS / Shadcn/UI
+- Axios / React Router / Framer Motion
 
 ---
 
 ## 🌐 Service Endpoints
 
-| Service | Port | Health Check |
-|---------|------|-------------|
-| Frontend | 5173 | <http://localhost:5173> |
-| API Gateway | 8080 | <http://localhost:8080/actuator/health> |
-| Auth Service | 8081 | <http://localhost:8081/actuator/health> |
-| Faculty Service | 8082 | <http://localhost:8082/actuator/health> |
-| Student Service | 8083 | <http://localhost:8083/actuator/health> |
-| RabbitMQ | 5672 | <http://localhost:15672> |
+| Service | Port | URL |
+|---------|------|-----|
+| Frontend | 5173 | [http://localhost:5173](http://localhost:5173) |
+| API Gateway | 8080 | [http://localhost:8080](http://localhost:8080) |
+| Auth Service | 8081 | [http://localhost:8081/auth/actuator/health](http://localhost:8081/auth/actuator/health) |
+| Faculty Service | 8082 | [http://localhost:8082/faculty/actuator/health](http://localhost:8082/faculty/actuator/health) |
+| Student Service | 8083 | [http://localhost:8083/student/actuator/health](http://localhost:8083/student/actuator/health) |
+| RabbitMQ UI | 15672 | [http://localhost:15672](http://localhost:15672) (guest/guest) |
+
+### Database Ports
+
+| Database | Port | User | Password |
+|----------|------|------|----------|
+| Auth DB | 5433 | auth_user | auth_password |
+| Faculty DB | 5434 | faculty_user | faculty_password |
+| Student DB | 5435 | student_user | student_password |
 
 ---
 
-## 📦 Database Ports
-
-| Database | Port | Credentials |
-|----------|------|-------------|
-| Auth DB | 55320 | auth_user / auth_password |
-| Faculty DB | 55321 | faculty_user / faculty_password |
-| Student DB | 55322 | student_user / student_password |
-
----
-
-## 🧪 API Examples
-
-### Register User
-
-```bash
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "student@example.com",
-    "password": "Password@123",
-    "name": "John Doe",
-    "role": "STUDENT"
-  }'
-```
-
-### Login
-
-```bash
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "student@example.com",
-    "password": "Password@123"
-  }'
-```
-
-### Get Students (Authenticated)
-
-```bash
-curl -X GET http://localhost:8080/api/students \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Port Conflicts
-
-**Windows:**
-
-```batch
-netstat -ano | findstr :8080
-taskkill /PID <PID> /F
-```
-
-**Linux/Mac:**
-
-```bash
-lsof -i :8080
-kill -9 <PID>
-```
-
-### Docker Issues
-
-```bash
-cd backend
-docker-compose down -v
-docker-compose up --build
-```
-
-### Frontend Connection Issues
-
-1. Verify `.env` file exists in `frontend/` directory
-2. Check API Gateway is running: `curl http://localhost:8080/actuator/health`
-3. Restart frontend: `npm run dev`
-
-**For more troubleshooting, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**
-
----
-
-## 📊 Project Structure
+## 📦 Project Structure
 
 ```
-Sem-8-Central-Log-System/
+ColabBridge/
+├── start.bat                  # One-click startup (Windows)
 ├── backend/
 │   ├── Api-Gateway/           # Spring Cloud Gateway
 │   ├── Authentication-Service/ # Auth & JWT
 │   ├── FacultyService/        # Faculty management
 │   ├── StudentService/        # Student management
 │   ├── docker-compose.yml     # Docker orchestration
-│   └── .env                   # Environment variables
+│   ├── .env                   # Backend environment variables
+│   └── k8s/                   # Kubernetes manifests
 ├── frontend/
 │   ├── src/
 │   │   ├── api/               # API service layer
@@ -343,58 +169,53 @@ Sem-8-Central-Log-System/
 │   │   └── contexts/          # React contexts
 │   ├── package.json
 │   └── .env                   # Frontend config
-├── QUICK_START.md         # Quick start guide
-├── DEPLOYMENT_GUIDE.md    # Detailed deployment
-├── FIXES_APPLIED.md       # Recent fixes
-├── start-dev.sh           # Linux/Mac startup
-├── start-dev.bat          # Windows startup
-└── README.md              # This file
+└── README.md
 ```
 
 ---
 
-## 🤝 Contributing
+## 🐛 Troubleshooting
 
-Contributions are welcome! Please follow these steps:
+### Database containers show "Error" on first run
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+This is normal — first-time PostgreSQL initialization on a local bind mount takes longer than Docker's default health check timeout.
+Run `start.bat` again or `cd backend && docker compose up -d`; the DBs will already be initialized and start instantly.
+
+### Port conflicts
+
+```powershell
+# Find what's using a port
+netstat -ano | findstr :8080
+# Kill it
+taskkill /PID <PID> /F
+```
+
+### Reset everything
+
+```powershell
+cd backend
+docker compose down
+Remove-Item -Recurse "$HOME\Documents\ColabBridge"
+docker compose up -d --build
+```
+
+### Frontend can't connect to backend
+
+1. Ensure API Gateway is running: `curl http://localhost:8080/actuator/health`
+2. Check `frontend\.env` has `VITE_API_BASE_URL=http://localhost:8080`
+3. Restart frontend: `cd frontend && npm run dev`
 
 ---
-
-## 📝 License
-
-This project is developed for educational purposes as part of Semester 8 project at DDU University.
-
 ---
 
 ## 📧 Contact
 
-**Developer:** Vivek Thumar  
-**Email:** <mrvivekthumar@gmail.com>  
-**GitHub:** [@mrvivekthumar](https://github.com/mrvivekthumar)  
+**Developer:** Vivek Thumar
+**Email:** [mrvivekthumar@gmail.com](mailto:mrvivekthumar@gmail.com)
+**GitHub:** [@mrvivekthumar](https://github.com/mrvivekthumar)
 **University:** DDU University, Gujarat
 
 ---
-
-## 🌟 Acknowledgments
-
-- DDU University - Information Technology Department
-- Spring Boot & Spring Cloud communities
-- React & Vite communities
-
 ---
 
-## 📌 Deployed Link
-
-You can access the live project here:  
-👉 [**CollabBridge Live**](https://colab-bridge-git-main-hetbhagatji09-gmailcoms-projects.vercel.app/)
-
----
-
-**Happy Coding! 🚀**
-
-*Last Updated: December 27, 2025*
+*Last Updated: March 2026*

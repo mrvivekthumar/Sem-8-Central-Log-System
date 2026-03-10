@@ -2,10 +2,11 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: student-db-pvc
-  namespace: microservices
+  namespace: colabbridge
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: gp3
   resources:
     requests:
       storage: 10Gi
@@ -15,7 +16,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: student-db
-  namespace: microservices
+  namespace: colabbridge
 spec:
   serviceName: student-db-service
   replicas: 1
@@ -53,25 +54,19 @@ spec:
               mountPath: /var/lib/postgresql/data
           resources:
             requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
               memory: "512Mi"
               cpu: "500m"
-            limits:
-              memory: "1Gi"
-              cpu: "1000m"
           livenessProbe:
             exec:
-              command:
-                - pg_isready
-                - -U
-                - $(POSTGRES_USER)
+              command: ["pg_isready", "-U", "student_user", "-d", "studentdb"]
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             exec:
-              command:
-                - pg_isready
-                - -U
-                - $(POSTGRES_USER)
+              command: ["pg_isready", "-U", "student_user", "-d", "studentdb"]
             initialDelaySeconds: 5
             periodSeconds: 5
       volumes:
@@ -84,7 +79,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: student-db-service
-  namespace: microservices
+  namespace: colabbridge
 spec:
   clusterIP: None
   selector:

@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: microservices-sa
-  namespace: microservices
+  name: colabbridge-sa
+  namespace: colabbridge
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: microservices-role
-  namespace: microservices
+  name: colabbridge-role
+  namespace: colabbridge
 rules:
   - apiGroups: [""]
     resources: ["services", "endpoints", "pods", "configmaps"]
@@ -19,13 +19,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: microservices-rolebinding
-  namespace: microservices
+  name: colabbridge-rolebinding
+  namespace: colabbridge
 subjects:
   - kind: ServiceAccount
-    name: microservices-sa
-    namespace: microservices
+    name: colabbridge-sa
+    namespace: colabbridge
 roleRef:
   kind: Role
-  name: microservices-role
+  name: colabbridge-role
   apiGroup: rbac.authorization.k8s.io

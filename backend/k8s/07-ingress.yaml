@@ -1,21 +1,33 @@
+# AWS ALB Ingress Controller
+# Prerequisites:
+#   1. Install AWS Load Balancer Controller on your EKS cluster
+#   2. Replace "your-domain.com" with your actual domain
+#   3. Replace the ACM certificate ARN with yours (for HTTPS)
+#
+# If you don't have a domain, remove the tls section and use the ALB DNS name directly.
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: microservices-ingress
-  namespace: microservices
+  name: colabbridge-ingress
+  namespace: colabbridge
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod" # For SSL
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    # Replace with your ACM certificate ARN for HTTPS:
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:123456789:certificate/xxxxx
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
 spec:
-  ingressClassName: nginx
-  tls:
-    - hosts:
-        - your-domain.com # ← CHANGE THIS
-      secretName: microservices-tls
+  ingressClassName: alb
   rules:
-    - host: your-domain.com # ← CHANGE THIS
+    - host: your-domain.com # ← CHANGE THIS (or remove host for ALB DNS)
       http:
         paths:
           - path: /
@@ -24,4 +36,4 @@ spec:
               service:
                 name: api-gateway
                 port:
-                  number: 80
+                  number: 8080

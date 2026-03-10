@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway
-  namespace: microservices
+  namespace: colabbridge
   labels:
     app: api-gateway
 spec:
@@ -15,17 +15,17 @@ spec:
       labels:
         app: api-gateway
     spec:
-      serviceAccountName: microservices-sa
+      serviceAccountName: colabbridge-sa
       containers:
         - name: api-gateway
-          image: colabbridge/api-gateway:latest
-          imagePullPolicy: IfNotPresent
+          image: colabbridge/api-gateway:latest # ← Push to ECR
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes"
+              value: "docker"
             - name: SERVER_PORT
               value: "8080"
             - name: AUTH_SERVICE_URL
@@ -48,20 +48,20 @@ spec:
               cpu: "500m"
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /actuator/health
               port: 8080
-            initialDelaySeconds: 60
+            initialDelaySeconds: 90
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 3
+            failureThreshold: 5
           readinessProbe:
             httpGet:
-              path: /actuator/health/readiness
+              path: /actuator/health
               port: 8080
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 5
             timeoutSeconds: 3
-            failureThreshold: 3
+            failureThreshold: 5
           volumeMounts:
             - name: logs
               mountPath: /var/log/colabbridge
@@ -69,23 +69,21 @@ spec:
         - name: logs
           persistentVolumeClaim:
             claimName: central-logs-pvc
-      restartPolicy: Always
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: api-gateway
-  namespace: microservices
+  namespace: colabbridge
   labels:
     app: api-gateway
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: api-gateway
   ports:
     - name: http
-      port: 80
+      port: 8080
       targetPort: 8080
       protocol: TCP
-  sessionAffinity: ClientIP

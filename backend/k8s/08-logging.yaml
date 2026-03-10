@@ -1,40 +1,30 @@
-# ==========================================
-# CENTRAL LOGGING PERSISTENT VOLUME CLAIM
-# ==========================================
-# All services write to this shared volume for centralized logging
-# In production, use a ReadWriteMany storage class (NFS, EFS, etc.)
+# Central Logging PVC — uses AWS EFS (ReadWriteMany)
+# Prerequisites:
+#   1. Install AWS EFS CSI Driver:  kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-2.1"
+#   2. Create an EFS file system in the same VPC as your EKS cluster
+#   3. Create a StorageClass pointing to your EFS file system ID
 
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-CHANGE_ME # ← Replace with your EFS file system ID
+  directoryPerms: "700"
+  basePath: "/colabbridge"
+
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: central-logs-pvc
-  namespace: microservices
-  labels:
-    app: central-logs
+  namespace: colabbridge
 spec:
   accessModes:
-    - ReadWriteMany # Required for multiple pods
+    - ReadWriteMany
+  storageClassName: efs-sc
   resources:
     requests:
       storage: 5Gi
-  # For local development with minikube/docker-desktop, use hostPath
-  # For production, specify a proper storageClassName
-  # storageClassName: nfs-client  # Uncomment for production
-
----
-# For local development: HostPath PersistentVolume
-# This is NOT recommended for production
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: central-logs-pv
-  namespace: microservices
-spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: /var/log/colabbridge
-    type: DirectoryOrCreate
-  persistentVolumeReclaimPolicy: Retain
