@@ -10,7 +10,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - auth-db-data:/var/lib/postgresql/data
+      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/databases/auth-db:/var/lib/postgresql/data
     networks:
       - app-network
     healthcheck:
@@ -29,7 +29,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - faculty-db-data:/var/lib/postgresql/data
+      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/databases/faculty-db:/var/lib/postgresql/data
     networks:
       - app-network
     healthcheck:
@@ -48,7 +48,7 @@ services:
     ports:
       - "5435:5432"
     volumes:
-      - student-db-data:/var/lib/postgresql/data
+      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/databases/student-db:/var/lib/postgresql/data
     networks:
       - app-network
     healthcheck:
@@ -68,7 +68,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
+      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/rabbitmq:/var/lib/rabbitmq
     networks:
       - app-network
     healthcheck:
@@ -95,7 +95,7 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - central-logs:/var/log/colabbridge
+      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/logs:/var/log/colabbridge
     depends_on:
       auth-db:
         condition: service_healthy
@@ -136,7 +136,7 @@ services:
     ports:
       - "8082:8082"
     volumes:
-      - central-logs:/var/log/colabbridge
+      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/logs:/var/log/colabbridge
     depends_on:
       faculty-db:
         condition: service_healthy
@@ -183,7 +183,7 @@ services:
     ports:
       - "8083:8083"
     volumes:
-      - central-logs:/var/log/colabbridge
+      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/logs:/var/log/colabbridge
     depends_on:
       student-db:
         condition: service_healthy
@@ -216,7 +216,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - central-logs:/var/log/colabbridge
+      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/logs:/var/log/colabbridge
     depends_on:
       - auth-service
       - faculty-service
@@ -234,10 +234,3 @@ services:
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  auth-db-data:
-  faculty-db-data:
-  student-db-data:
-  rabbitmq-data:
-  central-logs:
