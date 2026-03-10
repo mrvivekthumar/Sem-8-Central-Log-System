@@ -13,7 +13,7 @@ spring:
     username: ${FACULTY_DB_USERNAME:faculty_user}
     password: ${FACULTY_DB_PASSWORD:faculty_password}
     driver-class-name: org.postgresql.Driver
-    
+
     # HikariCP Connection Pool Configuration
     hikari:
       maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
@@ -120,8 +120,6 @@ management:
       export:
         enabled: true
 
-        
-
         # ===========================================
 
         # JWT CONFIGURATION
@@ -170,15 +168,15 @@ feign:
 logging:
   level:
     root: INFO
-    com.cls.facultyservice: DEBUG
+    com.example.facultyservice: DEBUG
     org.springframework.web: INFO
     org.springframework.cloud.openfeign: DEBUG
     org.hibernate.SQL: ${SQL_LOGGING:false}
     org.hibernate.type.descriptor.sql.BasicBinder: ${SQL_LOGGING:false}
     org.springframework.amqp: INFO
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{X-Correlation-Id}] [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{X-Correlation-Id}] [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{correlationId}] [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{correlationId}] [%thread] %-5level %logger{36} - %msg%n"
   file:
     name: logs/faculty-service.log
     max-size: 10MB
@@ -205,11 +203,11 @@ app:
       - /actuator/**
       - /swagger-ui/**
       - /v3/api-docs/**
-  
+
   excel:
     max-rows: 10000
     buffer-size: 8192
-  
+
   cors:
     allowed-origins:
       - http://localhost:3000
@@ -227,6 +225,7 @@ app:
       - Content-Type
     allow-credentials: true
     max-age: 3600
+
 
 # ===========================================
 # SPRING PROFILES
@@ -249,7 +248,7 @@ services:
 logging:
   level:
     root: INFO
-    com.cls.facultyservice: INFO
+    com.example.facultyservice: INFO
 
 ---
 spring:
@@ -263,5 +262,5 @@ spring:
 logging:
   level:
     root: DEBUG
-    com.cls.facultyservice: DEBUG
+    com.example.facultyservice: DEBUG
     org.hibernate.SQL: DEBUG

@@ -8,7 +8,6 @@ import {
   LogOut,
   Menu,
   Moon,
-  Settings,
   Sun,
   User,
   X
@@ -216,14 +215,6 @@ const Navbar = () => {
                       >
                         <User className="w-4 h-4" />
                         View Profile
-                      </Link>
-
-                      <Link
-                        to="/settings"
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Settings
                       </Link>
 
                       <div className="h-px bg-gray-200 dark:bg-gray-700 my-2" />

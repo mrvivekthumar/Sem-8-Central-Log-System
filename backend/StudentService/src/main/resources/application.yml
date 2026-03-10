@@ -1,11 +1,11 @@
 spring:
   application:
     name: student-service
-  
+
   datasource:
     url: jdbc:postgresql://${STUDENT_DB_HOST:localhost}:${STUDENT_DB_PORT:5432}/${STUDENT_DB_NAME:studentdb}
-    username: ${STUDENT_DB_USERNAME:student_user}  # CHANGED
-    password: ${STUDENT_DB_PASSWORD:student_password}  # CHANGED - NO HARDCODE
+    username: ${STUDENT_DB_USERNAME:student_user} # CHANGED
+    password: ${STUDENT_DB_PASSWORD:student_password} # CHANGED - NO HARDCODE
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10

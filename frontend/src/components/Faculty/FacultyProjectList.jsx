@@ -7,6 +7,7 @@ import {
   Clock,
   Edit,
   Eye,
+  FileSearch,
   MoreVertical,
   Star,
   Trash2
@@ -272,6 +273,20 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
                   <StatusIcon className="w-4 h-4" />
                   {statusConfig.label}
                 </div>
+
+                {/* Review Applications Button */}
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/faculty/project/${project.projectId}/review`);
+                  }}
+                  className="mt-3 w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                >
+                  <FileSearch className="w-4 h-4" />
+                  Review Applications
+                </motion.button>
 
                 {/* Deadline */}
                 {project.deadline && (

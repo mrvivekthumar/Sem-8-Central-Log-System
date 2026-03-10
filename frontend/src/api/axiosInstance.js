@@ -170,18 +170,16 @@ axiosInstance.interceptors.response.use(
             { refreshToken }
           );
 
-          const { accessToken, user } = response.data;
+          const { accessToken } = response.data;
 
-          // Update tokens and user data
+          // Update token
           localStorage.setItem('token', accessToken);
-          if (user) {
-            localStorage.setItem('user', JSON.stringify(user));
-          }
 
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
-          // ✅ Re-add user headers after token refresh
+          // Re-add user headers after token refresh
+          const user = getUserFromStorage();
           if (user && user.id) {
             originalRequest.headers['X-User-Id'] = user.id;
           }
@@ -205,19 +203,16 @@ axiosInstance.interceptors.response.use(
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
       console.error('Access denied. Insufficient permissions.');
-      // Optionally show a toast notification
     }
 
     // Handle 404 Not Found
     if (error.response?.status === 404) {
       console.error('Resource not found:', error.config?.url);
-      // Optionally show a toast notification
     }
 
     // Handle 500 Internal Server Error
     if (error.response?.status >= 500) {
       console.error('Server error occurred. Please try again later.');
-      // Optionally show a toast notification
     }
 
     return Promise.reject(error);

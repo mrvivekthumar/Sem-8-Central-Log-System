@@ -152,7 +152,6 @@ public class AuthService {
 
     public void validateToken(String token) {
         logger.info("Service: Validating JWT token");
-        logger.debug("Service: Token to validate: {}...", token.substring(0, Math.min(20, token.length())));
 
         try {
             jwtService.validateToken(token);
@@ -161,6 +160,11 @@ public class AuthService {
             logger.error("Service: Token validation failed: {}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    public String extractUsername(String token) {
+        logger.debug("Service: Extracting username from token");
+        return jwtService.extractUsername(token);
     }
 
     public UserCredential getUserByEmail(String email) {

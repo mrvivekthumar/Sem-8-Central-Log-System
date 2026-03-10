@@ -1,7 +1,7 @@
 package com.example.facultyservice.notification.service;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -83,24 +83,15 @@ public class NotificationService {
         }
     }
 
-    public Notification sendNotificationToMultipleReceivers(NotificationRequest notificationRequest,
+    public List<Notification> sendNotificationToMultipleReceivers(NotificationRequest notificationRequest,
             List<String> receiverIds) {
-        logger.info("===============================================");
-        logger.info("NotificationService: Sending notification to MULTIPLE receivers");
-        logger.info("Sender: {} (Type: {}), Number of Receivers: {}",
-                notificationRequest.getSenderId(),
-                notificationRequest.getSenderType(),
+        logger.info("NotificationService: Sending notification to {} receivers",
                 receiverIds.size());
-        logger.debug("Receiver IDs: {}", receiverIds);
-        logger.debug("Notification Type: {}, Title: {}",
-                notificationRequest.getNotificationType(),
-                notificationRequest.getTitle());
-        logger.debug("Message: {}", notificationRequest.getMessage());
 
         try {
             int successCount = 0;
             int failCount = 0;
-            Notification lastSaved = null;
+            List<Notification> savedNotifications = new ArrayList<>();
 
             logger.info("Starting batch notification send to {} receivers...", receiverIds.size());
 
@@ -117,17 +108,14 @@ public class NotificationService {
                     notification.setTimestamp(LocalDateTime.now());
                     notification.setReceiverId(receiverId);
 
-                    logger.debug("Saving notification for receiver: {}", receiverId);
                     Notification savedNotification = notificationDao.save(notification);
-                    lastSaved = savedNotification;
                     logger.debug("Notification saved for receiver {} - ID: {}",
                             receiverId, savedNotification.getId());
 
                     String topic = "/topic/notifications/" + receiverId;
-                    logger.debug("Sending WebSocket message to topic: {}", topic);
                     messagingTemplate.convertAndSend(topic, savedNotification);
-                    logger.debug("WebSocket message sent to receiver: {}", receiverId);
 
+                    savedNotifications.add(savedNotification);
                     successCount++;
                 } catch (Exception e) {
                     failCount++;
@@ -138,39 +126,30 @@ public class NotificationService {
 
             logger.info("Batch notification completed - Success: {}, Failed: {}, Total: {}",
                     successCount, failCount, receiverIds.size());
-            logger.info("===============================================");
 
-            return lastSaved;
+            return savedNotifications;
 
         } catch (Exception e) {
             logger.error("Failed to send batch notifications: {}", e.getMessage(), e);
-            logger.info("===============================================");
             throw e;
         }
     }
 
     public List<Notification> getNotificationsByReceiverId(String receiverId) {
-        logger.info("===============================================");
         logger.info("NotificationService: Fetching notifications for receiver: {}", receiverId);
 
         try {
-            logger.debug("Querying database for receiver ID: {}", receiverId);
             List<Notification> notifications = notificationDao.findByReceiverIdOrderByTimestampDesc(receiverId);
-
-            logger.debug("Found {} notifications, sorting by timestamp...", notifications.size());
-            notifications.sort(Comparator.comparing(Notification::getTimestamp).reversed());
 
             long unseenCount = notifications.stream().filter(n -> !n.getSeen()).count();
             logger.info("Fetched {} notifications for receiver {} ({} unseen)",
                     notifications.size(), receiverId, unseenCount);
-            logger.info("===============================================");
 
             return notifications;
 
         } catch (Exception e) {
             logger.error("Failed to fetch notifications for receiver {}: {}",
                     receiverId, e.getMessage(), e);
-            logger.info("===============================================");
             throw e;
         }
     }

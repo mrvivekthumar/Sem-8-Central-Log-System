@@ -16,7 +16,7 @@ import API_ENDPOINTS from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 import Modal from './Model';
 import { ReportUpload } from './ReportUpload';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/Tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import TeamMembers from './TeamMembers';
 import TeamReports from './TeamReports';
 import Toast from './Toast';

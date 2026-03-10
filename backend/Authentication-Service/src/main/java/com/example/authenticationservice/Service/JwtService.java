@@ -25,12 +25,16 @@ public class JwtService {
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
 
     @Value("${security.jwt.secret}")
-    public String SECRET;
+    private String secret;
 
     private static final long TOKEN_VALIDITY = 1000 * 60 * 30; // 30 minutes
 
+    private SecretKey signingKey;
+
     @PostConstruct
     public void init() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
         logger.info("JwtService initialized with token validity: {} minutes", TOKEN_VALIDITY / 1000 / 60);
     }
 
@@ -133,8 +137,6 @@ public class JwtService {
     }
 
     private SecretKey getSignKey() {
-        logger.trace("Generating signing key from secret");
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signingKey;
     }
 }
