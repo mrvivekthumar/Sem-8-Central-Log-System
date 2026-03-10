@@ -19,6 +19,7 @@ RUN apk add --no-cache curl
 
 # Create non-root user
 RUN addgroup -S spring && adduser -S spring -G spring
+RUN mkdir -p /var/log/colabbridge && chown spring:spring /var/log/colabbridge
 USER spring:spring
 
 # Copy JAR from build stage
@@ -29,7 +30,7 @@ EXPOSE 8082
 
 # Health check configuration - FIXED PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8082/actuator/health || exit 1
+    CMD curl -f http://localhost:8082/faculty/actuator/health || exit 1
 
 # JVM optimizations for containers
 ENV JAVA_OPTS="-XX:+UseContainerSupport \

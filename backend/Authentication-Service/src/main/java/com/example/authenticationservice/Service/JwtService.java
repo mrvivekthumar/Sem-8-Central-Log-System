@@ -1,19 +1,16 @@
 package com.example.authenticationservice.service;
 
 import java.util.Date;
-import java.util.Map;
 
 import javax.crypto.SecretKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.example.authenticationservice.domain.UserCredential;
 import com.example.authenticationservice.exception.AuthenticationException;
-import com.example.authenticationservice.repository.UserCredentialRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -26,9 +23,6 @@ import jakarta.annotation.PostConstruct;
 public class JwtService {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
-
-    @Autowired
-    private UserCredentialRepository userCredentialRepository;
 
     @Value("${security.jwt.secret}")
     public String SECRET;
@@ -96,24 +90,6 @@ public class JwtService {
         }
     }
 
-    private String createToken(Map<String, Object> claims, String userName) {
-        logger.debug("Creating JWT token with custom claims for user: {}", userName);
-        try {
-            String token = Jwts.builder()
-                    .claims(claims)
-                    .subject(userName)
-                    .issuedAt(new Date(System.currentTimeMillis()))
-                    .expiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
-                    .signWith(getSignKey())
-                    .compact();
-            logger.debug("Token created successfully for user: {}", userName);
-            return token;
-        } catch (Exception e) {
-            logger.error("Failed to create token for user {}: {}", userName, e.getMessage(), e);
-            throw e;
-        }
-    }
-
     public Long extractUserId(String token) {
         logger.debug("Extracting userId from JWT token");
         try {
@@ -160,21 +136,5 @@ public class JwtService {
         logger.trace("Generating signing key from secret");
         byte[] keyBytes = Decoders.BASE64.decode(SECRET);
         return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public UserCredential getUserByUsername(String username) {
-        logger.debug("Fetching user credential by username: {}", username);
-        try {
-            UserCredential user = userCredentialRepository.findByEmail(username)
-                    .orElseThrow(() -> {
-                        logger.warn("User not found with username: {}", username);
-                        return new RuntimeException("User not found");
-                    });
-            logger.debug("User found: ID={}, Email={}, Role={}", user.getId(), user.getEmail(), user.getRole());
-            return user;
-        } catch (Exception e) {
-            logger.error("Error fetching user by username {}: {}", username, e.getMessage(), e);
-            throw e;
-        }
     }
 }

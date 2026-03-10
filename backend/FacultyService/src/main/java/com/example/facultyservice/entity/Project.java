@@ -42,5 +42,8 @@ public class Project {
     private LocalDateTime deadline;
     private LocalDateTime applicationDeadline;
     private Integer maxStudents;
+    private Integer teamSize;
+    private String domain;
+    private String duration;
 
 }

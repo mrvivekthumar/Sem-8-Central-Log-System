@@ -99,7 +99,7 @@ const CurrentProject = () => {
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/student/projects')}
+                    onClick={() => navigate('/dashboard')}
                     className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg flex items-center gap-2 mx-auto"
                 >
                     Browse Projects
@@ -261,7 +261,7 @@ const CurrentProject = () => {
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate(`/student/project/${currentProject.projectId}`)}
+                        onClick={() => navigate(`/project/${currentProject.projectId}`)}
                         className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                     >
                         <ExternalLink className="w-5 h-5" />
@@ -271,7 +271,7 @@ const CurrentProject = () => {
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate(`/student/project/${currentProject.projectId}/submit`)}
+                        onClick={() => navigate(`/project/${currentProject.projectId}/submit`)}
                         className="flex-1 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-600 transition-all flex items-center justify-center gap-2"
                     >
                         <FileText className="w-5 h-5" />

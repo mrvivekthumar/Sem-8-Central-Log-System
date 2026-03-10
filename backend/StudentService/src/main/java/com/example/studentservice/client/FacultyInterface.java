@@ -39,4 +39,7 @@ public interface FacultyInterface {
 
     @GetMapping("/faculty/projects/{projectId}/is-complete")
     ResponseEntity<Boolean> isProjectComplete(@PathVariable int projectId);
+
+    @PostMapping("/faculty/notifications/send")
+    ResponseEntity<Object> sendNotification(@RequestBody java.util.Map<String, Object> notificationRequest);
 }

@@ -98,27 +98,28 @@ public class NotificationService {
         logger.debug("Message: {}", notificationRequest.getMessage());
 
         try {
-            Notification notification = new Notification();
-            notification.setSenderId(notificationRequest.getSenderId());
-            notification.setSenderType(notificationRequest.getSenderType());
-            notification.setReceiverType(notificationRequest.getReceiverType());
-            notification.setNotificationType(notificationRequest.getNotificationType());
-            notification.setMessage(notificationRequest.getMessage());
-            notification.setTitle(notificationRequest.getTitle());
-            notification.setSeen(false);
-            notification.setTimestamp(LocalDateTime.now());
-
             int successCount = 0;
             int failCount = 0;
+            Notification lastSaved = null;
 
             logger.info("Starting batch notification send to {} receivers...", receiverIds.size());
 
             for (String receiverId : receiverIds) {
                 try {
+                    Notification notification = new Notification();
+                    notification.setSenderId(notificationRequest.getSenderId());
+                    notification.setSenderType(notificationRequest.getSenderType());
+                    notification.setReceiverType(notificationRequest.getReceiverType());
+                    notification.setNotificationType(notificationRequest.getNotificationType());
+                    notification.setMessage(notificationRequest.getMessage());
+                    notification.setTitle(notificationRequest.getTitle());
+                    notification.setSeen(false);
+                    notification.setTimestamp(LocalDateTime.now());
                     notification.setReceiverId(receiverId);
 
                     logger.debug("Saving notification for receiver: {}", receiverId);
                     Notification savedNotification = notificationDao.save(notification);
+                    lastSaved = savedNotification;
                     logger.debug("Notification saved for receiver {} - ID: {}",
                             receiverId, savedNotification.getId());
 
@@ -139,7 +140,7 @@ public class NotificationService {
                     successCount, failCount, receiverIds.size());
             logger.info("===============================================");
 
-            return notification;
+            return lastSaved;
 
         } catch (Exception e) {
             logger.error("Failed to send batch notifications: {}", e.getMessage(), e);

@@ -192,7 +192,7 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/faculty/project/${project.projectId}/edit`);
+                              handleViewDetails(project.projectId);
                               setActiveDropdown(null);
                             }}
                             className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
@@ -224,9 +224,9 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
                 </p>
 
                 {/* Technologies */}
-                {project.technologiesUsed && project.technologiesUsed.length > 0 && (
+                {project.skills && project.skills.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {project.technologiesUsed.slice(0, 3).map((tech, idx) => (
+                    {project.skills.slice(0, 3).map((tech, idx) => (
                       <span
                         key={idx}
                         className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md"
@@ -234,9 +234,9 @@ const FacultyProjectList = ({ viewMode = 'grid' }) => {
                         {tech}
                       </span>
                     ))}
-                    {project.technologiesUsed.length > 3 && (
+                    {project.skills.length > 3 && (
                       <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md">
-                        +{project.technologiesUsed.length - 3}
+                        +{project.skills.length - 3}
                       </span>
                     )}
                   </div>

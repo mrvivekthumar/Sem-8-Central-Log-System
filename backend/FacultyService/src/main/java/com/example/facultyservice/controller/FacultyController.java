@@ -366,6 +366,22 @@ public class FacultyController {
         }
     }
 
+    @GetMapping("/{facultyId}/confirmed-projects")
+    public ResponseEntity<List<Project>> getConfirmedProjects(@PathVariable Long facultyId) {
+        log.info("Controller: GET /faculty/{}/confirmed-projects", facultyId);
+        List<Project> projects = projectService.getConfirmedProjectsByFacultyId(facultyId);
+        log.info("Controller: Found {} confirmed projects for faculty {}", projects.size(), facultyId);
+        return ResponseEntity.ok(projects);
+    }
+
+    @GetMapping("/{facultyId}/approved-projects")
+    public ResponseEntity<List<Project>> getApprovedProjects(@PathVariable Long facultyId) {
+        log.info("Controller: GET /faculty/{}/approved-projects", facultyId);
+        List<Project> projects = projectService.getApprovedProjectsByFacultyId(facultyId);
+        log.info("Controller: Found {} approved projects for faculty {}", projects.size(), facultyId);
+        return ResponseEntity.ok(projects);
+    }
+
     @GetMapping("/exists/{email}")
     public ResponseEntity<Boolean> checkFacultyExists(@PathVariable String email, HttpServletRequest request) {
         log.info("===============================================");

@@ -145,12 +145,29 @@ const AddProjectForm = ({ onClose }) => {
 
     try {
       setLoading(true);
-      await axiosInstance.post(API_ENDPOINTS.FACULTY.CREATE_PROJECT_BY_FACULTY(user.id), formData);
+
+      // Ensure faculty profile exists (triggers auto-registration if needed)
+      await axiosInstance.get(API_ENDPOINTS.FACULTY.PROFILE);
+
+      // Map frontend fields to backend entity fields
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        skills: formData.technologiesUsed,
+        deadline: formData.deadline,
+        applicationDeadline: formData.applicationDeadline,
+        maxStudents: formData.maxStudents,
+        teamSize: formData.teamSize,
+        domain: formData.domain,
+        duration: formData.duration,
+      };
+
+      await axiosInstance.post(API_ENDPOINTS.FACULTY.CREATE_PROJECT_BY_FACULTY(user.id), payload);
       toast.success('Project created successfully!');
       onClose();
     } catch (error) {
       console.error('Error creating project:', error);
-      toast.error('Failed to create project');
+      toast.error(error.response?.data?.error || 'Failed to create project');
     } finally {
       setLoading(false);
     }

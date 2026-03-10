@@ -59,20 +59,28 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
 
+                // Disable Spring Security's built-in logout (we have our own controller)
+                .logout(logout -> logout.disable())
+
                 // Authorization rules
                 .authorizeHttpRequests(auth -> auth
                         // Allow preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public endpoints (without /api prefix - Gateway rewrites /api/auth/* to
-                        // /auth/*)
+                        // All endpoints permitted - authentication is handled by the API Gateway
+                        // Gateway rewrites /api/auth/* to /auth/*, context-path strips /auth
                         .requestMatchers(
                                 "/registerOne",
                                 "/register",
                                 "/login",
+                                "/logout",
+                                "/refresh",
                                 "/hello",
                                 "/token",
                                 "/validate",
+                                "/verify",
+                                "/profile",
+                                "/password/**",
                                 "/actuator/**",
                                 "/user",
                                 "/user/**",

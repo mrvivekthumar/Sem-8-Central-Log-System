@@ -84,7 +84,7 @@ const CompleteProjectCard = ({ project }) => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(`/student/project/${project.projectId}`)}
+            onClick={() => navigate(`/project/${project.projectId}`)}
             className="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2 text-sm"
           >
             <Eye className="w-4 h-4" />

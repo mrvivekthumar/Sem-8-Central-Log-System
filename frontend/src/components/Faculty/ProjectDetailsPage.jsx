@@ -17,7 +17,7 @@ import axiosInstance from '../../api/axiosInstance';
 import { API_ENDPOINTS } from '../../api/endpoints';
 
 const ProjectDetailsPage = () => {
-  const { projectId } = useParams();
+  const { id: projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -202,7 +202,7 @@ const ProjectDetailsPage = () => {
         {/* Details Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Required Skills */}
-          {project.requiredSkills && project.requiredSkills.length > 0 && (
+          {project.skills && project.skills.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -218,7 +218,7 @@ const ProjectDetailsPage = () => {
                 </h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {project.requiredSkills.map((skill, idx) => (
+                {project.skills.map((skill, idx) => (
                   <span
                     key={idx}
                     className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium"

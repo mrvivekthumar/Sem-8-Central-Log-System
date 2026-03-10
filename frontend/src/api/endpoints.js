@@ -47,7 +47,7 @@ const API_ENDPOINTS = {
         // Project management (for faculty use)
         PROJECTS: '/api/faculty/projects',            // GET - Get all projects
         PROJECT_BY_ID: (id) => `/api/faculty/projects/${id}`, // GET - Get project by ID
-        PROJECTS_BY_IDS: '/api/faculty/projectsbyIds', // POST - Get projects by IDs (bulk)
+        PROJECTS_BY_IDS: '/api/projects/bulk', // POST - Get projects by IDs (bulk)
         CREATE_PROJECT: '/api/faculty/projects',      // POST - Create new project
         UPDATE_PROJECT: (id) => `/api/faculty/projects/${id}`, // PUT - Update project
         DELETE_PROJECT: (id) => `/api/faculty/projects/${id}`, // DELETE - Delete project

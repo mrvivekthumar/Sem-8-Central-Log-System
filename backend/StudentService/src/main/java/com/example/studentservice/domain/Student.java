@@ -49,6 +49,12 @@ public class Student {
     @Nullable
     private String linkedInUrl;
 
+    @Nullable
+    private String location;
+
+    @Nullable
+    private String portfolioLink;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "student_id")
     private List<PersonalProject> projects = new ArrayList<>();

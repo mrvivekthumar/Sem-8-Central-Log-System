@@ -14,7 +14,7 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const ProjectCard = ({ project, showApplyButton = true, onApply }) => {
+const ProjectCard = ({ project, showApplyButton = true, hasApplied = false, onApply }) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -52,7 +52,7 @@ const ProjectCard = ({ project, showApplyButton = true, onApply }) => {
   const StatusIcon = statusConfig.icon;
 
   const handleCardClick = () => {
-    navigate(`/student/project/${project.projectId}`);
+    navigate(`/project/${project.projectId}`);
   };
 
   const getDomainColor = (domain) => {
@@ -103,8 +103,8 @@ const ProjectCard = ({ project, showApplyButton = true, onApply }) => {
       <div className="p-6 relative z-10">
         {/* Header */}
         <div className="mb-4">
-          {/* Domain Tag */}
-          {project.domain && (
+          {/* Skills Domain Tag */}
+          {project.skills && project.skills.length > 0 && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -112,7 +112,7 @@ const ProjectCard = ({ project, showApplyButton = true, onApply }) => {
             >
               <Code className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-                {project.domain}
+                {project.skills[0]}
               </span>
             </motion.div>
           )}
@@ -128,11 +128,11 @@ const ProjectCard = ({ project, showApplyButton = true, onApply }) => {
           </p>
         </div>
 
-        {/* Technologies */}
-        {project.technologiesUsed && project.technologiesUsed.length > 0 && (
+        {/* Skills/Technologies */}
+        {project.skills && project.skills.length > 0 && (
           <div className="mb-4">
             <div className="flex flex-wrap gap-2">
-              {project.technologiesUsed.slice(0, 4).map((tech, index) => (
+              {project.skills.slice(0, 4).map((skill, index) => (
                 <motion.span
                   key={index}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -140,12 +140,12 @@ const ProjectCard = ({ project, showApplyButton = true, onApply }) => {
                   transition={{ delay: index * 0.05 }}
                   className="px-2.5 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-gray-600"
                 >
-                  {tech}
+                  {skill}
                 </motion.span>
               ))}
-              {project.technologiesUsed.length > 4 && (
+              {project.skills.length > 4 && (
                 <span className="px-2.5 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg">
-                  +{project.technologiesUsed.length - 4} more
+                  +{project.skills.length - 4} more
                 </span>
               )}
             </div>
@@ -181,7 +181,7 @@ const ProjectCard = ({ project, showApplyButton = true, onApply }) => {
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Team Size</div>
                 <div className="font-semibold text-gray-900 dark:text-white">
-                  {project.teamSize || 'N/A'}
+                  {project.maxStudents || 'N/A'}
                 </div>
               </div>
             </div>
@@ -217,18 +217,28 @@ const ProjectCard = ({ project, showApplyButton = true, onApply }) => {
         {/* Action Buttons */}
         <div className="flex gap-3 mt-4">
           {showApplyButton && project.status === 'OPEN_FOR_APPLICATIONS' && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onApply && onApply(project);
-              }}
-              className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              Apply Now
-            </motion.button>
+            hasApplied ? (
+              <motion.button
+                className="flex-1 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold cursor-default opacity-90 flex items-center justify-center gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <CheckCircle className="w-4 h-4" />
+                Already Applied
+              </motion.button>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onApply && onApply(project);
+                }}
+                className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                Apply Now
+              </motion.button>
+            )
           )}
 
           <motion.button

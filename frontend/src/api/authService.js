@@ -257,7 +257,7 @@ class AuthService {
      * @param {string} refreshToken - JWT refresh token
      */
     setTokens(accessToken, refreshToken) {
-        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('token', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
     }
 
@@ -266,7 +266,7 @@ class AuthService {
      * @param {string} accessToken - JWT access token
      */
     setAccessToken(accessToken) {
-        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('token', accessToken);
     }
 
     /**
@@ -274,7 +274,7 @@ class AuthService {
      * @returns {string|null} Access token
      */
     getAccessToken() {
-        return localStorage.getItem('accessToken');
+        return localStorage.getItem('token');
     }
 
     /**
@@ -343,7 +343,7 @@ class AuthService {
      * Clear all authentication data
      */
     clearAuth() {
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         console.log('🔒 Authentication cleared');

@@ -212,7 +212,8 @@ public class AuthService {
                     });
 
             // Check if email is being changed and if it's already taken
-            if (!user.getEmail().equals(profileRequest.getEmail()) &&
+            if (profileRequest.getEmail() != null &&
+                    !user.getEmail().equals(profileRequest.getEmail()) &&
                     userCredentialRepository.existsByEmail(profileRequest.getEmail())) {
                 logger.warn("Service: Email already exists: {}", profileRequest.getEmail());
                 throw new InvalidRequestException("Email already in use");
@@ -220,9 +221,13 @@ public class AuthService {
 
             logger.debug("Service: Updating profile fields for user: {}", userId);
 
-            // Update all fields
-            user.setName(profileRequest.getName());
-            user.setEmail(profileRequest.getEmail());
+            // Update fields only when provided (preserve non-null constraints)
+            if (profileRequest.getName() != null) {
+                user.setName(profileRequest.getName());
+            }
+            if (profileRequest.getEmail() != null) {
+                user.setEmail(profileRequest.getEmail());
+            }
             user.setBio(profileRequest.getBio());
             user.setSkills(profileRequest.getSkills() != null ? profileRequest.getSkills() : new ArrayList<>());
             user.setGithubProfileLink(profileRequest.getGithubProfileLink());

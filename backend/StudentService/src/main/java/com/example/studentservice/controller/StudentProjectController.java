@@ -1,16 +1,23 @@
 package com.example.studentservice.controller;
 
+import com.example.studentservice.client.AuthInterface;
+import com.example.studentservice.client.FacultyInterface;
+import com.example.studentservice.client.dto.Project;
 import com.example.studentservice.client.dto.Status;
+import com.example.studentservice.domain.Student;
 import com.example.studentservice.domain.StudentProject;
 import com.example.studentservice.repository.StudentProjectRepository;
+import com.example.studentservice.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/studentProject")
@@ -19,6 +26,9 @@ import java.util.HashMap;
 public class StudentProjectController {
 
     private final StudentProjectRepository studentProjectRepository;
+    private final StudentRepository studentRepository;
+    private final FacultyInterface facultyInterface;
+    private final AuthInterface authInterface;
 
     /**
      * Get applied project IDs ordered by preference for a student
@@ -76,6 +86,93 @@ public class StudentProjectController {
         response.put("status", sp.getStatus());
         response.put("preference", sp.getPreference());
         response.put("applicationDate", sp.getApplicationDate());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Apply to a project (create student-project application)
+     * POST /student/studentProject/student/{studentId}/project/{projectId}
+     */
+    @PostMapping("/student/{studentId}/project/{projectId}")
+    public ResponseEntity<Map<String, Object>> applyToProject(
+            @PathVariable int studentId,
+            @PathVariable int projectId) {
+        log.info("Controller: POST /studentProject/student/{}/project/{} - Applying", studentId, projectId);
+
+        // Check if already applied
+        StudentProject existing = studentProjectRepository.findByStudent_StudentIdAndProjectId(studentId, projectId);
+        if (existing != null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Already applied to this project");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        // Get or create Student entity (auto-register from Auth Service if needed)
+        Student student;
+        Optional<Student> studentOpt = studentRepository.findByStudentId(studentId);
+        if (studentOpt.isPresent()) {
+            student = studentOpt.get();
+        } else {
+            log.info("Student not found locally, fetching from Auth Service: {}", studentId);
+            try {
+                ResponseEntity<Map<String, Object>> authResponse = authInterface.getUserById(Long.valueOf(studentId));
+                if (authResponse.getStatusCode().is2xxSuccessful() && authResponse.getBody() != null) {
+                    Map<String, Object> userData = authResponse.getBody();
+                    Student newStudent = new Student();
+                    newStudent.setStudentId(studentId);
+                    newStudent.setEmail((String) userData.get("email"));
+                    newStudent.setName((String) userData.get("name"));
+                    newStudent.setPhone((String) userData.get("phone"));
+                    student = studentRepository.save(newStudent);
+                    log.info("Auto-created student - ID: {}, Email: {}", student.getStudentId(), student.getEmail());
+                } else {
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("error", "Student not found");
+                    return ResponseEntity.badRequest().body(error);
+                }
+            } catch (Exception e) {
+                log.error("Failed to fetch student from Auth Service: {}", e.getMessage());
+                Map<String, Object> error = new HashMap<>();
+                error.put("error", "Student not found");
+                return ResponseEntity.badRequest().body(error);
+            }
+        }
+
+        // Get project name from Faculty Service
+        String projectName = "Project " + projectId;
+        try {
+            ResponseEntity<Project> projectResp = facultyInterface.getProjectById(projectId);
+            if (projectResp.getBody() != null) {
+                projectName = projectResp.getBody().getTitle();
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch project name from Faculty Service: {}", e.getMessage());
+        }
+
+        // Calculate next preference
+        Integer maxPref = studentProjectRepository.findMaxPreferenceByStudentId(studentId);
+        int nextPref = (maxPref != null) ? maxPref + 1 : 1;
+
+        // Create application
+        StudentProject sp = new StudentProject();
+        sp.setStudent(student);
+        sp.setProjectId(projectId);
+        sp.setProjectName(projectName);
+        sp.setStatus(Status.PENDING);
+        sp.setApplicationDate(LocalDate.now());
+        sp.setPreference(nextPref);
+
+        StudentProject saved = studentProjectRepository.save(sp);
+        log.info("Controller: Application created with ID {} for student {} project {}", saved.getApplicationId(),
+                studentId, projectId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("applied", true);
+        response.put("applicationId", saved.getApplicationId());
+        response.put("status", saved.getStatus());
+        response.put("preference", saved.getPreference());
+        response.put("applicationDate", saved.getApplicationDate());
 
         return ResponseEntity.ok(response);
     }
@@ -154,6 +251,29 @@ public class StudentProjectController {
         StudentProject updated = studentProjectRepository.save(sp);
         log.info("Controller: Updated status to {} for student {} project {}", statusStr, studentId, projectId);
 
+        // Send notification when student is rejected
+        if ("REJECTED".equals(statusStr)) {
+            try {
+                String projectName = sp.getProjectName() != null ? sp.getProjectName() : "Project " + projectId;
+                Map<String, Object> notifRequest = new HashMap<>();
+                notifRequest.put("senderId", String.valueOf(projectId));
+                notifRequest.put("senderType", "FACULTY");
+                notifRequest.put("receiverId", String.valueOf(studentId));
+                notifRequest.put("receiverType", "STUDENT");
+                notifRequest.put("notificationType", "PROJECT_ASSIGNMENT");
+                notifRequest.put("title", "Application Update");
+                notifRequest.put("message", "Your application for \"" + projectName
+                        + "\" was not selected. Don't worry, keep exploring other projects!");
+                notifRequest.put("seen", false);
+
+                facultyInterface.sendNotification(notifRequest);
+                log.info("Controller: Rejection notification sent to student {}", studentId);
+            } catch (Exception e) {
+                log.error("Controller: Failed to send rejection notification to student {}: {}",
+                        studentId, e.getMessage());
+            }
+        }
+
         return ResponseEntity.ok(updated);
     }
 
@@ -166,5 +286,37 @@ public class StudentProjectController {
         log.info("Controller: GET /studentProject/{}/student", projectId);
         List<StudentProject> applications = studentProjectRepository.findByProjectId(projectId);
         return ResponseEntity.ok(applications);
+    }
+
+    /**
+     * Update ratings for students in a project
+     * PUT /student/studentProject/{projectId}/rating/{rating}
+     * Called by FacultyService when faculty rates a project
+     */
+    @PutMapping("/{projectId}/rating/{rating}")
+    public ResponseEntity<String> updateRatings(
+            @PathVariable int projectId,
+            @PathVariable float rating) {
+        log.info("Controller: PUT /studentProject/{}/rating/{}", projectId, rating);
+
+        try {
+            List<StudentProject> studentProjects = studentProjectRepository.findByProjectId(projectId);
+            for (StudentProject sp : studentProjects) {
+                if (sp.getStudent() != null) {
+                    // Update student rating (simple average)
+                    float currentRating = sp.getStudent().getRatings();
+                    int totalRatings = sp.getStudent().getTotalRatings();
+                    float newAverage = ((currentRating * totalRatings) + rating) / (totalRatings + 1);
+                    sp.getStudent().setRatings(newAverage);
+                    sp.getStudent().setTotalRatings(totalRatings + 1);
+                }
+            }
+            studentProjectRepository.saveAll(studentProjects);
+            log.info("Controller: Updated ratings for {} students on project {}", studentProjects.size(), projectId);
+            return ResponseEntity.ok("Ratings updated successfully");
+        } catch (Exception e) {
+            log.error("Controller: Failed to update ratings for project {}: {}", projectId, e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Failed to update ratings: " + e.getMessage());
+        }
     }
 }

@@ -9,14 +9,17 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
+# Install curl for healthchecks
+RUN apk add --no-cache curl
+
 RUN addgroup -S spring && adduser -S spring -G spring
+RUN mkdir -p /var/log/colabbridge && chown spring:spring /var/log/colabbridge
 USER spring:spring
 
 COPY --from=builder /app/target/*.jar app.jar
 
-# FIXED: Changed port from 8084 to 8083 to match application.yml
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8083/actuator/health || exit 1
+    CMD curl -f http://localhost:8083/student/actuator/health || exit 1
 
 EXPOSE 8083
 

@@ -279,7 +279,7 @@ const AppliedProjectList = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => window.location.href = '/student/projects'}
+              onClick={() => window.location.href = '/dashboard'}
               className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
               Browse Projects

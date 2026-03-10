@@ -141,11 +141,7 @@ public class StudentServiceImpl implements StudentService {
             Integer studentIdInt = Integer.parseInt(studentId);
             Student student = getOrCreateStudent(studentIdInt);
 
-            StudentProfileDTO profile = new StudentProfileDTO();
-            profile.setStudentId(studentId);
-            profile.setName(student.getName());
-            profile.setEmail(student.getEmail());
-            profile.setPhone(student.getPhone());
+            StudentProfileDTO profile = mapToDTO(student);
 
             logger.info("Profile fetched successfully for student: {}", studentId);
             return profile;
@@ -164,17 +160,34 @@ public class StudentServiceImpl implements StudentService {
             Integer studentIdInt = Integer.parseInt(studentId);
             Student student = getOrCreateStudent(studentIdInt);
 
-            student.setName(profileDTO.getName());
-            student.setEmail(profileDTO.getEmail());
-            student.setPhone(profileDTO.getPhone());
+            if (profileDTO.getName() != null)
+                student.setName(profileDTO.getName());
+            if (profileDTO.getEmail() != null)
+                student.setEmail(profileDTO.getEmail());
+            if (profileDTO.getPhone() != null)
+                student.setPhone(profileDTO.getPhone());
+            if (profileDTO.getBio() != null)
+                student.setBio(profileDTO.getBio());
+            if (profileDTO.getGithubProfileLink() != null)
+                student.setGithubProfileLink(profileDTO.getGithubProfileLink());
+            if (profileDTO.getLinkedInUrl() != null)
+                student.setLinkedInUrl(profileDTO.getLinkedInUrl());
+            if (profileDTO.getCgpa() != null)
+                student.setCgpa(profileDTO.getCgpa());
+            if (profileDTO.getImageUrl() != null)
+                student.setImageUrl(profileDTO.getImageUrl());
+            if (profileDTO.getSkills() != null)
+                student.setSkills(profileDTO.getSkills());
+            if (profileDTO.getSemesterNo() != null)
+                student.setSemesterNo(profileDTO.getSemesterNo());
+            if (profileDTO.getLocation() != null)
+                student.setLocation(profileDTO.getLocation());
+            if (profileDTO.getPortfolioLink() != null)
+                student.setPortfolioLink(profileDTO.getPortfolioLink());
 
             Student updated = studentRepository.save(student);
 
-            StudentProfileDTO updatedProfile = new StudentProfileDTO();
-            updatedProfile.setStudentId(studentId);
-            updatedProfile.setName(updated.getName());
-            updatedProfile.setEmail(updated.getEmail());
-            updatedProfile.setPhone(updated.getPhone());
+            StudentProfileDTO updatedProfile = mapToDTO(updated);
 
             logger.info("Profile updated successfully for student: {}", studentId);
             return updatedProfile;
@@ -183,6 +196,24 @@ public class StudentServiceImpl implements StudentService {
             logger.error("Error updating profile for student {}: {}", studentId, e.getMessage(), e);
             throw e;
         }
+    }
+
+    private StudentProfileDTO mapToDTO(Student student) {
+        StudentProfileDTO dto = new StudentProfileDTO();
+        dto.setStudentId(String.valueOf(student.getStudentId()));
+        dto.setName(student.getName());
+        dto.setEmail(student.getEmail());
+        dto.setPhone(student.getPhone());
+        dto.setBio(student.getBio());
+        dto.setGithubProfileLink(student.getGithubProfileLink());
+        dto.setLinkedInUrl(student.getLinkedInUrl());
+        dto.setCgpa(student.getCgpa());
+        dto.setImageUrl(student.getImageUrl());
+        dto.setSkills(student.getSkills());
+        dto.setSemesterNo(student.getSemesterNo());
+        dto.setLocation(student.getLocation());
+        dto.setPortfolioLink(student.getPortfolioLink());
+        return dto;
     }
 
     @Override
@@ -197,5 +228,69 @@ public class StudentServiceImpl implements StudentService {
             logger.error("Error fetching completed projects for student {}: {}", studentId, e.getMessage(), e);
             throw e;
         }
+    }
+
+    @Override
+    public void updateStudentsAvailability(int projectId) {
+        logger.info("Service: Updating students availability for project {}", projectId);
+        try {
+            List<StudentProject> studentProjects = studentProjectRepository.findByProjectId(projectId);
+            for (StudentProject sp : studentProjects) {
+                Student student = sp.getStudent();
+                if (student != null) {
+                    student.setStudentAvaibility(com.example.studentservice.domain.StudentAvaibility.NOT_AVAILABLE);
+                    studentRepository.save(student);
+                    logger.debug("Updated availability for student: {}", student.getStudentId());
+                }
+            }
+            logger.info("Service: Updated availability for {} students on project {}", studentProjects.size(),
+                    projectId);
+        } catch (Exception e) {
+            logger.error("Error updating students availability for project {}: {}", projectId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    public List<Student> getStudentsByIds(List<Integer> studentIds) {
+        logger.info("Service: Fetching students by IDs: {}", studentIds);
+        try {
+            List<Student> students = studentRepository.findAllByStudentId(studentIds);
+            logger.info("Service: Found {} students", students.size());
+            return students;
+        } catch (Exception e) {
+            logger.error("Error fetching students by IDs: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    public void makeStudentUnavailable(int studentId) {
+        logger.info("Service: Making student {} unavailable", studentId);
+        try {
+            Optional<Student> studentOpt = studentRepository.findByStudentId(studentId);
+            if (studentOpt.isPresent()) {
+                Student student = studentOpt.get();
+                student.setStudentAvaibility(com.example.studentservice.domain.StudentAvaibility.NOT_AVAILABLE);
+                studentRepository.save(student);
+                logger.info("Service: Student {} marked as unavailable", studentId);
+            } else {
+                logger.warn("Service: Student {} not found", studentId);
+                throw new RuntimeException("Student not found: " + studentId);
+            }
+        } catch (Exception e) {
+            logger.error("Error making student {} unavailable: {}", studentId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    public List<Integer> getAllStudentIds() {
+        logger.info("Service: Fetching all student IDs");
+        List<Integer> ids = studentRepository.findAll().stream()
+                .map(Student::getStudentId)
+                .toList();
+        logger.info("Service: Found {} student IDs", ids.size());
+        return ids;
     }
 }

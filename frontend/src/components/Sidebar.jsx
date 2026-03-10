@@ -3,7 +3,6 @@ import {
   Bell,
   Briefcase, FileText,
   Home,
-  Settings,
   Trophy,
   User,
   X
@@ -16,13 +15,12 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
   const menuItems = [
-    { path: '/student/dashboard', icon: Home, label: 'Dashboard', color: 'from-blue-500 to-blue-600' },
-    { path: '/student/projects', icon: Briefcase, label: 'Browse Projects', color: 'from-purple-500 to-purple-600' },
-    { path: '/student/applied-projects', icon: FileText, label: 'My Applications', color: 'from-green-500 to-green-600' },
-    { path: '/student/completed-projects', icon: Trophy, label: 'Completed', color: 'from-amber-500 to-amber-600' },
-    { path: '/student/notifications', icon: Bell, label: 'Notifications', color: 'from-pink-500 to-pink-600' },
-    { path: '/student/profile', icon: User, label: 'Profile', color: 'from-indigo-500 to-indigo-600' },
-    { path: '/student/settings', icon: Settings, label: 'Settings', color: 'from-gray-500 to-gray-600' }
+    { path: '/dashboard', icon: Home, label: 'Dashboard', color: 'from-blue-500 to-blue-600' },
+    { path: '/dashboard', icon: Briefcase, label: 'Browse Projects', color: 'from-purple-500 to-purple-600' },
+    { path: '/applied-projects', icon: FileText, label: 'My Applications', color: 'from-green-500 to-green-600' },
+    { path: '/completed-projects', icon: Trophy, label: 'Completed', color: 'from-amber-500 to-amber-600' },
+    { path: '/notifications', icon: Bell, label: 'Notifications', color: 'from-pink-500 to-pink-600' },
+    { path: '/profile', icon: User, label: 'Profile', color: 'from-indigo-500 to-indigo-600' },
   ];
 
   const isActive = (path) => location.pathname === path;

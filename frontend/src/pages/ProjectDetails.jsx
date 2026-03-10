@@ -24,7 +24,7 @@ import API_ENDPOINTS from '../api/endpoints';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProjectDetails = () => {
-  const { projectId } = useParams();
+  const { id: projectId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [project, setProject] = useState(null);

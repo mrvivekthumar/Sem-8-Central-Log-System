@@ -56,4 +56,33 @@ public interface StudentService {
      * @return List of completed student projects
      */
     List<StudentProject> getCompletedProjects(int studentId);
+
+    /**
+     * Update students availability after project assignment
+     * 
+     * @param projectId Project ID
+     */
+    void updateStudentsAvailability(int projectId);
+
+    /**
+     * Get students by IDs (bulk operation)
+     * 
+     * @param studentIds List of student IDs
+     * @return List of students
+     */
+    List<com.example.studentservice.domain.Student> getStudentsByIds(List<Integer> studentIds);
+
+    /**
+     * Make student unavailable
+     * 
+     * @param studentId Student ID
+     */
+    void makeStudentUnavailable(int studentId);
+
+    /**
+     * Get all student IDs
+     * 
+     * @return List of all student IDs
+     */
+    List<Integer> getAllStudentIds();
 }

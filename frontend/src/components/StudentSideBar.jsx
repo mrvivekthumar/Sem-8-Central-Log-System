@@ -16,12 +16,12 @@ const StudentSideBar = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   const menuItems = [
-    { path: '/student/dashboard', icon: LayoutDashboard, label: 'Dashboard', gradient: 'from-blue-500 to-blue-600' },
-    { path: '/student/projects', icon: Briefcase, label: 'Projects', gradient: 'from-purple-500 to-purple-600' },
-    { path: '/student/applied-projects', icon: FileCheck, label: 'Applied', gradient: 'from-green-500 to-green-600' },
-    { path: '/student/completed-projects', icon: Trophy, label: 'Completed', gradient: 'from-amber-500 to-amber-600' },
-    { path: '/student/notifications', icon: Bell, label: 'Notifications', gradient: 'from-pink-500 to-pink-600' },
-    { path: '/student/profile', icon: User, label: 'Profile', gradient: 'from-indigo-500 to-indigo-600' }
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', gradient: 'from-blue-500 to-blue-600' },
+    { path: '/dashboard', icon: Briefcase, label: 'Projects', gradient: 'from-purple-500 to-purple-600' },
+    { path: '/applied-projects', icon: FileCheck, label: 'Applied', gradient: 'from-green-500 to-green-600' },
+    { path: '/completed-projects', icon: Trophy, label: 'Completed', gradient: 'from-amber-500 to-amber-600' },
+    { path: '/notifications', icon: Bell, label: 'Notifications', gradient: 'from-pink-500 to-pink-600' },
+    { path: '/profile', icon: User, label: 'Profile', gradient: 'from-indigo-500 to-indigo-600' }
   ];
 
   const isActive = (path) => location.pathname === path;

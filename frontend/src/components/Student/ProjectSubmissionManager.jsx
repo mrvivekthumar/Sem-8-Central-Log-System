@@ -230,7 +230,7 @@ export const ProjectSubmissionManager = () => {
             transition={{ delay: 0.7 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/student/dashboard')}
+            onClick={() => navigate('/dashboard')}
             className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
           >
             Back to Dashboard
@@ -413,7 +413,7 @@ export const ProjectSubmissionManager = () => {
             icon={<CheckCircle className="w-12 h-12 text-green-500" />}
             onClose={() => {
               setShowSuccessModal(false);
-              navigate('/student/dashboard');
+              navigate('/dashboard');
             }}
           />
         )}

@@ -4,17 +4,17 @@
 spring:
   application:
     name: api-gateway
-  
+
   # Main Web Server Configuration (WebFlux)
   main:
     web-application-type: reactive
-  
+
   cloud:
     gateway:
       # CORS Configuration
       globalcors:
         corsConfigurations:
-          '[/**]':
+          "[/**]":
             allowedOriginPatterns:
               - "https://*.vercel.app"
               - "http://localhost:*"
@@ -30,7 +30,7 @@ spring:
             allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
-      
+
       # Default Filters for All Routes
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
@@ -42,7 +42,7 @@ spring:
             backoff:
               firstBackoff: 50ms
               maxBackoff: 500ms
-      
+
       # Route Definitions
       routes:
         # =========================================
@@ -56,7 +56,7 @@ spring:
             - Method=POST
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
-        
+
         - id: auth-register
           uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
           predicates:
@@ -64,7 +64,7 @@ spring:
             - Method=POST
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
-        
+
         - id: auth-token-validation
           uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
           predicates:
@@ -72,7 +72,7 @@ spring:
             - Method=GET,POST
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
-        
+
         # Protected Auth Routes
         - id: auth-service-protected
           uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
@@ -81,7 +81,7 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
             - AuthenticationFilter
-        
+
         # =========================================
         # FACULTY SERVICE ROUTES (Protected)
         # =========================================
@@ -92,7 +92,7 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
             - AuthenticationFilter
-        
+
         # =========================================
         # PROJECT SERVICE ROUTES (via Faculty Service)
         # =========================================
@@ -103,7 +103,7 @@ spring:
           filters:
             - RewritePath=/api/projects/(?<segment>.*), /faculty/projects/$\{segment}
             - AuthenticationFilter
-        
+
         # =========================================
         # STUDENT SERVICE ROUTES (Protected)
         # =========================================
@@ -114,7 +114,7 @@ spring:
           filters:
             - RewritePath=/api/students/(?<segment>.*), /student/students/$\{segment}
             - AuthenticationFilter
-        
+
         # =========================================
         # STUDENT PROJECT ROUTES (via Student Service)
         # =========================================
@@ -125,7 +125,7 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>.*), /student/$\{segment}
             - AuthenticationFilter
-        
+
         # =========================================
         # NOTIFICATIONS SERVICE ROUTES (via Faculty Service)
         # =========================================
@@ -136,7 +136,7 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>.*), /faculty/$\{segment}
             - AuthenticationFilter
-        
+
         # =========================================
         # DOCUMENTS/APPLICATIONS ROUTES (via Student Service)
         # =========================================
@@ -147,7 +147,7 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>.*), /student/$\{segment}
             - AuthenticationFilter
-        
+
         - id: applications-service
           uri: ${STUDENT_SERVICE_URL:http://student-service:8083}
           predicates:
@@ -155,7 +155,34 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>.*), /student/$\{segment}
             - AuthenticationFilter
-      
+
+        # =========================================
+        # REPORTS/REVIEW/PERSONAL PROJECT ROUTES (via Student Service)
+        # =========================================
+        - id: reports-service
+          uri: ${STUDENT_SERVICE_URL:http://student-service:8083}
+          predicates:
+            - Path=/api/reports/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /student/$\{segment}
+            - AuthenticationFilter
+
+        - id: review-service
+          uri: ${STUDENT_SERVICE_URL:http://student-service:8083}
+          predicates:
+            - Path=/api/review/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /student/$\{segment}
+            - AuthenticationFilter
+
+        - id: personal-project-service
+          uri: ${STUDENT_SERVICE_URL:http://student-service:8083}
+          predicates:
+            - Path=/api/personalProject/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /student/$\{segment}
+            - AuthenticationFilter
+
       # HTTP Client Configuration
       httpclient:
         connect-timeout: 5000

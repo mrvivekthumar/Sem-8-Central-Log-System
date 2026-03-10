@@ -19,6 +19,7 @@ RUN apk add --no-cache curl
 
 # Create non-root user
 RUN addgroup -S spring && adduser -S spring -G spring
+RUN mkdir -p /var/log/colabbridge && chown spring:spring /var/log/colabbridge
 USER spring:spring
 
 # Copy JAR from build stage

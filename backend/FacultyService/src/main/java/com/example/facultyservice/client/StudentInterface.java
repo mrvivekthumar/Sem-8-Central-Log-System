@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.facultyservice.entity.Student;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Feign client for Student Service
@@ -21,7 +22,7 @@ public interface StudentInterface {
     ResponseEntity<String> updateStudentsAvailable(@PathVariable int projectId);
 
     @GetMapping("/student/studentProject/students/{projectId}")
-    ResponseEntity<List<Student>> getStudents(@PathVariable int projectId);
+    ResponseEntity<List<Map<String, Object>>> getApplicationsByProject(@PathVariable int projectId);
 
     @GetMapping("/student/studentProject/{projectId}/student-count")
     ResponseEntity<Integer> getStudentCountByProject(@PathVariable int projectId);
@@ -33,8 +34,12 @@ public interface StudentInterface {
     void makeUnavailable(@PathVariable int studentId);
 
     @PutMapping("/student/studentProject/updateStatus/{studentId}/{projectId}")
-    void updateStatus(@PathVariable int studentId, @PathVariable int projectId);
+    ResponseEntity<Object> updateApplicationStatus(@PathVariable int studentId, @PathVariable int projectId,
+            @RequestBody Map<String, String> body);
 
     @PutMapping("/student/studentProject/{projectId}/rating/{rating}")
     ResponseEntity<String> updateRatings(@PathVariable int projectId, @PathVariable float rating);
+
+    @GetMapping("/student/students/allIds")
+    ResponseEntity<List<Integer>> getAllStudentIds();
 }

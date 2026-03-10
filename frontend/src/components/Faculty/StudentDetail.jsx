@@ -421,7 +421,7 @@ const StudentDetail = () => {
                       <div className={`absolute top-0 left-0 h-full w-1 ${getPreferenceColor(student.preference || 0).split(' ')[0]}`}></div>
                       <div className="p-5 bg-white dark:bg-gray-800">
                         <div className="flex items-start justify-between">
-                          <div className="flex flex-1" onClick={() => navigate(`/student/profile/${student.studentId}`)}>
+                          <div className="flex flex-1" onClick={() => navigate(`/faculty/student-profile/${student.studentId}`)}>
                             <div className="mr-4 flex-shrink-0">
                               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${getPreferenceColor(student.preference || 0).split(' ')[0]}`}>
                                 {student.preference || '?'}

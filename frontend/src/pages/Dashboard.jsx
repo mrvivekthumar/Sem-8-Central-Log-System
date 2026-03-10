@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import axiosInstance from '../api/axiosInstance';
+import API_ENDPOINTS from '../api/endpoints';
 import { studentService } from '../api';
 import ProjectCard from '../components/ProjectCard';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +26,7 @@ const Dashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+  const [appliedProjectIds, setAppliedProjectIds] = useState([]);
   const { user } = useAuth();
 
   const domains = ['all', 'Web Development', 'Mobile Development', 'Machine Learning', 'AI', 'Data Science', 'Cloud Computing'];
@@ -31,7 +34,19 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchProjects();
+    if (user?.role === 'STUDENT' && user?.id) {
+      fetchAppliedProjectIds();
+    }
   }, []);
+
+  const fetchAppliedProjectIds = async () => {
+    try {
+      const response = await axiosInstance.get(API_ENDPOINTS.STUDENT_PROJECT.PROJECT_IDS_BY_PREF(user.id));
+      setAppliedProjectIds(response.data || []);
+    } catch (error) {
+      console.error('Error fetching applied project IDs:', error);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -51,13 +66,17 @@ const Dashboard = () => {
       const matchesSearch = project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.faculty?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesDomain = selectedDomain === 'all' || project.domain === selectedDomain;
+      const matchesDomain = selectedDomain === 'all' ||
+        (project.skills && project.skills.some(skill =>
+          skill.toLowerCase().includes(selectedDomain.toLowerCase()) ||
+          selectedDomain.toLowerCase().includes(skill.toLowerCase())
+        ));
       const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
       return matchesSearch && matchesDomain && matchesStatus;
     })
     .sort((a, b) => {
-      if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
-      if (sortBy === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortBy === 'newest') return new Date(b.date || 0) - new Date(a.date || 0);
+      if (sortBy === 'oldest') return new Date(a.date || 0) - new Date(b.date || 0);
       if (sortBy === 'title') return a.title?.localeCompare(b.title);
       return 0;
     });
@@ -317,6 +336,7 @@ const Dashboard = () => {
                 <ProjectCard
                   project={project}
                   showApplyButton={user?.role === 'STUDENT'}
+                  hasApplied={appliedProjectIds.includes(project.projectId)}
                   onApply={handleApply}
                 />
               </motion.div>

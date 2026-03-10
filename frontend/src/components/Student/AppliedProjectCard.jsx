@@ -24,7 +24,7 @@ const AppliedProjectCard = ({
   onMoveDown
 }) => {
   const navigate = useNavigate();
- 
+
   const getStatusConfig = (status) => {
     const configs = {
       'OPEN_FOR_APPLICATIONS': {
@@ -247,7 +247,7 @@ const AppliedProjectCard = ({
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => navigate(`/student/project/${project.projectId}`)}
+            onClick={() => navigate(`/project/${project.projectId}`)}
             className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
           >
             <Eye className="w-4 h-4" />
@@ -258,7 +258,7 @@ const AppliedProjectCard = ({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => navigate(`/student/project/${project.projectId}/submit`)}
+              onClick={() => navigate(`/project/${project.projectId}/submit`)}
               className="px-6 py-2.5 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-600 transition-all flex items-center justify-center gap-2"
             >
               <ExternalLink className="w-4 h-4" />

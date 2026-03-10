@@ -24,7 +24,7 @@ const StudentProjectCard = ({ project }) => {
     <motion.div
       whileHover={{ y: -8, scale: 1.02 }}
       className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all cursor-pointer group"
-      onClick={() => navigate(`/student/project/${project.projectId}`)}
+      onClick={() => navigate(`/project/${project.projectId}`)}
     >
       {/* Gradient Header */}
       <div className={`h-2 bg-gradient-to-r ${getStatusColor(project.status)}`} />

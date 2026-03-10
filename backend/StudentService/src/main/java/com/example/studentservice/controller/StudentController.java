@@ -209,4 +209,138 @@ public class StudentController {
             throw e;
         }
     }
+
+    /**
+     * Update student profile by ID (path variable)
+     * PUT /student/students/{studentId}
+     * Used by frontend when updating profile with ID in URL
+     */
+    @PutMapping("/{studentId}")
+    public ResponseEntity<StudentProfileDTO> updateProfileById(
+            @PathVariable String studentId,
+            @RequestBody StudentProfileDTO profileDTO,
+            HttpServletRequest request) {
+
+        logger.info("===============================================");
+        logger.info("Controller: PUT /student/students/{}", studentId);
+        logger.debug("Profile data: {}", profileDTO);
+        logger.debug("Request from IP: {}", request.getRemoteAddr());
+
+        try {
+            StudentProfileDTO updated = studentService.updateProfile(studentId, profileDTO);
+            logger.info("Profile updated successfully for student: {}", studentId);
+            logger.info("===============================================");
+            return ResponseEntity.ok(updated);
+
+        } catch (Exception e) {
+            logger.error("Failed to update profile for student {}: {}",
+                    studentId, e.getMessage(), e);
+            logger.info("===============================================");
+            throw e;
+        }
+    }
+
+    /**
+     * Update students availability after project assignment
+     * PUT /student/students/available/{projectId}
+     * Called by FacultyService after assigning students to a project
+     */
+    @PutMapping("/available/{projectId}")
+    public ResponseEntity<String> updateStudentsAvailable(
+            @PathVariable int projectId,
+            HttpServletRequest request) {
+
+        logger.info("===============================================");
+        logger.info("Controller: PUT /students/available/{}", projectId);
+        logger.debug("Request from IP: {}", request.getRemoteAddr());
+
+        try {
+            studentService.updateStudentsAvailability(projectId);
+            logger.info("Students availability updated for project: {}", projectId);
+            logger.info("===============================================");
+            return ResponseEntity.ok("Students availability updated successfully");
+
+        } catch (Exception e) {
+            logger.error("Failed to update students availability for project {}: {}",
+                    projectId, e.getMessage(), e);
+            logger.info("===============================================");
+            throw e;
+        }
+    }
+
+    /**
+     * Get students by IDs (bulk operation)
+     * POST /student/students/byIds
+     * Called by FacultyService
+     */
+    @PostMapping("/byIds")
+    public ResponseEntity<List<com.example.studentservice.domain.Student>> getStudentsByIds(
+            @RequestBody List<Integer> studentIds,
+            HttpServletRequest request) {
+
+        logger.info("===============================================");
+        logger.info("Controller: POST /students/byIds - Fetching students: {}", studentIds);
+        logger.debug("Request from IP: {}", request.getRemoteAddr());
+
+        try {
+            List<com.example.studentservice.domain.Student> students = studentService.getStudentsByIds(studentIds);
+            logger.info("Found {} students", students.size());
+            logger.info("===============================================");
+            return ResponseEntity.ok(students);
+
+        } catch (Exception e) {
+            logger.error("Failed to fetch students by IDs: {}", e.getMessage(), e);
+            logger.info("===============================================");
+            throw e;
+        }
+    }
+
+    /**
+     * Make student unavailable
+     * PUT /student/students/{studentId}/unavailable
+     * Called by FacultyService when student is assigned to a project
+     */
+    @PutMapping("/{studentId}/unavailable")
+    public ResponseEntity<Void> makeStudentUnavailable(
+            @PathVariable int studentId,
+            HttpServletRequest request) {
+
+        logger.info("===============================================");
+        logger.info("Controller: PUT /students/{}/unavailable", studentId);
+        logger.debug("Request from IP: {}", request.getRemoteAddr());
+
+        try {
+            studentService.makeStudentUnavailable(studentId);
+            logger.info("Student {} marked as unavailable", studentId);
+            logger.info("===============================================");
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            logger.error("Failed to make student {} unavailable: {}",
+                    studentId, e.getMessage(), e);
+            logger.info("===============================================");
+            throw e;
+        }
+    }
+
+    /**
+     * Get all student IDs
+     * GET /student/students/allIds
+     * Called by FacultyService for sending notifications to all students
+     */
+    @GetMapping("/allIds")
+    public ResponseEntity<List<Integer>> getAllStudentIds(HttpServletRequest request) {
+        logger.info("===============================================");
+        logger.info("Controller: GET /students/allIds - Fetching all student IDs");
+        try {
+            List<Integer> ids = studentService.getAllStudentIds();
+            logger.info("Found {} student IDs", ids.size());
+            logger.info("===============================================");
+            return ResponseEntity.ok(ids);
+        } catch (Exception e) {
+            logger.error("Failed to fetch all student IDs: {}", e.getMessage(), e);
+            logger.info("===============================================");
+            throw e;
+        }
+    }
 }

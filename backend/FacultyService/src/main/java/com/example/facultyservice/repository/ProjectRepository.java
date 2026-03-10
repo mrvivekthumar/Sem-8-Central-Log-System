@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
-        @Query("SELECT p FROM Project p WHERE p.faculty.id = :facultyId")
+        @Query("SELECT p FROM Project p WHERE p.faculty.fId = :facultyId")
         List<Project> findByFacultyId(@Param("facultyId") Long facultyId);
 
         List<Project> findByStatus(String status);
@@ -26,12 +26,15 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
         List<Project> findExpiredProjects(@Param("status") Status status,
                         @Param("thresholdTime") LocalDateTime thresholdTime);
 
-        @Query("SELECT p FROM Project p WHERE p.faculty.id = :facultyId AND p.id IN :projectIds")
+        @Query("SELECT p FROM Project p WHERE p.faculty.fId = :facultyId AND p.id IN :projectIds")
         List<Project> findByFacultyIdAndProjectIds(@Param("facultyId") int facultyId,
                         @Param("projectIds") List<Integer> projectIds);
 
         @Query("SELECT p FROM Project p WHERE p.id IN :projectIds")
         List<Project> findByProjectIds(@Param("projectIds") List<Integer> projectIds);
+
+        @Query("SELECT p FROM Project p WHERE p.faculty.fId = :facultyId AND p.status = :status")
+        List<Project> findByFacultyIdAndStatus(@Param("facultyId") Long facultyId, @Param("status") Status status);
 
         @Query("SELECT count(p) FROM Project p where p.status = :status")
         Optional<Integer> findTotalApprovedProjects(@Param("status") Status status);

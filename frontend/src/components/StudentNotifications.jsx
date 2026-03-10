@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import axiosInstance from '../api/axiosInstance';
+import API_ENDPOINTS from '../api/endpoints';
 import { useAuth } from '../contexts/AuthContext';
 
 const StudentNotifications = () => {
@@ -30,49 +32,35 @@ const StudentNotifications = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      // Mock notifications - replace with actual API call
-      const mockNotifications = [
-        {
-          id: 1,
-          type: 'success',
-          title: 'Application Accepted!',
-          message: 'Your application for "AI Chatbot Development" has been accepted.',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          read: false
-        },
-        {
-          id: 2,
-          type: 'info',
-          title: 'New Project Available',
-          message: 'Check out the new "Machine Learning" project posted by Dr. Smith.',
-          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-          read: false
-        },
-        {
-          id: 3,
-          type: 'warning',
-          title: 'Deadline Approaching',
-          message: 'Project submission deadline is in 3 days. Don\'t forget to submit your work!',
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          read: true
-        },
-        {
-          id: 4,
-          type: 'achievement',
-          title: 'Achievement Unlocked!',
-          message: 'Congratulations! You\'ve completed 5 projects.',
-          timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000),
-          read: true
-        }
-      ];
-
-      setNotifications(mockNotifications);
+      if (!user?.id) return;
+      const response = await axiosInstance.get(API_ENDPOINTS.NOTIFICATIONS.GET_BY_RECEIVER(user.id));
+      const data = response.data || [];
+      // Map backend notification to frontend format
+      const mapped = data.map(n => ({
+        id: n.id,
+        type: getNotifType(n.notificationType),
+        title: n.title || 'Notification',
+        message: n.message || '',
+        timestamp: new Date(n.timestamp),
+        read: n.seen || false
+      }));
+      setNotifications(mapped);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast.error('Failed to load notifications');
     } finally {
       setLoading(false);
     }
+  };
+
+  const getNotifType = (notificationType) => {
+    const typeMap = {
+      'PROJECT_CREATION': 'info',
+      'PROJECT_ASSIGNMENT': 'warning',
+      'REPORT_SUBMISSION': 'success',
+      'GENERAL': 'info'
+    };
+    return typeMap[notificationType] || 'info';
   };
 
   const getNotificationConfig = (type) => {

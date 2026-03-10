@@ -163,7 +163,7 @@ const CompleteProjectList = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/student/projects')}
+              onClick={() => navigate('/dashboard')}
               className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
               Browse Projects
@@ -255,7 +255,7 @@ const CompleteProjectList = () => {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => navigate(`/student/project/${project.projectId}`)}
+                      onClick={() => navigate(`/project/${project.projectId}`)}
                       className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
                     >
                       <Eye className="w-4 h-4" />
