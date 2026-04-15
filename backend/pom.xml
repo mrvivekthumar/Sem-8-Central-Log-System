@@ -6,11 +6,11 @@
     <modelVersion>4.0.0</modelVersion>
     
     <groupId>com.example</groupId>
-    <artifactId>colabbridge-backend</artifactId>
+    <artifactId>central-log-system-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     
-    <name>ColabBridge Backend</name>
+    <name>Central Log System Backend</name>
     
     <modules>
         <module>Api-Gateway</module>

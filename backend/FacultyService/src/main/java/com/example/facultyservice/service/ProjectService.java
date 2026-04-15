@@ -89,10 +89,13 @@ public class ProjectService {
      * Get visible projects (open for applications and not past deadline)
      */
     public List<Project> getVisibleProjects() {
-        log.info("Service: Fetching visible projects");
-        return projectRepository.findVisibleProjects(
-                LocalDateTime.now(),
-                Status.OPEN_FOR_APPLICATIONS);
+        LocalDateTime now = LocalDateTime.now();
+        log.info("Service: Fetching visible projects at {}", now);
+
+        List<Project> visibleProjects = projectRepository.findVisibleProjects(now, Status.OPEN_FOR_APPLICATIONS);
+
+        log.info("Service: Found {} visible projects", visibleProjects.size());
+        return visibleProjects;
     }
 
     /**
@@ -129,12 +132,13 @@ public class ProjectService {
 
         project.setFaculty(faculty);
         project.setDate(LocalDateTime.now());
-        if (project.getStatus() == null) {
-            project.setStatus(Status.OPEN_FOR_APPLICATIONS);
-        }
+        project.setStatus(Status.OPEN_FOR_APPLICATIONS);
 
         Project savedProject = projectRepository.save(project);
-        log.info("Service: Project created with ID: {}", savedProject.getProjectId());
+        log.info("Service: Project created with ID: {}, status: {}, applicationDeadline: {}",
+                savedProject.getProjectId(),
+                savedProject.getStatus(),
+                savedProject.getApplicationDeadline());
 
         // Send notification to all students about the new project
         try {

@@ -13,7 +13,6 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../api/axiosInstance';
 import API_ENDPOINTS from '../api/endpoints';
-import { studentService } from '../api';
 import ProjectCard from '../components/ProjectCard';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -33,11 +32,14 @@ const Dashboard = () => {
   const statuses = ['all', 'OPEN_FOR_APPLICATIONS', 'IN_PROGRESS'];
 
   useEffect(() => {
+    if (!user?.role) return;
+
     fetchProjects();
+
     if (user?.role === 'STUDENT' && user?.id) {
       fetchAppliedProjectIds();
     }
-  }, []);
+  }, [user?.role, user?.id]);
 
   const fetchAppliedProjectIds = async () => {
     try {
@@ -51,8 +53,28 @@ const Dashboard = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await studentService.getProjects();
-      setProjects(response.data || response || []);
+
+      let projectsData;
+
+      // Students should browse projects that are open for applications.
+      if (user?.role === 'STUDENT') {
+        const resp = await axiosInstance.get(API_ENDPOINTS.PROJECTS.VISIBLE);
+        projectsData = resp.data;
+      } else if (user?.role === 'FACULTY' && user?.id) {
+        const resp = await axiosInstance.get(API_ENDPOINTS.PROJECTS.BY_FACULTY(user.id));
+        projectsData = resp.data;
+      } else {
+        // Fallback for other roles (e.g., ADMIN)
+        const resp = await axiosInstance.get(API_ENDPOINTS.PROJECTS.LIST);
+        projectsData = resp.data;
+      }
+
+      // Normalize to a simple array.
+      const normalized = Array.isArray(projectsData)
+        ? projectsData
+        : (projectsData?.content || []);
+
+      setProjects(normalized);
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast.error('Failed to load projects');

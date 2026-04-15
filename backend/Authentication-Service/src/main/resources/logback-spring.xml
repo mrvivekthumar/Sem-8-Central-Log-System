@@ -48,9 +48,9 @@
 
     <!-- Central Log File Appender (shared volume across all services) -->
     <appender name="CENTRAL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/log/colabbridge/combined.log</file>
+        <file>/var/log/central-log-system/combined.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/colabbridge/combined.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>/var/log/central-log-system/combined.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>50MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>2GB</totalSizeCap>

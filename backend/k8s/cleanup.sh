@@ -2,14 +2,14 @@
 
 set -e
 
-echo "Cleaning up ColabBridge Kubernetes resources..."
+echo "Cleaning up Central Log System Kubernetes resources..."
 echo ""
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-read -p "Delete all ColabBridge resources? (yes/no): " confirm
+read -p "Delete all Central Log System resources? (yes/no): " confirm
 
 if [ "$confirm" != "yes" ]; then
     echo "Cleanup cancelled."
@@ -31,4 +31,4 @@ kubectl delete -f 00-namespace.yaml --ignore-not-found=true
 echo ""
 echo -e "${GREEN}Cleanup complete!${NC}"
 echo ""
-echo "Verify: kubectl get all -n colabbridge"
+echo "Verify: kubectl get all -n central-log-system"

@@ -2,17 +2,17 @@
 setlocal enabledelayedexpansion
 
 REM ========================================================
-REM   ColabBridge - One-Click Startup Script (Windows)
+REM   Central Log System - One-Click Startup Script (Windows)
 REM   Author: Vivek Thumar
 REM   This script sets up and runs the entire project.
 REM ========================================================
 
-title ColabBridge - Startup
+title Central Log System - Startup
 color 0A
 
 echo.
 echo  ============================================
-echo       ColabBridge - Project Launcher
+echo       Central Log System - Project Launcher
 echo  ============================================
 echo.
 
@@ -106,7 +106,11 @@ REM -------------------------------------------------------
 echo  [3/6] Setting up local data storage...
 echo.
 
-set "DATA_DIR=%USERPROFILE%\Documents\ColabBridge"
+set "DATA_DIR=%USERPROFILE%\Documents\Central Log System"
+
+REM Export for Docker Compose volume mounts (prevents '~' path issues on Windows)
+set "CENTRAL_LOG_SYSTEM_DATA_DIR=%DATA_DIR%"
+set "CENTRAL_LOG_SYSTEM_DATA_DIR=%CENTRAL_LOG_SYSTEM_DATA_DIR:\=/%"
 
 if not exist "%DATA_DIR%\databases\auth-db" mkdir "%DATA_DIR%\databases\auth-db"
 if not exist "%DATA_DIR%\databases\faculty-db" mkdir "%DATA_DIR%\databases\faculty-db"
@@ -227,7 +231,7 @@ REM -------------------------------------------------------
 echo  [6/6] Starting frontend...
 echo.
 echo  ============================================
-echo       ColabBridge is running!
+echo       Central Log System is running!
 echo  ============================================
 echo.
 echo   Frontend:       http://localhost:5173

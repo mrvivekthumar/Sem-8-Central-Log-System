@@ -13,14 +13,14 @@ parameters:
   provisioningMode: efs-ap
   fileSystemId: fs-CHANGE_ME # ← Replace with your EFS file system ID
   directoryPerms: "700"
-  basePath: "/colabbridge"
+  basePath: "/central-log-system"
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: central-logs-pvc
-  namespace: colabbridge
+  namespace: central-log-system
 spec:
   accessModes:
     - ReadWriteMany

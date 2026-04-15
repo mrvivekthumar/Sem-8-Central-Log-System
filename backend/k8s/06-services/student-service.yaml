@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: student-service
-  namespace: colabbridge
+  namespace: central-log-system
   labels:
     app: student-service
 spec:
@@ -15,10 +15,10 @@ spec:
       labels:
         app: student-service
     spec:
-      serviceAccountName: colabbridge-sa
+      serviceAccountName: central-log-system-sa
       containers:
         - name: student-service
-          image: colabbridge/student-service:latest # ← Push to ECR
+          image: central-log-system/student-service:latest # ← Push to ECR
           imagePullPolicy: Always
           ports:
             - containerPort: 8083
@@ -113,7 +113,7 @@ spec:
             failureThreshold: 5
           volumeMounts:
             - name: logs
-              mountPath: /var/log/colabbridge
+              mountPath: /var/log/central-log-system
       volumes:
         - name: logs
           persistentVolumeClaim:
@@ -124,7 +124,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: student-service
-  namespace: colabbridge
+  namespace: central-log-system
   labels:
     app: student-service
 spec:

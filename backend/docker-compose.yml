@@ -10,7 +10,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/databases/auth-db:/var/lib/postgresql/data
+      - "${CENTRAL_LOG_SYSTEM_DATA_DIR:-~/Documents/Central Log System}/databases/auth-db:/var/lib/postgresql/data"
     networks:
       - app-network
     healthcheck:
@@ -29,7 +29,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/databases/faculty-db:/var/lib/postgresql/data
+      - "${CENTRAL_LOG_SYSTEM_DATA_DIR:-~/Documents/Central Log System}/databases/faculty-db:/var/lib/postgresql/data"
     networks:
       - app-network
     healthcheck:
@@ -48,7 +48,7 @@ services:
     ports:
       - "5435:5432"
     volumes:
-      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/databases/student-db:/var/lib/postgresql/data
+      - "${CENTRAL_LOG_SYSTEM_DATA_DIR:-~/Documents/Central Log System}/databases/student-db:/var/lib/postgresql/data"
     networks:
       - app-network
     healthcheck:
@@ -68,7 +68,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/rabbitmq:/var/lib/rabbitmq
+      - "${CENTRAL_LOG_SYSTEM_DATA_DIR:-~/Documents/Central Log System}/rabbitmq:/var/lib/rabbitmq"
     networks:
       - app-network
     healthcheck:
@@ -95,7 +95,7 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/logs:/var/log/colabbridge
+      - "${CENTRAL_LOG_SYSTEM_DATA_DIR:-~/Documents/Central Log System}/logs:/var/log/central-log-system"
     depends_on:
       auth-db:
         condition: service_healthy
@@ -136,7 +136,7 @@ services:
     ports:
       - "8082:8082"
     volumes:
-      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/logs:/var/log/colabbridge
+      - "${CENTRAL_LOG_SYSTEM_DATA_DIR:-~/Documents/Central Log System}/logs:/var/log/central-log-system"
     depends_on:
       faculty-db:
         condition: service_healthy
@@ -183,7 +183,7 @@ services:
     ports:
       - "8083:8083"
     volumes:
-      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/logs:/var/log/colabbridge
+      - "${CENTRAL_LOG_SYSTEM_DATA_DIR:-~/Documents/Central Log System}/logs:/var/log/central-log-system"
     depends_on:
       student-db:
         condition: service_healthy
@@ -216,7 +216,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ${COLABBRIDGE_DATA_DIR:-~/Documents/ColabBridge}/logs:/var/log/colabbridge
+      - "${CENTRAL_LOG_SYSTEM_DATA_DIR:-~/Documents/Central Log System}/logs:/var/log/central-log-system"
     depends_on:
       - auth-service
       - faculty-service

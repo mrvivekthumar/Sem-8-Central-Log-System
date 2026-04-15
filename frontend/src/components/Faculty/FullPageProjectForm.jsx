@@ -26,6 +26,7 @@ const FullPageProjectForm = () => {
     teamSize: '',
     maxStudents: '',
     duration: '',
+    deadline: '',
     applicationDeadline: '',
     requiredSkills: [],
     prerequisites: ''
@@ -48,10 +49,17 @@ const FullPageProjectForm = () => {
     setLoading(true);
 
     try {
-      await axiosInstance.post(API_ENDPOINTS.PROJECTS.CREATE, {
+      // Convert date strings to datetime format (add time component)
+      const payload = {
         ...formData,
-        facultyId: user.id
-      });
+        deadline: formData.deadline ? `${formData.deadline}T23:59:59` : null,
+        applicationDeadline: formData.applicationDeadline ? `${formData.applicationDeadline}T23:59:59` : null,
+        skills: formData.requiredSkills,
+        facultyId: user.id,
+        status: 'OPEN_FOR_APPLICATIONS'
+      };
+
+      await axiosInstance.post(API_ENDPOINTS.PROJECTS.CREATE, payload);
       toast.success('Project created successfully!');
       navigate('/faculty/dashboard');
     } catch (error) {
@@ -230,17 +238,36 @@ const FullPageProjectForm = () => {
                 <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Application Deadline
+                Deadlines
               </h2>
             </div>
 
-            <input
-              type="date"
-              value={formData.applicationDeadline}
-              onChange={(e) => setFormData({ ...formData, applicationDeadline: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
-              required
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Project Deadline *
+                </label>
+                <input
+                  type="date"
+                  value={formData.deadline}
+                  onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Application Deadline *
+                </label>
+                <input
+                  type="date"
+                  value={formData.applicationDeadline}
+                  onChange={(e) => setFormData({ ...formData, applicationDeadline: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+                  required
+                />
+              </div>
+            </div>
           </motion.div>
 
           {/* Skills Section */}

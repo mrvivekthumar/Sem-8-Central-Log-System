@@ -160,6 +160,7 @@ const AddProjectForm = ({ onClose }) => {
         teamSize: formData.teamSize,
         domain: formData.domain,
         duration: formData.duration,
+        status: 'OPEN_FOR_APPLICATIONS',
       };
 
       await axiosInstance.post(API_ENDPOINTS.FACULTY.CREATE_PROJECT_BY_FACULTY(user.id), payload);

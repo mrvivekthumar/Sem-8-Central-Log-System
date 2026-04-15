@@ -1,6 +1,6 @@
-# 🤝 ColabBridge
+# 🤝 Central Log System
 
-**ColabBridge** is a microservices-based collaborative platform built with **Spring Boot** and **React**, connecting faculty and students for academic project collaborations. It includes secure JWT authentication, role-based access, project management, report uploads, and event-driven notifications via RabbitMQ.
+**Central Log System** is a microservices-based collaborative platform built with **Spring Boot** and **React**, connecting faculty and students for academic project collaborations. It includes secure JWT authentication, role-based access, project management, report uploads, and event-driven notifications via RabbitMQ.
 
 ---
 
@@ -17,8 +17,8 @@
 ### Run the project
 
 ```bash
-git clone https://github.com/mrvivekthumar/ColabBridge.git
-cd ColabBridge
+git clone https://github.com/mrvivekthumar/Central-Log-System.git
+cd Central-Log-System
 ```
 
 **Windows — double-click or run:**
@@ -30,7 +30,7 @@ start.bat
 That's it. The script will:
 
 1. Verify Docker, Node.js, and npm are installed
-2. Create a persistent data folder at `C:\Users\<you>\Documents\ColabBridge\`
+2. Create a persistent data folder at `C:\Users\<you>\Documents\Central-Log-System\`
 3. Build and start all backend services via Docker Compose
 4. Wait for databases and services to become healthy
 5. Install frontend dependencies (first run only)
@@ -45,7 +45,7 @@ That's it. The script will:
 All database data and logs are persisted on your **physical machine** (not inside Docker volumes), so nothing is lost when containers are removed.
 
 ```
-C:\Users\<you>\Documents\ColabBridge\
+C:\Users\<you>\Documents\Central-Log-System\
 ├── databases\
 │   ├── auth-db\           ← Auth PostgreSQL data
 │   ├── faculty-db\        ← Faculty PostgreSQL data
@@ -58,7 +58,7 @@ C:\Users\<you>\Documents\ColabBridge\
 **View central logs:**
 
 ```powershell
-Get-Content "$HOME\Documents\ColabBridge\logs\combined.log" -Tail 50 -Wait
+Get-Content "$HOME\Documents\Central-Log-System\logs\combined.log" -Tail 50 -Wait
 ```
 
 ---
@@ -151,7 +151,7 @@ graph TD
 ## 📦 Project Structure
 
 ```
-ColabBridge/
+Central-Log-System/
 ├── start.bat                  # One-click startup (Windows)
 ├── backend/
 │   ├── Api-Gateway/           # Spring Cloud Gateway
@@ -195,7 +195,7 @@ taskkill /PID <PID> /F
 ```powershell
 cd backend
 docker compose down
-Remove-Item -Recurse "$HOME\Documents\ColabBridge"
+Remove-Item -Recurse "$HOME\Documents\Central-Log-System"
 docker compose up -d --build
 ```
 

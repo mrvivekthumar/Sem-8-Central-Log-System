@@ -15,7 +15,7 @@ import jakarta.annotation.PostConstruct;
  * - Routes requests to appropriate microservices
  * - Handles authentication and authorization via JWT
  * - Manages CORS for frontend applications
- * - Tracks requests with correlation IDs
+ * - Tracks requests with correlation IDs   
  * - Provides centralized access point for all services
  * 
  * Architecture:
